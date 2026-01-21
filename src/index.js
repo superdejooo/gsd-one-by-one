@@ -3,10 +3,8 @@ import * as github from "@actions/github";
 import { parseComment, parseArguments } from "./lib/parser.js";
 import { loadConfig } from "./lib/config.js";
 import { validateCommand, sanitizeArguments } from "./lib/validator.js";
-
-// Agent SDK bundling verification (Plan 03-01)
-// This import ensures SDK is bundled - will be moved to src/llm/agent.js in Plan 03-02
-import "@anthropic-ai/claude-agent-sdk";
+import { executeLLMTaskWithRetry } from "./llm/agent.js";
+import { createMilestonePrompt } from "./llm/prompts.js";
 
 try {
   // Get inputs from action.yml
@@ -54,7 +52,11 @@ try {
       core.setOutput("config-loaded", "true");
       core.setOutput("arguments", JSON.stringify(sanitizedArgs));
 
-      // TODO: Execute command logic in later phases (Phase 4+)
+      // TODO: Execute command logic in later phases (Phase 5+)
+      // LLM integration ready - executeLLMTaskWithRetry and createMilestonePrompt available
+      // CCR proxy service must be running with ANTHROPIC_BASE_URL=http://127.0.0.1:3456
+      // Config generated via generateCCRConfig() in workflow before service start
+      // Example: const result = await executeLLMTaskWithRetry(createMilestonePrompt(sanitizedArgs));
     } catch (error) {
       core.setFailed(error.message);
       core.setOutput("command-found", "false");
