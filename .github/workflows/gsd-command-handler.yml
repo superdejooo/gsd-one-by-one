@@ -17,9 +17,53 @@ jobs:
   handle-gsd-command:
     runs-on: ubuntu-latest
     steps:
-      - uses: superdejooo/gsd-github-action@v1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Claude Code Router
+        run: npm install -g @musistudio/claude-code-router@2.0.0
+
+      - name: Generate CCR Configuration
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: npm run setup:ccr
+
+      - name: Start CCR Service
+        run: |
+          nohup ccr start > ccr.log 2>&1 &
+          sleep 5
+
+          # Verify service is running
+          curl -f http://127.0.0.1:3456/health || (echo "CCR service failed to start" && cat ccr.log && exit 1)
+
+      - name: Run Action
+        uses: ./
+        env:
+          ANTHROPIC_BASE_URL: http://127.0.0.1:3456
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           issue-number: ${{ github.event.issue.number }}
           repo-owner: ${{ github.repository_owner }}
           repo-name: ${{ github.event.repository.name }}
           comment-body: ${{ github.event.comment.body }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CCR logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccr-logs
+          path: |
+            ccr.log
+            ~/.claude-code-router/logs/
+            ~/.claude-code-router/claude-code-router.log
