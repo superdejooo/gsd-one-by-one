@@ -1,3 +1,8 @@
+// DEPRECATED - NOT IN USE
+// Using stdin pipe instead: echo "/gsd:command" | ccr code
+// This file contains the old Agent SDK approach which is no longer used.
+// Kept for reference only. The action now executes Claude Code via CCR stdin pipe.
+
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
 /**
