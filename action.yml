@@ -14,10 +14,22 @@ inputs:
   comment-body:
     description: 'The comment body text'
     required: true
+  token:
+    description: 'GitHub token for API access'
+    required: false
+    default: ${{ github.token }}
 
 outputs:
   response-posted:
     description: 'Whether the response was successfully posted'
+  command-found:
+    description: 'Whether an @gsd-bot command was found'
+  command:
+    description: 'The extracted command name'
+  config-loaded:
+    description: 'Whether the configuration was loaded'
+  arguments:
+    description: 'Parsed and sanitized arguments (JSON string)'
 
 runs:
   using: 'node24'
