@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2025-01-21)
 ## Current Position
 
 Phase: 2 of 6 (Command Parsing & Config)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-21T20:06:38Z — Completed 02-02-PLAN.md (Parser integration)
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-21T20:17:23Z — Completed 02-03-PLAN.md (Config loading & validation)
 
-Progress: [██████████░░] 33%
+Progress: [████████████] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 3 min
-- Total execution time: 0.25 hours
+- Total plans completed: 6
+- Average duration: 4 min
+- Total execution time: 0.33 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01    | 3     | 3     | 3 min    |
-| 02    | 2     | 3     | 2 min    |
+| 02    | 3     | 3     | 3 min    |
 
 **Recent Trend:**
-- Last 5 plans: 3 min, 4 min, unknown, 2 min, 2 min
+- Last 5 plans: 3 min, 4 min, unknown, 2 min, 2 min, 9 min
 - Trend: -
 
 *Updated after each plan completion*
@@ -52,6 +52,13 @@ Recent decisions affecting current work:
 - Early exit when bot not mentioned - no wasted processing on irrelevant comments
 - Separate parsing from validation - cleaner architecture, easier to test
 
+**From 02-03 (Config Loading & Validation):**
+- Allowlist validation (not denylist) per OWASP security guidelines
+- Only "new-milestone" in allowlist for v1 - extensible array for future commands
+- GitHub token defaults to github.token for workflow convenience
+- Config defaults include all 6 phases and 4 status labels for future use
+- Shell metacharacters sanitized: [;&|`$()] per OWASP Input Validation Cheat Sheet
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during aessions]
@@ -66,6 +73,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-21T20:06:38Z
-Stopped at: Completed 02-02-PLAN.md (Parser integration)
+Last session: 2026-01-21T20:17:23Z
+Stopped at: Completed 02-03-PLAN.md (Config loading & validation)
 Resume file: None
