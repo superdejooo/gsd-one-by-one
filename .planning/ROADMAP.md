@@ -54,20 +54,21 @@ Plans:
 - [x] 02-03: Load config file from repository with defaults and add command validation with input sanitization
 
 ### Phase 3: CCR Integration
-**Goal**: Bundle and configure Anthropic Agent SDK for CI-safe, non-interactive LLM execution
+**Goal**: Bundle and configure Claude Code Router for CI-safe, non-interactive LLM execution via stdin pipe
 **Depends on**: Phase 2
 **Requirements**: CCR-01, CCR-02, CCR-03, CCR-04, CCR-05, CCR-06, CCR-07
 **Success Criteria** (what must be TRUE):
-  1. Action installs Agent SDK with pinned version via package manager
-  2. Action configures SDK via environment variables (ANTHROPIC_API_KEY)
-  3. API keys from GitHub Actions secrets are interpolated into SDK environment
-  4. SDK runs in non-interactive mode (permissionMode: acceptEdits) and handles all LLM invocations
-**Plans**: 3 plans
+  1. Action installs CCR with pinned version via package manager
+  2. Action configures CCR via environment variables and config file
+  3. API keys from GitHub Actions secrets are interpolated into CCR config
+  4. CCR runs in non-interactive mode (NON_INTERACTIVE_MODE: true) and wraps Claude Code CLI
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: Install Agent SDK with pinned version and bundle into distributable
-- [ ] 03-02: Create LLM integration layer with SDK wrapper and prompt templates
-- [ ] 03-03: Configure API key passing and verify non-interactive execution
+- [x] 03-01: Install Agent SDK with pinned version and bundle into distributable
+- [x] 03-02: Create LLM integration layer with SDK wrapper and prompt templates
+- [x] 03-03: Configure API key passing and verify non-interactive execution
+- [ ] 03-04: Gap closure - Add NON_INTERACTIVE_MODE and clean up architecture artifacts
 
 ### Phase 4: GitHub Integration & Response
 **Goal**: Enable GitHub CLI operations for posting comments, creating branches, and committing artifacts
@@ -118,13 +119,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. GitHub Action Foundation | 3/3 | Complete | 2026-01-21 |
 | 2. Command Parsing & Config | 3/3 | Complete | 2026-01-21 |
-| 3. CCR Integration | 0/3 | Not started | - |
+| 3. CCR Integration | 3/4 | Gap closure | - |
 | 4. GitHub Integration & Response | 0/3 | Not started | - |
 | 5. Milestone Creation Workflow | 0/4 | Not started | - |
 | 6. Security & Authorization | 0/2 | Not started | - |
