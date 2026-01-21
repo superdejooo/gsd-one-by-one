@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2025-01-21)
 ## Current Position
 
 Phase: 3 of 6 (CCR Integration)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-01-21 — Completed 03-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-01-22 — Completed 03-03-PLAN.md
 
-Progress: [████████████░] 42%
+Progress: [████████████░] 47%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
+- Total plans completed: 9
 - Average duration: 2 min
-- Total execution time: 0.40 hours
+- Total execution time: 0.47 hours
 
 **By Phase:**
 
@@ -29,17 +29,18 @@ Progress: [████████████░] 42%
 |-------|-------|-------|----------|
 | 01    | 3     | 3     | 3 min    |
 | 02    | 3     | 3     | 3 min    |
-| 03    | 2     | 2     | 2 min    |
+| 03    | 3     | 3     | 2 min    |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 2 min, 9 min, 3 min, 4 min
-- Trend: Stable at 2 min
+- Last 5 plans: 2 min, 9 min, 3 min, 4 min, 3 min
+- Trend: Stable at 2-3 min
 
-**Phase 3 Progress:**
-- 2/3 plans executed (4 min total)
-- Agent SDK bundled and integrated
-- CCR config generator with $VAR_NAME interpolation
-- LLM wrapper layer ready for command execution
+**Phase 3 Complete:**
+- 3/3 plans executed (7 min total)
+- CCR 2.1.15 stdin pipe architecture
+- Claude Code CLI + GSD plugin integrated
+- Agent SDK deprecated (stdin pipe used instead)
+- Complete non-interactive CI/CD execution ready
 
 *Updated after each plan completion*
 
@@ -78,6 +79,14 @@ Recent decisions affecting current work:
 - Multi-provider priority: OpenRouter > Anthropic > DeepSeek based on available API keys
 - Agent SDK routes through CCR via ANTHROPIC_BASE_URL env var
 
+**From 03-03 (API Key Passing & Non-Interactive Execution):**
+- Architecture pivot: Agent SDK deprecated in favor of stdin pipe execution
+- CCR 2.1.15 wraps Claude Code CLI for non-interactive CI/CD execution
+- Stdin pipe pattern: `echo "/gsd:command" | ccr code`
+- Claude Code CLI + GSD plugin installed before CCR in workflow
+- Full CCR config structure (LOG, StatusLine, Router, Providers)
+- Bundle optimized: 32,387 lines (Agent SDK imports removed)
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during aessions]
@@ -92,6 +101,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-21T22:04:05Z
-Stopped at: Completed 03-02-PLAN.md (CCR config & Agent SDK integration)
+Last session: 2026-01-22T00:22:30Z
+Stopped at: Completed 03-03-PLAN.md (API key passing & non-interactive execution) - Phase 3 complete
 Resume file: None
