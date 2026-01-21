@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2025-01-21)
 
 **Core value:** Enable autonomous AI-driven development that runs in CI/CD, responds to GitHub issue comments, creates and updates planning artifacts in the repo, and tracks progress via GitHub issues - all without requiring local CLI usage.
-**Current focus:** CCR Integration
+**Current focus:** GitHub Integration & Response (Phase 4)
 
 ## Current Position
 

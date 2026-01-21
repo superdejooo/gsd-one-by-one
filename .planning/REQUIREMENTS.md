@@ -2,7 +2,7 @@
 
 **Project:** GSD for GitHub (Reusable Action)
 **Milestone:** v1 - gsd:new-milestone command
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-01-22
 **Architecture:** Reusable GitHub Action - projects reference Action package via workflow file
 
 ## v1 Requirements
@@ -30,27 +30,27 @@
 
 ### Workflow Execution (Reusable Action)
 
-- [ ] **WORK-01**: Reusable Action accepts inputs: issue number, repo owner, repo name, comment body
-- [ ] **WORK-02**: Action publishes as package with version tags (v1, v2, etc.)
-- [ ] **WORK-03**: Action uses Node.js 24.x runtime
-- [ ] **WORK-04**: Action exits after posting response
-- [ ] **WORK-05**: Project adds workflow file referencing Action: `uses: gsd-org/gsd-github-action@v1`
+- [x] **WORK-01**: Reusable Action accepts inputs: issue number, repo owner, repo name, comment body
+- [x] **WORK-02**: Action publishes as package with version tags (v1, v2, etc.)
+- [x] **WORK-03**: Action uses Node.js 24.x runtime
+- [x] **WORK-04**: Action exits after posting response
+- [x] **WORK-05**: Project adds workflow file referencing Action: `uses: gsd-org/gsd-github-action@v1`
 
 ### Claude Code Router (CCR) - Execution Layer
 
-- [ ] **CCR-01**: Action bundles Claude Code Router (CCR) for CI-safe LLM execution
-- [ ] **CCR-02**: Action pins CCR version (not user-configurable)
-- [ ] **CCR-03**: Action generates CCR config at `~/.claude-code-router/config.json` at runtime
-- [ ] **CCR-04**: Action interpolates API keys from GitHub Actions secrets into CCR config
-- [ ] **CCR-05**: CCR handles all LLM invocations (GSD never calls Claude Code directly)
-- [ ] **CCR-06**: Action installs CCR via package manager with pinned version
-- [ ] **CCR-07**: CCR runs in non-interactive mode (no TTY, no prompts)
+- [x] **CCR-01**: Action bundles Claude Code Router (CCR) for CI-safe LLM execution
+- [x] **CCR-02**: Action pins CCR version (not user-configurable)
+- [x] **CCR-03**: Action generates CCR config at `~/.claude-code-router/config.json` at runtime
+- [x] **CCR-04**: Action interpolates API keys from GitHub Actions secrets into CCR config
+- [x] **CCR-05**: CCR handles all LLM invocations (GSD never calls Claude Code directly)
+- [x] **CCR-06**: Action installs CCR via package manager with pinned version
+- [x] **CCR-07**: CCR runs in non-interactive mode (no TTY, no prompts)
 
 ### Concurrency
 
-- [ ] **CONC-01**: Workflow uses concurrency group based on branch name to prevent duplicate runs on same branch
-- [ ] **CONC-02**: Workflow allows concurrent runs on different branches (one per milestone)
-- [ ] **CONC-03**: `cancel-in-progress: true` to cancel previous run when new comment triggers workflow on same branch
+- [x] **CONC-01**: Workflow uses concurrency group based on branch name to prevent duplicate runs on same branch
+- [x] **CONC-02**: Workflow allows concurrent runs on different branches (one per milestone)
+- [x] **CONC-03**: `cancel-in-progress: true` to cancel previous run when new comment triggers workflow on same branch
 
 ### Error Handling
 
@@ -141,13 +141,13 @@
 | WORK-03 | Phase 1 | Complete |
 | WORK-04 | Phase 1 | Complete |
 | WORK-05 | Phase 1 | Complete |
-| CCR-01 | Phase 3 | Pending |
-| CCR-02 | Phase 3 | Pending |
-| CCR-03 | Phase 3 | Pending |
-| CCR-04 | Phase 3 | Pending |
-| CCR-05 | Phase 3 | Pending |
-| CCR-06 | Phase 3 | Pending |
-| CCR-07 | Phase 3 | Pending |
+| CCR-01 | Phase 3 | Complete |
+| CCR-02 | Phase 3 | Complete |
+| CCR-03 | Phase 3 | Complete |
+| CCR-04 | Phase 3 | Complete |
+| CCR-05 | Phase 3 | Complete |
+| CCR-06 | Phase 3 | Complete |
+| CCR-07 | Phase 3 | Complete |
 | CONC-01 | Phase 1 | Complete |
 | CONC-02 | Phase 1 | Complete |
 | CONC-03 | Phase 1 | Complete |
@@ -171,4 +171,4 @@
 | CONF-04 | Phase 2 | Complete |
 
 ---
-*Last updated: 2026-01-21*
+*Last updated: 2026-01-22*
