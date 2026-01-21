@@ -55,7 +55,6 @@ jobs:
       - name: Run Action
         uses: ./
         env:
-          ANTHROPIC_BASE_URL: http://127.0.0.1:3456
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           issue-number: ${{ github.event.issue.number }}
