@@ -31931,11 +31931,326 @@ module.exports = parseParams
 
 /***/ }),
 
-/***/ 9951:
+/***/ 9722:
+/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
+
+__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
+/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4287);
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3942);
+/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(4320);
+/* harmony import */ var _llm_agent_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3660);
+
+
+
+
+
+
+
+
+try {
+  // Get inputs from action.yml
+  const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("issue-number");
+  const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-owner");
+  const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-name");
+  const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("comment-body");
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Comment body: ${commentBody}`);
+
+  // Parse comment to extract command
+  const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_5__/* .parseComment */ .v)(commentBody);
+
+  if (!parsed) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("No @gsd-bot command found in comment");
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "false");
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "false");
+    // Clean exit - no further processing needed
+  } else {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Found command: ${parsed.command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Arguments: ${parsed.args || '(none)'}`);
+
+    // Parse arguments if present
+    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_5__/* .parseArguments */ .W)(parsed.args) : {};
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed arguments: ${JSON.stringify(args)}`);
+
+    // Validate command
+    try {
+      (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .validateCommand */ .M)(parsed.command);
+
+      // Sanitize arguments
+      const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .sanitizeArguments */ .m)(args) : {};
+
+      // Load configuration
+      const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_2__/* .loadConfig */ .Z)(repoOwner, repoName);
+
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Configuration loaded and validated");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Config paths: ${JSON.stringify(config.paths)}`);
+
+      // Set outputs
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "true");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "true");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command", parsed.command);
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("config-loaded", "true");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("arguments", JSON.stringify(sanitizedArgs));
+
+      // TODO: Execute command logic in later phases (Phase 5+)
+      // LLM integration ready - executeLLMTaskWithRetry and createMilestonePrompt available
+      // CCR proxy service must be running with ANTHROPIC_BASE_URL=http://127.0.0.1:3456
+      // Config generated via generateCCRConfig() in workflow before service start
+      // Example: const result = await executeLLMTaskWithRetry(createMilestonePrompt(sanitizedArgs));
+    } catch (error) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "false");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("config-loaded", "false");
+    }
+  }
+
+  // Clean exit - no explicit return needed
+} catch (error) {
+  // Set failed exit code
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Action failed: ${error.message}`);
+}
+
+__webpack_async_result__();
+} catch(e) { __webpack_async_result__(e); } }, 1);
+
+/***/ }),
+
+/***/ 3942:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   Z: () => (/* binding */ loadConfig)
+/* harmony export */ });
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(3228);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7484);
+
+
+
+/**
+ * Load configuration from .github/gsd-config.json or use defaults
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @returns {object} - Configuration object
+ */
+async function loadConfig(owner, repo) {
+  const token = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("token", { required: false }) || process.env.GITHUB_TOKEN;
+  const octokit = _actions_github__WEBPACK_IMPORTED_MODULE_0__.getOctokit(token);
+
+  try {
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: ".github/gsd-config.json"
+    });
+
+    // Decode base64 content (GitHub API returns base64 for files)
+    const content = Buffer.from(response.data.content, "base64").toString("utf-8");
+    const config = JSON.parse(content);
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_1__.info("Loaded config from .github/gsd-config.json");
+    return config;
+  } catch (error) {
+    if (error.status === 404) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_1__.info("Config file not found, using defaults");
+      return getDefaultConfig();
+    }
+    throw new Error(`Failed to load config: ${error.message}`);
+  }
+}
+
+/**
+ * Get default configuration
+ * @returns {object} - Default config object
+ */
+function getDefaultConfig() {
+  return {
+    labels: {
+      phases: {
+        "01-github-action-foundation": "Phase 1: Foundation",
+        "02-command-parsing-config": "Phase 2: Command Parsing & Config",
+        "03-claude-code-router": "Phase 3: CCR Integration",
+        "04-communication-layer": "Phase 4: Communication",
+        "05-milestone-creation": "Phase 5: Milestone Creation",
+        "06-authorization-check": "Phase 6: Authorization"
+      },
+      status: {
+        "todo": "To Do",
+        "in-progress": "In Progress",
+        "done": "Done",
+        "blocked": "Blocked"
+      }
+    },
+    paths: {
+      planning: ".github/planning/",
+      milestones: ".github/planning/milestones/",
+      phases: ".github/planning/phases/"
+    }
+  };
+}
+
+
+/***/ }),
+
+/***/ 4287:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   W: () => (/* binding */ parseArguments),
+/* harmony export */   v: () => (/* binding */ parseComment)
+/* harmony export */ });
+/**
+ * Comment parsing for @gsd-bot commands
+ *
+ * Event Filtering:
+ * - Created vs Edited: Already handled by workflow trigger (issue_comment: types: [created])
+ * - No redundant event type checks needed in this code
+ * - Workflow ensures only comment.created events trigger this action
+ *
+ * See: .github/workflows/gsd-command-handler.yml
+ */
+
+const BOT_MENTION = '@gsd-bot';
+
+/**
+ * Parse comment body to extract @gsd-bot command
+ * @param {string} commentBody - Raw comment text
+ * @returns {object|null} - { botMention, command, args } or null if not mentioned
+ */
+function parseComment(commentBody) {
+  // Trim whitespace and normalize line breaks
+  const normalizedBody = commentBody.trim().replace(/\r\n/g, ' ').replace(/\n/g, ' ');
+
+  // Check if bot is mentioned (case-insensitive)
+  const normalizedForMention = normalizedBody.toLowerCase();
+  if (!normalizedForMention.includes(BOT_MENTION.toLowerCase())) {
+    return null;
+  }
+
+  // Extract command - pattern: @gsd-bot command-name [args...]
+  const commandPattern = new RegExp(`${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`, 'i');
+  const match = normalizedBody.match(commandPattern);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    botMention: match[0],
+    command: match[1].toLowerCase(), // Normalize to lowercase
+    args: match[2] ? match[2].trim() : ''
+  };
+}
+
+/**
+ * Parse command arguments in --key=value format
+ * @param {string} argsString - Raw arguments string
+ * @returns {object} - Key-value pairs
+ */
+function parseArguments(argsString) {
+  const args = {};
+  const argPattern = /--(\w+)=("[^"]*"|'[^']*'|\S+)/g;
+  let match;
+
+  while ((match = argPattern.exec(argsString)) !== null) {
+    const key = match[1];
+    let value = match[2];
+
+    // Remove quotes if present
+    if ((value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+
+    args[key] = value;
+  }
+
+  return args;
+}
+
+
+/***/ }),
+
+/***/ 4320:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   M: () => (/* binding */ validateCommand),
+/* harmony export */   m: () => (/* binding */ sanitizeArguments)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+
+
+/**
+ * Allowlist of valid commands
+ * For v1, only new-milestone is implemented
+ */
+const ALLOWED_COMMANDS = ["new-milestone"];
+
+/**
+ * Validate command against allowlist
+ * @param {string} command - Command name
+ * @throws {Error} - If command is not in allowlist or has invalid format
+ */
+function validateCommand(command) {
+  // Allowlist validation (not denylist)
+  if (!ALLOWED_COMMANDS.includes(command)) {
+    throw new Error(
+      `Unknown command: ${command}. Valid commands: ${ALLOWED_COMMANDS.join(", ")}`
+    );
+  }
+
+  // Format validation (kebab-case only)
+  if (!/^[a-z0-9-]+$/.test(command)) {
+    throw new Error(`Invalid command format: ${command}. Must be kebab-case`);
+  }
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Command validated: ${command}`);
+}
+
+/**
+ * Sanitize arguments to prevent command injection
+ * Removes shell metacharacters and validates length
+ * @param {object} args - Arguments object
+ * @throws {Error} - If validation fails
+ * @returns {object} - Sanitized arguments
+ */
+function sanitizeArguments(args) {
+  const sanitized = {};
+
+  Object.keys(args).forEach((key) => {
+    let value = args[key];
+
+    // Check for empty values
+    if (!value || value.length === 0) {
+      throw new Error(`Argument ${key} cannot be empty`);
+    }
+
+    // Check for reasonable length limits (500 chars)
+    if (value.length > 500) {
+      throw new Error(`Argument ${key} exceeds maximum length (500 chars)`);
+    }
+
+    // Remove shell metacharacters to prevent command injection
+    // Source: OWASP Input Validation Cheat Sheet
+    value = value.replace(/[;&|`$()]/g, "");
+
+    sanitized[key] = value.trim();
+  });
+
+  return sanitized;
+}
+
+
+/***/ }),
+
+/***/ 3660:
 /***/ ((__unused_webpack___webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
 
-// UNUSED EXPORTS: AbortError, EXIT_REASONS, HOOK_EVENTS, createSdkMcpServer, query, tool, unstable_v2_createSession, unstable_v2_prompt, unstable_v2_resumeSession
+// UNUSED EXPORTS: executeLLMTask, executeLLMTaskWithRetry
 
 // EXTERNAL MODULE: external "path"
 var external_path_ = __nccwpck_require__(6928);
@@ -53264,7 +53579,7 @@ function createSdkMcpServer(options) {
   };
 }
 // ../src/entrypoints/agentSdk.ts
-function query({
+function sdk_query({
   prompt,
   options
 }) {
@@ -53439,317 +53754,161 @@ async function unstable_v2_prompt(message, options) {
 }
 
 
-
-/***/ }),
-
-/***/ 9722:
-/***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
-
-__nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
-/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4287);
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3942);
-/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(4320);
-/* harmony import */ var _anthropic_ai_claude_agent_sdk__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(9951);
-
-
-
-
-
-
-// Agent SDK bundling verification (Plan 03-01)
-// This import ensures SDK is bundled - will be moved to src/llm/agent.js in Plan 03-02
-
-
-try {
-  // Get inputs from action.yml
-  const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("issue-number");
-  const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-owner");
-  const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-name");
-  const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("comment-body");
-
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`);
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Comment body: ${commentBody}`);
-
-  // Parse comment to extract command
-  const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_5__/* .parseComment */ .v)(commentBody);
-
-  if (!parsed) {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("No @gsd-bot command found in comment");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "false");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "false");
-    // Clean exit - no further processing needed
-  } else {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Found command: ${parsed.command}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Arguments: ${parsed.args || '(none)'}`);
-
-    // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_5__/* .parseArguments */ .W)(parsed.args) : {};
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed arguments: ${JSON.stringify(args)}`);
-
-    // Validate command
-    try {
-      (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .validateCommand */ .M)(parsed.command);
-
-      // Sanitize arguments
-      const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .sanitizeArguments */ .m)(args) : {};
-
-      // Load configuration
-      const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_2__/* .loadConfig */ .Z)(repoOwner, repoName);
-
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Configuration loaded and validated");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Config paths: ${JSON.stringify(config.paths)}`);
-
-      // Set outputs
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "true");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "true");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command", parsed.command);
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("config-loaded", "true");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("arguments", JSON.stringify(sanitizedArgs));
-
-      // TODO: Execute command logic in later phases (Phase 4+)
-    } catch (error) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "false");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("config-loaded", "false");
-    }
-  }
-
-  // Clean exit - no explicit return needed
-} catch (error) {
-  // Set failed exit code
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Action failed: ${error.message}`);
-}
-
-__webpack_async_result__();
-} catch(e) { __webpack_async_result__(e); } }, 1);
-
-/***/ }),
-
-/***/ 3942:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
-
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   Z: () => (/* binding */ loadConfig)
-/* harmony export */ });
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(3228);
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7484);
-
+;// CONCATENATED MODULE: ./src/llm/agent.js
 
 
 /**
- * Load configuration from .github/gsd-config.json or use defaults
- * @param {string} owner - Repository owner
- * @param {string} repo - Repository name
- * @returns {object} - Configuration object
+ * Execute a task with Claude Agent SDK via CCR proxy
+ *
+ * Architecture:
+ * - Agent SDK is CLIENT library (bundled in this action)
+ * - CCR is PROXY SERVICE (installed globally in workflow, runs at http://127.0.0.1:3456)
+ * - SDK automatically routes through CCR when ANTHROPIC_BASE_URL=http://127.0.0.1:3456
+ * - CCR intercepts requests, routes to configured provider (OpenRouter, Anthropic, DeepSeek)
+ *
+ * CI-safe configuration:
+ * - permissionMode: "acceptEdits" - Auto-approve file edits, no interactive prompts
+ * - allowedTools: Restricted set for security
+ * - maxTurns: Reasonable limit to prevent runaway execution
+ *
+ * @param {string} prompt - The task prompt for Claude
+ * @param {object} options - SDK configuration options
+ * @param {string} [options.model="claude-sonnet-4-5-20250929"] - Model to use
+ * @param {string} [options.permissionMode="acceptEdits"] - Permission mode for CI
+ * @param {string[]} [options.allowedTools] - Tools the agent can use
+ * @param {number} [options.maxTurns=50] - Maximum conversation turns
+ * @returns {Promise<{success: boolean, output?: string, error?: string}>}
  */
-async function loadConfig(owner, repo) {
-  const token = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("token", { required: false }) || process.env.GITHUB_TOKEN;
-  const octokit = _actions_github__WEBPACK_IMPORTED_MODULE_0__.getOctokit(token);
-
+async function executeLLMTask(prompt, options = {}) {
   try {
-    const response = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path: ".github/gsd-config.json"
-    });
+    const messages = [];
 
-    // Decode base64 content (GitHub API returns base64 for files)
-    const content = Buffer.from(response.data.content, "base64").toString("utf-8");
-    const config = JSON.parse(content);
-
-    _actions_core__WEBPACK_IMPORTED_MODULE_1__.info("Loaded config from .github/gsd-config.json");
-    return config;
-  } catch (error) {
-    if (error.status === 404) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_1__.info("Config file not found, using defaults");
-      return getDefaultConfig();
-    }
-    throw new Error(`Failed to load config: ${error.message}`);
-  }
-}
-
-/**
- * Get default configuration
- * @returns {object} - Default config object
- */
-function getDefaultConfig() {
-  return {
-    labels: {
-      phases: {
-        "01-github-action-foundation": "Phase 1: Foundation",
-        "02-command-parsing-config": "Phase 2: Command Parsing & Config",
-        "03-claude-code-router": "Phase 3: CCR Integration",
-        "04-communication-layer": "Phase 4: Communication",
-        "05-milestone-creation": "Phase 5: Milestone Creation",
-        "06-authorization-check": "Phase 6: Authorization"
+    // Agent SDK automatically uses ANTHROPIC_BASE_URL if set
+    // Routes to CCR proxy at http://127.0.0.1:3456
+    for await (const msg of query({
+      prompt,
+      options: {
+        model: options.model || "claude-sonnet-4-5-20250929",
+        permissionMode: "acceptEdits", // Non-interactive for CI
+        allowedTools: options.allowedTools || [
+          "Read",
+          "Write",
+          "Bash",
+          "Glob",
+          "Grep",
+        ],
+        maxTurns: options.maxTurns || 50,
+        ...options,
       },
-      status: {
-        "todo": "To Do",
-        "in-progress": "In Progress",
-        "done": "Done",
-        "blocked": "Blocked"
+    })) {
+      if (msg.type === "assistant") {
+        for (const block of msg.message.content) {
+          if ("text" in block) {
+            messages.push(block.text);
+          }
+        }
       }
-    },
-    paths: {
-      planning: ".github/planning/",
-      milestones: ".github/planning/milestones/",
-      phases: ".github/planning/phases/"
     }
-  };
+
+    return {
+      success: true,
+      output: messages.join("\n"),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
 }
 
-
-/***/ }),
-
-/***/ 4287:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
-
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   W: () => (/* binding */ parseArguments),
-/* harmony export */   v: () => (/* binding */ parseComment)
-/* harmony export */ });
 /**
- * Comment parsing for @gsd-bot commands
+ * Execute LLM task with exponential backoff retry logic
  *
- * Event Filtering:
- * - Created vs Edited: Already handled by workflow trigger (issue_comment: types: [created])
- * - No redundant event type checks needed in this code
- * - Workflow ensures only comment.created events trigger this action
+ * Retries on:
+ * - Rate limit errors (429)
+ * - Overloaded errors (529)
  *
- * See: .github/workflows/gsd-command-handler.yml
+ * Does NOT retry on:
+ * - Authentication errors (401) - fail fast
+ *
+ * Note: Current SDK may return API errors as text in message stream
+ * instead of throwing exceptions. This function checks for both.
+ *
+ * @param {string} prompt - The task prompt
+ * @param {object} options - SDK options
+ * @param {number} [maxRetries=3] - Maximum retry attempts
+ * @returns {Promise<{success: boolean, output?: string, error?: string}>}
  */
+async function executeLLMTaskWithRetry(
+  prompt,
+  options = {},
+  maxRetries = 3,
+) {
+  let lastError;
 
-const BOT_MENTION = '@gsd-bot';
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const result = await executeLLMTask(prompt, options);
 
-/**
- * Parse comment body to extract @gsd-bot command
- * @param {string} commentBody - Raw comment text
- * @returns {object|null} - { botMention, command, args } or null if not mentioned
- */
-function parseComment(commentBody) {
-  // Trim whitespace and normalize line breaks
-  const normalizedBody = commentBody.trim().replace(/\r\n/g, ' ').replace(/\n/g, ' ');
+      // Check if result contains API errors in text content
+      // SDK may return errors as messages instead of exceptions
+      if (result.success && result.output) {
+        // Rate limit errors
+        if (
+          result.output.includes("429") ||
+          result.output.toLowerCase().includes("rate limit")
+        ) {
+          throw new Error("Rate limited");
+        }
 
-  // Check if bot is mentioned (case-insensitive)
-  const normalizedForMention = normalizedBody.toLowerCase();
-  if (!normalizedForMention.includes(BOT_MENTION.toLowerCase())) {
-    return null;
-  }
+        // Overloaded errors
+        if (
+          result.output.includes("529") ||
+          result.output.toLowerCase().includes("overloaded")
+        ) {
+          throw new Error("Service overloaded");
+        }
 
-  // Extract command - pattern: @gsd-bot command-name [args...]
-  const commandPattern = new RegExp(`${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`, 'i');
-  const match = normalizedBody.match(commandPattern);
+        // Authentication errors - don't retry
+        if (
+          result.output.includes("401") ||
+          result.output.toLowerCase().includes("authentication")
+        ) {
+          return {
+            success: false,
+            error: "Authentication failed - check API keys",
+          };
+        }
+      }
 
-  if (!match) {
-    return null;
+      return result;
+    } catch (error) {
+      lastError = error;
+
+      // Don't retry authentication errors
+      if (
+        error.message.includes("401") ||
+        error.message.toLowerCase().includes("authentication")
+      ) {
+        return {
+          success: false,
+          error: `Authentication error: ${error.message}`,
+        };
+      }
+
+      // Exponential backoff for retryable errors
+      if (attempt < maxRetries) {
+        const backoffMs = Math.pow(2, attempt) * 1000;
+        await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      }
+    }
   }
 
   return {
-    botMention: match[0],
-    command: match[1].toLowerCase(), // Normalize to lowercase
-    args: match[2] ? match[2].trim() : ''
+    success: false,
+    error: `Failed after ${maxRetries} attempts: ${lastError?.message || "Unknown error"}`,
   };
-}
-
-/**
- * Parse command arguments in --key=value format
- * @param {string} argsString - Raw arguments string
- * @returns {object} - Key-value pairs
- */
-function parseArguments(argsString) {
-  const args = {};
-  const argPattern = /--(\w+)=("[^"]*"|'[^']*'|\S+)/g;
-  let match;
-
-  while ((match = argPattern.exec(argsString)) !== null) {
-    const key = match[1];
-    let value = match[2];
-
-    // Remove quotes if present
-    if ((value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
-    }
-
-    args[key] = value;
-  }
-
-  return args;
-}
-
-
-/***/ }),
-
-/***/ 4320:
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
-
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   M: () => (/* binding */ validateCommand),
-/* harmony export */   m: () => (/* binding */ sanitizeArguments)
-/* harmony export */ });
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
-
-
-/**
- * Allowlist of valid commands
- * For v1, only new-milestone is implemented
- */
-const ALLOWED_COMMANDS = ["new-milestone"];
-
-/**
- * Validate command against allowlist
- * @param {string} command - Command name
- * @throws {Error} - If command is not in allowlist or has invalid format
- */
-function validateCommand(command) {
-  // Allowlist validation (not denylist)
-  if (!ALLOWED_COMMANDS.includes(command)) {
-    throw new Error(
-      `Unknown command: ${command}. Valid commands: ${ALLOWED_COMMANDS.join(", ")}`
-    );
-  }
-
-  // Format validation (kebab-case only)
-  if (!/^[a-z0-9-]+$/.test(command)) {
-    throw new Error(`Invalid command format: ${command}. Must be kebab-case`);
-  }
-
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Command validated: ${command}`);
-}
-
-/**
- * Sanitize arguments to prevent command injection
- * Removes shell metacharacters and validates length
- * @param {object} args - Arguments object
- * @throws {Error} - If validation fails
- * @returns {object} - Sanitized arguments
- */
-function sanitizeArguments(args) {
-  const sanitized = {};
-
-  Object.keys(args).forEach((key) => {
-    let value = args[key];
-
-    // Check for empty values
-    if (!value || value.length === 0) {
-      throw new Error(`Argument ${key} cannot be empty`);
-    }
-
-    // Check for reasonable length limits (500 chars)
-    if (value.length > 500) {
-      throw new Error(`Argument ${key} exceeds maximum length (500 chars)`);
-    }
-
-    // Remove shell metacharacters to prevent command injection
-    // Source: OWASP Input Validation Cheat Sheet
-    value = value.replace(/[;&|`$()]/g, "");
-
-    sanitized[key] = value.trim();
-  });
-
-  return sanitized;
 }
 
 
