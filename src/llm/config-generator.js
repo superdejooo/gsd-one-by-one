@@ -1,112 +1,91 @@
-import fs from "fs";
-import os from "os";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
-/**
- * Generate Claude Code Router service configuration
- * Creates ~/.claude-code-router/config.json with multi-provider support
- *
- * CCR service config (not SDK config):
- * - Uses $VAR_NAME syntax for env var interpolation (CCR replaces at service start)
- * - NON_INTERACTIVE_MODE: true prevents prompts/hangs in CI
- * - Multi-provider routing for cost optimization
- *
- * Architecture:
- * 1. Workflow sets GitHub Secrets as env vars (OPENROUTER_API_KEY, etc.)
- * 2. This function generates config.json with $VAR_NAME placeholders
- * 3. Workflow installs CCR globally: npm install -g @musistudio/claude-code-router
- * 4. Workflow starts CCR service: ccr start (reads config, interpolates env vars)
- * 5. Workflow sets ANTHROPIC_BASE_URL=http://127.0.0.1:3456
- * 6. Agent SDK routes to CCR proxy automatically
- *
- * @throws {Error} If no API keys are available
- */
 export function generateCCRConfig() {
-  // Check which providers have API keys defined
-  const hasOpenRouter = !!process.env.OPENROUTER_API_KEY;
-  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
-  const hasDeepSeek = !!process.env.DEEPSEEK_API_KEY;
+  const configDir = path.join(os.homedir(), '.claude-code-router');
+  const configPath = path.join(configDir, 'config.json');
 
-  if (!hasOpenRouter && !hasAnthropic && !hasDeepSeek) {
-    throw new Error(
-      "At least one API key required: OPENROUTER_API_KEY, ANTHROPIC_API_KEY, or DEEPSEEK_API_KEY"
-    );
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(configDir)) {
+    fs.mkdirSync(configDir, { recursive: true });
   }
 
-  // Build providers array based on available API keys
-  const providers = [];
+  // Read environment variables for configuration
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY || '';
+  const defaultModel = process.env.CCR_DEFAULT_MODEL || 'z-ai/glm-4.7';
 
-  if (hasOpenRouter) {
-    providers.push({
-      name: "openrouter",
-      api_base_url: "https://openrouter.ai/api/v1/chat/completions",
-      api_key: "$OPENROUTER_API_KEY", // CCR interpolates at service start
-      models: ["anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview"],
-      transformer: {
-        use: ["openrouter"],
-      },
-    });
-  }
-
-  if (hasAnthropic) {
-    providers.push({
-      name: "anthropic",
-      api_base_url: "https://api.anthropic.com/v1",
-      api_key: "$ANTHROPIC_API_KEY", // CCR interpolates at service start
-      models: ["claude-sonnet-4-5-20250929"],
-      transformer: {
-        use: ["anthropic"],
-      },
-    });
-  }
-
-  if (hasDeepSeek) {
-    providers.push({
-      name: "deepseek",
-      api_base_url: "https://api.deepseek.com/chat/completions",
-      api_key: "$DEEPSEEK_API_KEY", // CCR interpolates at service start
-      models: ["deepseek-chat", "deepseek-reasoner"],
-      transformer: {
-        use: ["deepseek"],
-      },
-    });
-  }
-
-  // Build router config with priority: OpenRouter > Anthropic > DeepSeek
-  const router = {
-    default: hasOpenRouter
-      ? "openrouter,anthropic/claude-sonnet-4"
-      : hasAnthropic
-        ? "anthropic,claude-sonnet-4-5-20250929"
-        : "deepseek,deepseek-chat",
-  };
-
-  // Add optional routing scenarios if providers available
-  if (hasDeepSeek) {
-    router.think = "deepseek,deepseek-reasoner";
-  }
-
-  if (hasOpenRouter) {
-    router.longContext = "openrouter,google/gemini-2.5-pro-preview";
-  }
-
-  // CCR service configuration
+  // Full CCR configuration structure
   const config = {
-    NON_INTERACTIVE_MODE: true, // MANDATORY for CI - prevents prompts/hangs
-    LOG: true,
-    LOG_LEVEL: "info",
-    API_TIMEOUT_MS: 600000, // 10 minutes for long-running tasks
-    Providers: providers,
-    Router: router,
+    "LOG": false,
+    "LOG_LEVEL": "debug",
+    "CLAUDE_PATH": "",
+    "HOST": "127.0.0.1",
+    "PORT": 3456,
+    "APIKEY": "",
+    "API_TIMEOUT_MS": "60000",
+    "PROXY_URL": "",
+    "transformers": [],
+    "Providers": [
+      {
+        "name": "openrouter",
+        "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+        "api_key": openrouterApiKey,
+        "models": [
+          "openai/gpt-5.2-codex",
+          "openai/gpt-5.1-codex-max",
+          "openai/gpt-5.1-codex-mini",
+          "openai/gpt-4o",
+          "xiaomi/mimo-v2-flash",
+          "x-ai/grok-code-fast-1",
+          "z-ai/glm-4.7-flash",
+          "z-ai/glm-4.7",
+          "xiaomi/mimo-v2-flash:free",
+          "qwen/qwen3-coder:free",
+          "openai/gpt-oss-20b:free",
+          "anthropic/claude-sonnet-4.5"
+        ]
+      }
+    ],
+    "StatusLine": {
+      "enabled": true,
+      "currentStyle": "default",
+      "default": {
+        "modules": [
+          {
+            "type": "model",
+            "icon": "🤖",
+            "text": "{{model}}",
+            "color": "bright_yellow"
+          },
+          {
+            "type": "usage",
+            "icon": "",
+            "text": "{{inputTokens}} → {{outputTokens}}",
+            "color": "#94db91"
+          }
+        ]
+      },
+      "fontFamily": "Hack Nerd Font Mono"
+    },
+    "Router": {
+      "default": `openrouter,${defaultModel}`,
+      "background": `openrouter,${defaultModel}`,
+      "think": `openrouter,${defaultModel}`,
+      "longContext": `openrouter,${defaultModel}`,
+      "longContextThreshold": 60000,
+      "webSearch": `openrouter,${defaultModel}`,
+      "image": `openrouter,${defaultModel}`
+    },
+    "CUSTOM_ROUTER_PATH": ""
   };
 
-  // Create ~/.claude-code-router directory if it doesn't exist
-  const configDir = path.join(os.homedir(), ".claude-code-router");
-  fs.mkdirSync(configDir, { recursive: true });
+  // Validate at least one API key is present
+  if (!openrouterApiKey) {
+    throw new Error('OPENROUTER_API_KEY environment variable is required');
+  }
 
-  // Write config.json
-  const configPath = path.join(configDir, "config.json");
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
-
-  return configPath;
+  // Write config file
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), 'utf8');
+  console.log(`CCR config generated at: ${configPath}`);
 }
