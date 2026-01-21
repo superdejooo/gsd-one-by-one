@@ -2,9 +2,15 @@
 
 ## What This Is
 
-A GitHub-integrated version of the Get Shit Done (GSD) project management plugin for Claude. Enables fully autonomous agentic development workflows through GitHub Issues, GitHub Actions, and interactive comment-based collaboration.
+A **reusable GitHub Action** that integrates the Get Shit Done (GSD) project management system with GitHub. Enables fully autonomous agentic development workflows through GitHub Issues and GitHub Actions.
 
-This is NOT a new project from scratch - it's a wrapper/extension that leverages the existing GSD skill, command patterns, research agents, and execution framework. The goal is to port GSD's proven workflows to a project management board (GitHub Issues) with mirroring capability to Jira Enterprise.
+**Architecture:**
+- Distributed as a reusable GitHub Action package
+- Projects install by adding a workflow file that references the Action
+- No code is copied into project repositories; all logic runs from the Action package
+- Uses **Claude Code Router (CCR)** for CI-safe LLM execution
+
+This is NOT a new project from scratch - it wraps the existing GSD skill, command patterns, research agents, and execution framework. The goal is to port GSD's proven workflows to GitHub Issues with future Jira mirroring capability.
 
 ## Core Value
 
@@ -12,27 +18,65 @@ Enable autonomous AI-driven development that runs in CI/CD, responds to GitHub i
 
 ## The Problem
 
-GSD's current workflow requires local CLI execution and file-based state management. Teams want:
-1. GitHub-native workflow (issues, comments, PRs)
-2. Autonomous agent execution in CI/CD
+GSD's current workflow requires local CLI execution and interactive terminal prompts. Teams want:
+1. GitHub-native workflow (issues, comments, PRs) via reusable Action
+2. Autonomous agent execution in CI/CD (non-interactive)
 3. Visual project board with tickets/phases
-4. Jira integration for enterprise teams
-5. Bidirectional communication - agent asks questions, user responds, agent continues
+4. Jira integration for enterprise teams (future)
+5. Comment-based bidirectional communication
+
+**Critical Issue:** Standard GSD cannot run reliably in non-interactive CI environments like GitHub Actions.
 
 ## The Solution
 
-A GitHub Actions workflow that triggers on issue comments containing `@gsd-bot`. The workflow runs Claude CLI with a new `gsd-github` skill that wraps existing GSD functionality. Agent communicates via GitHub comments, stores planning artifacts in `.github/planning/`, and can create GitHub issues for tracking.
+A **reusable GitHub Action** that projects reference in their workflow files:
+
+```yaml
+# .github/workflows/gsd.yml
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  gsd:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: infopuls/gsd-github-action@v1
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          repo-owner: ${{ github.repository_owner }}
+          repo-name: ${{ github.event.repository.name }}
+          comment-body: ${{ github.event.comment.body }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+**Key Components:**
+1. **Reusable Action** - Orchestrates GitHub integration and command handling
+2. **Claude Code Router (CCR)** - Provides CI-safe, non-interactive LLM execution
+3. **GSD Core** - Bundled and version-pinned, handles planning and reasoning
+4. **GitHub CLI (gh)** - All GitHub API interactions
+
+User provides only API keys via secrets; all infrastructure is version-pinned and deterministic.
 
 ### Key Differences from CLI GSD
 
-| Aspect | CLI GSD | GitHub GSD |
+| Aspect | CLI GSD | GitHub GSD (Reusable Action) |
 |--------|---------|------------|
+| Installation | Local CLI install | Reference Action in workflow file |
 | Trigger | Manual command | Issue comment (`@gsd-bot`) |
 | State | Local files | `.github/planning/` in repo |
 | Communication | Terminal/chat | GitHub comments |
-| Execution | User's machine | GitHub Actions (CI/CD) |
+| Execution | User's machine (interactive) | GitHub Actions (non-interactive CI/CD) |
+| LLM Calls | Direct to Claude Code | Via Claude Code Router (CCR) |
 | Artifacts | Local `.planning/` | Committed `.github/planning/` |
 | Ticket tracking | None (files only) | GitHub issues (phases, actions) |
+| Versioning | User controls GSD version | Action pins CCR + GSD versions |
+| User Config | All settings editable | Only API keys (secrets) |
 
 ## Milestone Context
 
@@ -70,29 +114,39 @@ This is **v1** of GSD for GitHub. Focus is on getting the core `gsd:new-mileston
 
 ### Components
 
-1. **GitHub Workflow** (`.github/workflows/gsd.yml`)
-   - Triggers on issue comments
-   - Validates `@gsd-bot` trigger
-   - Reads GSD config
-   - Invokes Claude CLI with gsd-github skill
+1. **Reusable GitHub Action** (`infopuls/gsd-github-action`)
+   - Orchestrates GitHub integration and command handling
+   - Bundles and pins CCR + GSD Core versions
+   - Generates CCR config at runtime with secrets interpolation
+   - Manages GitHub API interactions via gh CLI
+   - Published with version tags (v1, v2, etc.)
 
-2. **gsd-github Skill** (new skill)
-   - Wraps existing GSD skill
-   - Parses issue context (issue number, repo, comment)
-   - Maps labels to GSD commands
-   - Handles bidirectional communication
+2. **Claude Code Router (CCR)** - Execution Layer
+   - Provides CI-safe, non-interactive LLM execution
+   - Handles all LLM provider and model invocation
+   - Abstracts execution logic from provider-specific details
+   - Version-pinned by Action (not user-configurable)
+   - Reference: https://github.com/musistudio/claude-code-router
 
-3. **GSD Skill** (existing, unchanged)
-   - Core project management logic
-   - Research agents, planning, execution
-   - Called by gsd-github skill
+3. **GSD Core** (existing GSD skill)
+   - Project management logic, research agents, planning, execution
+   - Bundled and version-pinned by Action
+   - Never invoked directly by gsd-github
+   - Changes require Action version bump
 
-4. **Config File** (`.github/gsd-config.json`)
+4. **Project Workflow File** (`.github/workflows/gsd.yml`)
+   - User adds to their repository
+   - References Action with version tag
+   - Defines permissions and secrets
+   - Passes issue context as inputs
+
+5. **Config File** (`.github/gsd-config.json`)
+   - User creates in their repo
    - Label mappings (phase + status)
    - Path definitions
    - GitHub settings
 
-5. **Planning Artifacts** (`.github/planning/`)
+6. **Planning Artifacts** (`.github/planning/`)
    - PROJECT.md - project context
    - ROADMAP.md - phase structure
    - STATE.md - project memory
@@ -103,19 +157,27 @@ This is **v1** of GSD for GitHub. Focus is on getting the core `gsd:new-mileston
 ```
 User comments "@gsd-bot new-milestone" on GitHub Issue
     ↓
-GitHub Actions workflow triggers
+Project's GitHub Actions workflow triggers (issue_comment: created)
     ↓
-Workflow reads issue context (number, repo, comment body)
+Workflow calls reusable Action: uses: infopuls/gsd-github-action@v1
     ↓
-Workflow calls Claude CLI with gsd-github skill
+Action receives inputs: issue number, repo owner, repo name, comment body
     ↓
-gsd-github reads .github/gsd-config.json
+Action reads ANTHROPIC_API_KEY from secrets
     ↓
-gsd-github calls GSD skill with appropriate command
+Action generates CCR config at ~/.claude-code-router/config.json
     ↓
-GSD skill executes (questions user, updates files)
+Action reads .github/gsd-config.json (user-provided)
     ↓
-gsd-github posts results via GitHub CLI
+Action calls GSD Core via CCR (non-interactive execution)
+    ↓
+CCR routes LLM calls to configured provider/model
+    ↓
+GSD Core executes (questions user, updates files)
+    ↓
+Action commits planning docs to .github/planning/
+    ↓
+Action posts results via GitHub CLI (gh)
     ↓
 Workflow completes
 ```
@@ -131,7 +193,7 @@ Workflow completes
 }
 ```
 
-Labels are user-defined in config. Agent uses `gh` to add/remove labels.
+Labels are user-defined in `.github/gsd-config.json`. Agent uses `gh` to add/remove labels.
 
 ### Branch Naming
 
