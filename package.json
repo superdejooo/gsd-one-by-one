@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "ncc build src/index.js --license licenses.txt",
-    "setup:ccr": "node -e \"require('./src/llm/config-generator.js').generateCCRConfig()\"",
+    "setup:ccr": "node --input-type=module -e \"import {generateCCRConfig} from './src/llm/config-generator.js'; generateCCRConfig()\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
