@@ -33,9 +33,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: Create reusable GitHub Action with workflow triggers and basic inputs
-- [ ] 01-02: Configure scoped permissions and Node.js 24.x runtime
-- [ ] 01-03: Implement concurrency control and clean exit handling
+- [x] 01-01: Create reusable GitHub Action with workflow triggers and basic inputs
+- [x] 01-02: Configure scoped permissions and Node.js 24.x runtime
+- [x] 01-03: Implement concurrency control and clean exit handling
 
 ### Phase 2: Command Parsing & Config
 **Goal**: Parse @gsd-bot commands from issue comments, validate user input, and load user configuration
@@ -49,9 +49,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: Implement comment parsing to extract @gsd-bot mention and commands
-- [ ] 02-02: Add event filtering (created vs edited) and command argument parsing
-- [ ] 02-03: Load config file from repository with defaults and input sanitization
+- [ ] 02-01: Create parser module with parseComment and parseArguments
+- [ ] 02-02: Integrate parser into main action entry point
+- [ ] 02-03: Load config file from repository with defaults and add command validation with input sanitization
 
 ### Phase 3: CCR Integration
 **Goal**: Bundle and configure Claude Code Router for CI-safe, non-interactive LLM execution
@@ -123,7 +123,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. GitHub Action Foundation | 3/3 | Complete | 2026-01-21 |
-| 2. Command Parsing & Config | 0/3 | Not started | - |
+| 2. Command Parsing & Config | 0/3 | Planned | - |
 | 3. CCR Integration | 0/3 | Not started | - |
 | 4. GitHub Integration & Response | 0/3 | Not started | - |
 | 5. Milestone Creation Workflow | 0/4 | Not started | - |
