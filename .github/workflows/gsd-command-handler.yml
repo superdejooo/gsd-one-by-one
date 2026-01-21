@@ -1,0 +1,21 @@
+name: GSD Command Handler
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  handle-gsd-command:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: superdejooo/gsd-github-action@v1
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          repo-owner: ${{ github.repository_owner }}
+          repo-name: ${{ github.event.repository.name }}
+          comment-body: ${{ github.event.comment.body }}
