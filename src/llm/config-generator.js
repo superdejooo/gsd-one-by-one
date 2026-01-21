@@ -17,6 +17,7 @@ export function generateCCRConfig() {
 
   // Full CCR configuration structure
   const config = {
+    "NON_INTERACTIVE_MODE": true,
     "LOG": false,
     "LOG_LEVEL": "debug",
     "CLAUDE_PATH": "",
