@@ -4,6 +4,10 @@ import { parseComment, parseArguments } from "./lib/parser.js";
 import { loadConfig } from "./lib/config.js";
 import { validateCommand, sanitizeArguments } from "./lib/validator.js";
 
+// Agent SDK bundling verification (Plan 03-01)
+// This import ensures SDK is bundled - will be moved to src/llm/agent.js in Plan 03-02
+import "@anthropic-ai/claude-agent-sdk";
+
 try {
   // Get inputs from action.yml
   const issueNumber = core.getInput("issue-number");
