@@ -1,6 +1,8 @@
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { parseComment, parseArguments } from "./lib/parser.js";
+import { loadConfig } from "./lib/config.js";
+import { validateCommand, sanitizeArguments } from "./lib/validator.js";
 
 try {
   // Get inputs from action.yml
@@ -28,13 +30,32 @@ try {
     const args = parsed.args ? parseArguments(parsed.args) : {};
     core.info(`Parsed arguments: ${JSON.stringify(args)}`);
 
-    // Set outputs
-    core.setOutput("command-found", "true");
-    core.setOutput("response-posted", "true");
-    core.setOutput("command", parsed.command);
+    // Validate command
+    try {
+      validateCommand(parsed.command);
 
-    // TODO: Validate command and load config in Phase 2 (plans 02-03)
-    // TODO: Execute command logic in later phases
+      // Sanitize arguments
+      const sanitizedArgs = args ? sanitizeArguments(args) : {};
+
+      // Load configuration
+      const config = await loadConfig(repoOwner, repoName);
+
+      core.info("Configuration loaded and validated");
+      core.info(`Config paths: ${JSON.stringify(config.paths)}`);
+
+      // Set outputs
+      core.setOutput("command-found", "true");
+      core.setOutput("response-posted", "true");
+      core.setOutput("command", parsed.command);
+      core.setOutput("config-loaded", "true");
+      core.setOutput("arguments", JSON.stringify(sanitizedArgs));
+
+      // TODO: Execute command logic in later phases (Phase 4+)
+    } catch (error) {
+      core.setFailed(error.message);
+      core.setOutput("command-found", "false");
+      core.setOutput("config-loaded", "false");
+    }
   }
 
   // Clean exit - no explicit return needed
