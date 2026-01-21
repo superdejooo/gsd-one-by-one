@@ -9,16 +9,16 @@
 
 ### Authentication & Permissions
 
-- [ ] **AUTH-01**: System uses GITHUB_TOKEN with scoped permissions (`contents: write`, `issues: write`, `pull-requests: write`)
-- [ ] **AUTH-02**: Workflow explicitly declares permissions in YAML to avoid silent failures
+- [x] **AUTH-01**: System uses GITHUB_TOKEN with scoped permissions (`contents: write`, `issues: write`, `pull-requests: write`)
+- [x] **AUTH-02**: Workflow explicitly declares permissions in YAML to avoid silent failures
 - [ ] **AUTH-03**: Agent validates that trigger user has write access to repository before executing
 
 ### Command Parsing
 
-- [ ] **PARS-01**: Agent extracts `@gsd-bot` mention from issue/PR comment body
-- [ ] **PARS-02**: Agent detects specific command after mention (e.g., `new-milestone`)
-- [ ] **PARS-03**: Agent parses command arguments and flags from comment
-- [ ] **PARS-04**: Agent only responds to comment `created` events (not edited or deleted)
+- [x] **PARS-01**: Agent extracts `@gsd-bot` mention from issue/PR comment body
+- [x] **PARS-02**: Agent detects specific command after mention (e.g., `new-milestone`)
+- [x] **PARS-03**: Agent parses command arguments and flags from comment
+- [x] **PARS-04**: Agent only responds to comment `created` events (not edited or deleted)
 
 ### GitHub Integration
 
@@ -57,7 +57,7 @@
 - [ ] **ERR-01**: Agent posts clear, structured error messages to issue comments
 - [ ] **ERR-02**: Agent includes workflow run URL in error comments for debugging
 - [ ] **ERR-03**: Agent handles GitHub API rate limits gracefully with retry logic
-- [ ] **ERR-04**: Agent validates and sanitizes all user input to prevent command injection
+- [x] **ERR-04**: Agent validates and sanitizes all user input to prevent command injection
 - [ ] **ERR-05**: Agent catches and reports unexpected errors without crashing workflow
 
 ### Milestone Creation (gsd:new-milestone)
@@ -77,10 +77,10 @@
 
 ### Config File
 
-- [ ] **CONF-01**: Agent reads `.github/gsd-config.json` from repository
-- [ ] **CONF-02**: Config file contains label mappings (phases, status)
-- [ ] **CONF-03**: Config file contains path definitions (planning directory)
-- [ ] **CONF-04**: Agent uses default values if config file is missing
+- [x] **CONF-01**: Agent reads `.github/gsd-config.json` from repository
+- [x] **CONF-02**: Config file contains label mappings (phases, status)
+- [x] **CONF-03**: Config file contains path definitions (planning directory)
+- [x] **CONF-04**: Agent uses default values if config file is missing
 
 ---
 
@@ -127,10 +127,10 @@
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
 | AUTH-03 | Phase 6 | Pending |
-| PARS-01 | Phase 2 | Pending |
-| PARS-02 | Phase 2 | Pending |
-| PARS-03 | Phase 2 | Pending |
-| PARS-04 | Phase 2 | Pending |
+| PARS-01 | Phase 2 | Complete |
+| PARS-02 | Phase 2 | Complete |
+| PARS-03 | Phase 2 | Complete |
+| PARS-04 | Phase 2 | Complete |
 | GITH-01 | Phase 4 | Pending |
 | GITH-02 | Phase 4 | Pending |
 | GITH-03 | Phase 4 | Pending |
@@ -154,7 +154,7 @@
 | ERR-01 | Phase 4 | Pending |
 | ERR-02 | Phase 4 | Pending |
 | ERR-03 | Phase 4 | Pending |
-| ERR-04 | Phase 2 | Pending |
+| ERR-04 | Phase 2 | Complete |
 | ERR-05 | Phase 4 | Pending |
 | MILE-01 | Phase 5 | Pending |
 | MILE-02 | Phase 5 | Pending |
@@ -165,10 +165,10 @@
 | REQG-02 | Phase 5 | Pending |
 | REQG-03 | Phase 5 | Pending |
 | REQG-04 | Phase 5 | Pending |
-| CONF-01 | Phase 2 | Pending |
-| CONF-02 | Phase 2 | Pending |
-| CONF-03 | Phase 2 | Pending |
-| CONF-04 | Phase 2 | Pending |
+| CONF-01 | Phase 2 | Complete |
+| CONF-02 | Phase 2 | Complete |
+| CONF-03 | Phase 2 | Complete |
+| CONF-04 | Phase 2 | Complete |
 
 ---
 *Last updated: 2026-01-21*
