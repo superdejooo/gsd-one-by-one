@@ -54,20 +54,20 @@ Plans:
 - [x] 02-03: Load config file from repository with defaults and add command validation with input sanitization
 
 ### Phase 3: CCR Integration
-**Goal**: Bundle and configure Claude Code Router for CI-safe, non-interactive LLM execution
+**Goal**: Bundle and configure Anthropic Agent SDK for CI-safe, non-interactive LLM execution
 **Depends on**: Phase 2
 **Requirements**: CCR-01, CCR-02, CCR-03, CCR-04, CCR-05, CCR-06, CCR-07
 **Success Criteria** (what must be TRUE):
-  1. Action installs Claude Code Router with pinned version via package manager
-  2. Action generates CCR config at `~/.claude-code-router/config.json` at runtime
-  3. API keys from GitHub Actions secrets are interpolated into CCR config
-  4. CCR runs in non-interactive mode (no TTY, no prompts) and handles all LLM invocations
+  1. Action installs Agent SDK with pinned version via package manager
+  2. Action configures SDK via environment variables (ANTHROPIC_API_KEY)
+  3. API keys from GitHub Actions secrets are interpolated into SDK environment
+  4. SDK runs in non-interactive mode (permissionMode: acceptEdits) and handles all LLM invocations
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Bundle and install CCR with pinned version
-- [ ] 03-02: Generate CCR config at runtime with secrets interpolation
-- [ ] 03-03: Configure non-interactive execution and verify LLM routing
+- [ ] 03-01: Install Agent SDK with pinned version and bundle into distributable
+- [ ] 03-02: Create LLM integration layer with SDK wrapper and prompt templates
+- [ ] 03-03: Configure API key passing and verify non-interactive execution
 
 ### Phase 4: GitHub Integration & Response
 **Goal**: Enable GitHub CLI operations for posting comments, creating branches, and committing artifacts
