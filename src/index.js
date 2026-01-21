@@ -3,8 +3,6 @@ import * as github from "@actions/github";
 import { parseComment, parseArguments } from "./lib/parser.js";
 import { loadConfig } from "./lib/config.js";
 import { validateCommand, sanitizeArguments } from "./lib/validator.js";
-import { executeLLMTaskWithRetry } from "./llm/agent.js";
-import { createMilestonePrompt } from "./llm/prompts.js";
 
 try {
   // Get inputs from action.yml
@@ -52,11 +50,22 @@ try {
       core.setOutput("config-loaded", "true");
       core.setOutput("arguments", JSON.stringify(sanitizedArgs));
 
-      // TODO: Execute command logic in later phases (Phase 5+)
-      // LLM integration ready - executeLLMTaskWithRetry and createMilestonePrompt available
-      // CCR proxy service must be running with ANTHROPIC_BASE_URL=http://127.0.0.1:3456
-      // Config generated via generateCCRConfig() in workflow before service start
-      // Example: const result = await executeLLMTaskWithRetry(createMilestonePrompt(sanitizedArgs));
+      // Execute GSD command via Claude Code Router stdin pipe
+      // CCR wraps Claude Code CLI for non-interactive CI/CD execution
+      const { exec } = require('child_process');
+
+      // TODO: Execute command logic in later phases (Phase 4+)
+      // Example execution:
+      // exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
+      //   if (error) {
+      //     console.error(`Error: ${error.message}`);
+      //     return;
+      //   }
+      //   if (stderr) {
+      //     console.error(`stderr: ${stderr}`);
+      //   }
+      //   console.log(`stdout: ${stdout}`);
+      // });
     } catch (error) {
       core.setFailed(error.message);
       core.setOutput("command-found", "false");
