@@ -1,0 +1,24 @@
+name: 'GSD GitHub Action'
+description: 'Processes GSD commands in issue comments'
+
+inputs:
+  issue-number:
+    description: 'The issue or PR number'
+    required: true
+  repo-owner:
+    description: 'The repository owner'
+    required: true
+  repo-name:
+    description: 'The repository name'
+    required: true
+  comment-body:
+    description: 'The comment body text'
+    required: true
+
+outputs:
+  response-posted:
+    description: 'Whether the response was successfully posted'
+
+runs:
+  using: 'node24'
+  main: 'dist/index.js'
