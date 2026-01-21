@@ -2,7 +2,7 @@
 
 **Project:** GSD for GitHub (Reusable Action)
 **Milestone:** v1 - gsd:new-milestone command
-**Last Updated:** 2025-01-21
+**Last Updated:** 2026-01-21
 **Architecture:** Reusable GitHub Action - projects reference Action package via workflow file
 
 ## v1 Requirements
@@ -124,51 +124,51 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| AUTH-01 | TBD | Pending |
-| AUTH-02 | TBD | Pending |
-| AUTH-03 | TBD | Pending |
-| PARS-01 | TBD | Pending |
-| PARS-02 | TBD | Pending |
-| PARS-03 | TBD | Pending |
-| PARS-04 | TBD | Pending |
-| GITH-01 | TBD | Pending |
-| GITH-02 | TBD | Pending |
-| GITH-03 | TBD | Pending |
-| GITH-04 | TBD | Pending |
-| GITH-05 | TBD | Pending |
-| WORK-01 | TBD | Pending |
-| WORK-02 | TBD | Pending |
-| WORK-03 | TBD | Pending |
-| WORK-04 | TBD | Pending |
-| WORK-05 | TBD | Pending |
-| CCR-01 | TBD | Pending |
-| CCR-02 | TBD | Pending |
-| CCR-03 | TBD | Pending |
-| CCR-04 | TBD | Pending |
-| CCR-05 | TBD | Pending |
-| CCR-06 | TBD | Pending |
-| CCR-07 | TBD | Pending |
-| CONC-01 | TBD | Pending |
-| CONC-02 | TBD | Pending |
-| CONC-03 | TBD | Pending |
-| ERR-01 | TBD | Pending |
-| ERR-02 | TBD | Pending |
-| ERR-03 | TBD | Pending |
-| ERR-04 | TBD | Pending |
-| ERR-05 | TBD | Pending |
-| MILE-01 | TBD | Pending |
-| MILE-02 | TBD | Pending |
-| MILE-03 | TBD | Pending |
-| MILE-04 | TBD | Pending |
-| MILE-05 | TBD | Pending |
-| REQG-01 | TBD | Pending |
-| REQG-02 | TBD | Pending |
-| REQG-03 | TBD | Pending |
-| REQG-04 | TBD | Pending |
-| CONF-01 | TBD | Pending |
-| CONF-02 | TBD | Pending |
-| CONF-03 | TBD | Pending |
-| CONF-04 | TBD | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 6 | Pending |
+| PARS-01 | Phase 2 | Pending |
+| PARS-02 | Phase 2 | Pending |
+| PARS-03 | Phase 2 | Pending |
+| PARS-04 | Phase 2 | Pending |
+| GITH-01 | Phase 4 | Pending |
+| GITH-02 | Phase 4 | Pending |
+| GITH-03 | Phase 4 | Pending |
+| GITH-04 | Phase 4 | Pending |
+| GITH-05 | Phase 4 | Pending |
+| WORK-01 | Phase 1 | Complete |
+| WORK-02 | Phase 1 | Complete |
+| WORK-03 | Phase 1 | Complete |
+| WORK-04 | Phase 1 | Complete |
+| WORK-05 | Phase 1 | Complete |
+| CCR-01 | Phase 3 | Pending |
+| CCR-02 | Phase 3 | Pending |
+| CCR-03 | Phase 3 | Pending |
+| CCR-04 | Phase 3 | Pending |
+| CCR-05 | Phase 3 | Pending |
+| CCR-06 | Phase 3 | Pending |
+| CCR-07 | Phase 3 | Pending |
+| CONC-01 | Phase 1 | Complete |
+| CONC-02 | Phase 1 | Complete |
+| CONC-03 | Phase 1 | Complete |
+| ERR-01 | Phase 4 | Pending |
+| ERR-02 | Phase 4 | Pending |
+| ERR-03 | Phase 4 | Pending |
+| ERR-04 | Phase 2 | Pending |
+| ERR-05 | Phase 4 | Pending |
+| MILE-01 | Phase 5 | Pending |
+| MILE-02 | Phase 5 | Pending |
+| MILE-03 | Phase 5 | Pending |
+| MILE-04 | Phase 5 | Pending |
+| MILE-05 | Phase 5 | Pending |
+| REQG-01 | Phase 5 | Pending |
+| REQG-02 | Phase 5 | Pending |
+| REQG-03 | Phase 5 | Pending |
+| REQG-04 | Phase 5 | Pending |
+| CONF-01 | Phase 2 | Pending |
+| CONF-02 | Phase 2 | Pending |
+| CONF-03 | Phase 2 | Pending |
+| CONF-04 | Phase 2 | Pending |
 
 ---
-*Last updated: 2025-01-21*
+*Last updated: 2026-01-21*
