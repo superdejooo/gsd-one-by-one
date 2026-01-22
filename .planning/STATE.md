@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 Milestone: v1.1 (Plan & Execute Commands)
 Phase: 08.1 of 09 (GitHub Projects & Issue Tracking)
-Plan: 01 of 03 in Phase 8.1
-Status: In progress - Plan 01 complete
-Last activity: 2026-01-22 — Completed 08.1-01-PLAN.md (labels module)
+Plan: 03 of 03 in Phase 8.1
+Status: In progress - Plan 03 complete
+Last activity: 2026-01-22 — Completed 08.1-03-PLAN.md (project setup documentation)
 
 **Progress:** ███░░░░░░░ 1/3 plans in Phase 8.1 (33%)
 **Overall v1.1:** ██░░░░░░░░ 2.33/5 phases completed (47%)
@@ -40,9 +40,9 @@ Last activity: 2026-01-22 — Completed 08.1-01-PLAN.md (labels module)
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 3 (07-01, 08-01, 08.1-01)
-- Average duration: 3.7 min
-- Total execution time: 0.18 hours
+- Plans completed: 4 (07-01, 08-01, 08.1-01, 08.1-03)
+- Average duration: 3.3 min
+- Total execution time: 0.22 hours
 
 **By Phase (v1.1):**
 
@@ -50,7 +50,7 @@ Last activity: 2026-01-22 — Completed 08.1-01-PLAN.md (labels module)
 |-------|-------|-------|----------|
 | 07    | 1     | 7 min | 7 min    |
 | 08    | 1     | 2 min | 2 min    |
-| 08.1  | 1     | 2 min | 2 min    |
+| 08.1  | 2     | 4 min | 2 min    |
 
 ---
 
@@ -149,6 +149,14 @@ Recent decisions affecting current work:
 - Colors follow GitHub's semantic palette: purple (pending), yellow (in-progress), green (complete), red (blocked)
 - Label helpers use shared octokit instance from github.js (no duplicate auth)
 
+**From 08.1-03 (Project Setup Documentation):**
+- Created comprehensive 313-line user guide (docs/project-setup.md) for GitHub Projects setup
+- Documents manual iteration creation requirement (API causes data loss if used programmatically)
+- Explains labels + projects architecture (labels = source of truth, projects = visualization)
+- Label automations configured by user once, then board reacts to GSD label changes automatically
+- Added Documentation section to README.md linking to project-setup.md
+- Users can complete full project board setup in 10-15 minutes following guide
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -164,7 +172,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-22
-New session: 2026-01-22 — Completed 08.1-01-PLAN.md (Labels Module)
+New session: 2026-01-22 — Completed 08.1-03-PLAN.md (Project Setup Documentation)
 Resume file: None (full execution completed)
 
 ## Next Steps
