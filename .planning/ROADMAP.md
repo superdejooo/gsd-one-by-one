@@ -71,20 +71,20 @@ Plans:
 - [x] 03-04: Gap closure - Add NON_INTERACTIVE_MODE and clean up architecture artifacts
 
 ### Phase 4: GitHub Integration & Response
-**Goal**: Enable GitHub CLI operations for posting comments, creating branches, and committing artifacts
+**Goal**: Enable GitHub API operations for posting comments, creating branches, and committing artifacts
 **Depends on**: Phase 3
 **Requirements**: GITH-01, GITH-02, GITH-03, GITH-04, GITH-05, ERR-01, ERR-02, ERR-03, ERR-05
 **Success Criteria** (what must be TRUE):
-  1. Agent posts formatted markdown comments to issue/PR via GitHub CLI (gh)
+  1. Agent posts formatted markdown comments to issue/PR via GitHub REST API (octokit)
   2. Agent creates milestone branch `gsd/<milestone-number>` and phase branches with proper naming
   3. Agent configures git (user.name, user.email) before committing planning docs
   4. Agent posts structured error messages with workflow run URLs and handles rate limits
 **Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Implement GitHub CLI operations for posting comments and responses
-- [ ] 04-02: Add branch creation for milestones and phases with naming conventions
-- [ ] 04-03: Configure git for commits and implement error handling with rate limiting
+- [ ] 04-01-PLAN.md — GitHub API operations with throttled octokit client and error/success message formatting
+- [ ] 04-02-PLAN.md — Git operations module with branch creation and naming conventions (milestone and phase branches)
+- [ ] 04-03-PLAN.md — Git identity configuration and centralized error handling with GitHub comment posting
 
 ### Phase 5: Milestone Creation Workflow
 **Goal**: Implement the complete gsd:new-milestone workflow including planning docs and requirements gathering
@@ -126,6 +126,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. GitHub Action Foundation | 3/3 | Complete | 2026-01-21 |
 | 2. Command Parsing & Config | 3/3 | Complete | 2026-01-21 |
 | 3. CCR Integration | 4/4 | Complete | 2026-01-22 |
-| 4. GitHub Integration & Response | 0/3 | Not started | - |
+| 4. GitHub Integration & Response | 0/3 | Planned | - |
 | 5. Milestone Creation Workflow | 0/4 | Not started | - |
 | 6. Security & Authorization | 0/2 | Not started | - |
