@@ -24,18 +24,11 @@
 - PLAN-02: Phase planner creates detailed execution plans with tasks, dependencies, and verification
 - PLAN-03: Plans are committed to `.planning/phases/{n}/` directory
 
-**Success Criteria:**
-1. Command parses `@gsd-bot plan-phase N` or `/gsd:plan-phase N`
-2. Bot responds with planning status comment
-3. Phase planner reads requirements from ROADMAP.md and REQUIREMENTS.md
-4. Planner creates plan files in `.planning/phases/{n}/`
-5. Plans include tasks with dependencies, verification, and wave grouping
-6. Bot posts summary comment with plan location when complete
+**Status:** ✅ Complete (2026-01-22)
 
-**Plans:** 2 plans | **Waves:** 2
+**Plans:** 1 plan | **Waves:** 1
 
-- [ ] 07-01-PLAN.md — Wave 1: Foundation (command allowlist, phase-planner.js module, command dispatch)
-- [ ] 07-02-PLAN.md — Wave 2: Plan generation (self-referential PLAN.md files, summary documents)
+- [x] 07-01-PLAN.md — Foundation (command allowlist, phase-planner.js module, command dispatch)
 
 **Files Created:**
 - `src/milestone/phase-planner.js` — Phase planning logic (8 exports)

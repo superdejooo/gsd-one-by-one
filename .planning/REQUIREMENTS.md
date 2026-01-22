@@ -10,9 +10,9 @@ Requirements for the Plan & Execute Commands milestone.
 
 ### Phase Planning
 
-- [ ] **PLAN-01**: `gsd:plan-phase` command parses phase number and triggers phase planning workflow
-- [ ] **PLAN-02**: Phase planner creates detailed execution plans with tasks, dependencies, and verification
-- [ ] **PLAN-03**: Plans are committed to `.planning/phases/{n}/` directory
+- [x] **PLAN-01**: `gsd:plan-phase` command parses phase number and triggers phase planning workflow
+- [x] **PLAN-02**: Phase planner creates detailed execution plans with tasks, dependencies, and verification
+- [x] **PLAN-03**: Plans are committed to `.planning/phases/{n}/` directory
 
 ### Phase Execution
 
@@ -62,9 +62,9 @@ Requirements for the Plan & Execute Commands milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAN-01 | Phase 7 | Pending |
-| PLAN-02 | Phase 7 | Pending |
-| PLAN-03 | Phase 7 | Pending |
+| PLAN-01 | Phase 7 | Complete |
+| PLAN-02 | Phase 7 | Complete |
+| PLAN-03 | Phase 7 | Complete |
 | EXEC-01 | Phase 8 | Pending |
 | EXEC-02 | Phase 8 | Pending |
 | EXEC-03 | Phase 8 | Pending |
