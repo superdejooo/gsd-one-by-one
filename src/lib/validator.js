@@ -4,7 +4,7 @@ import * as core from "@actions/core";
  * Allowlist of valid commands
  * For v1, only new-milestone is implemented
  */
-const ALLOWED_COMMANDS = ["new-milestone", "plan-phase"];
+const ALLOWED_COMMANDS = ["new-milestone", "plan-phase", "execute-phase"];
 
 /**
  * Validate command against allowlist
