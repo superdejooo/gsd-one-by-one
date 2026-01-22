@@ -74,20 +74,28 @@
 
 **Depends on:** Phase 8
 
+**Status:** Complete (2026-01-22)
+
 **Plans:** 3 plans | **Waves:** 1
 
-Plans:
-- [ ] 08.1-01-PLAN.md — Label helpers (labels.js module with STATUS_LABELS, ensureLabelsExist, applyLabels, updateIssueStatus)
-- [ ] 08.1-02-PLAN.md — Project GraphQL queries (projects.js module, milestone iteration validation)
-- [ ] 08.1-03-PLAN.md — User documentation (project-setup.md guide for manual iteration setup)
+- [x] 08.1-01-PLAN.md — Label helpers (labels.js module with STATUS_LABELS, ensureLabelsExist, applyLabels, updateIssueStatus)
+- [x] 08.1-02-PLAN.md — Project GraphQL queries (projects.js module, milestone iteration validation)
+- [x] 08.1-03-PLAN.md — User documentation (project-setup.md guide for manual iteration setup)
 
-**Scope:**
-- Label helpers (create, apply, update status labels)
-- Project query helpers (get project, list iterations - READ ONLY)
-- Update `new-milestone` to validate iteration exists
-- Documentation: how user sets up their project board
+**Files Created:**
+- `src/lib/labels.js` — Label CRUD operations for status tracking (4 exports)
+- `src/lib/projects.js` — GitHub Projects v2 GraphQL queries (3 exports, read-only)
+- `docs/project-setup.md` — Step-by-step setup guide for GitHub Projects (313 lines)
 
-**CRITICAL Constraint:** No automatic iteration creation via API (causes data loss per research). Users create iterations manually, workflow validates they exist.
+**Files Modified:**
+- `src/milestone/index.js` — Added validateProjectIteration integration
+- `README.md` — Added link to project setup documentation
+
+**Implementation Notes:**
+- Labels as source of truth: `status:pending`, `status:in-progress`, `status:complete`, `status:blocked`
+- Projects v2 queries are read-only (no iteration creation via API - causes data loss)
+- new-milestone validates iteration exists, warns if not found
+- Manual iteration setup documented (user creates via GitHub UI)
 
 **Context:** See `.planning/phases/08.1-github-projects-issue-tracking-and-organization/08.1-CONTEXT.md`
 
@@ -121,7 +129,7 @@ Plans:
 |---|-------|------|--------------|-------|
 | 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 1 plan (complete) |
 | 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, RETRY-01 | 1 plan (complete) |
-| 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans |
+| 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans (complete) |
 | 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | TBD |
 
 ---
