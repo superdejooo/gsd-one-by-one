@@ -31787,6 +31787,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("net");
 
 /***/ }),
 
+/***/ 1421:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process");
+
+/***/ }),
+
 /***/ 7598:
 /***/ ((module) => {
 
@@ -33861,7 +33868,7 @@ async function withErrorHandling(operation, context) {
 /* harmony export */   Yv: () => (/* binding */ slugify),
 /* harmony export */   sT: () => (/* binding */ createPhaseBranch)
 /* harmony export */ });
-/* harmony import */ var _git_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9209);
+/* harmony import */ var _git_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5141);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7484);
 
 
@@ -33922,30 +33929,23 @@ async function branchExists(branchName) {
 
 /***/ }),
 
-/***/ 9209:
+/***/ 5141:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
-
-// EXPORTS
-__nccwpck_require__.d(__webpack_exports__, {
-  Zd: () => (/* binding */ configureGitIdentity),
-  mj: () => (/* binding */ createAndSwitchBranch),
-  tD: () => (/* binding */ runGitCommand),
-  Df: () => (/* binding */ switchBranch)
-});
-
-// EXTERNAL MODULE: external "node:util"
-var external_node_util_ = __nccwpck_require__(7975);
-;// CONCATENATED MODULE: external "node:child_process"
-const external_node_child_process_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:child_process");
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(7484);
-;// CONCATENATED MODULE: ./src/git/git.js
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   Df: () => (/* binding */ switchBranch),
+/* harmony export */   Zd: () => (/* binding */ configureGitIdentity),
+/* harmony export */   mj: () => (/* binding */ createAndSwitchBranch),
+/* harmony export */   tD: () => (/* binding */ runGitCommand)
+/* harmony export */ });
+/* harmony import */ var node_util__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7975);
+/* harmony import */ var node_child_process__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(1421);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7484);
 
 
 
 
-const execAsync = (0,external_node_util_.promisify)(external_node_child_process_namespaceObject.exec);
+const execAsync = (0,node_util__WEBPACK_IMPORTED_MODULE_0__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
 
 /**
  * Execute git command with error handling
@@ -33953,17 +33953,17 @@ const execAsync = (0,external_node_util_.promisify)(external_node_child_process_
  * @returns {Promise<string>} Command output
  */
 async function runGitCommand(command) {
-  core.debug(`Executing: ${command}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.debug(`Executing: ${command}`);
   try {
     const { stdout, stderr } = await execAsync(command);
     if (stderr) {
-      core.warning(`Git command warning: ${stderr}`);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.warning(`Git command warning: ${stderr}`);
     }
     return stdout.trim();
   } catch (error) {
-    core.error(`Git command failed: ${command}`);
-    core.error(`Exit code: ${error.code}`);
-    core.error(`Error: ${error.message}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.error(`Git command failed: ${command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.error(`Exit code: ${error.code}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.error(`Error: ${error.message}`);
     throw error;
   }
 }
@@ -33976,7 +33976,7 @@ async function runGitCommand(command) {
 async function configureGitIdentity(name, email) {
   await runGitCommand(`git config set user.name "${name}"`);
   await runGitCommand(`git config set user.email "${email}"`);
-  core.info(`Git identity configured: ${name} <${email}>`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Git identity configured: ${name} <${email}>`);
 }
 
 /**
@@ -33990,7 +33990,7 @@ async function createAndSwitchBranch(branchName, startPoint = null) {
     : `git switch -c ${branchName}`;
 
   await runGitCommand(command);
-  core.info(`Created and switched to branch: ${branchName}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Created and switched to branch: ${branchName}`);
 }
 
 /**
@@ -33999,7 +33999,7 @@ async function createAndSwitchBranch(branchName, startPoint = null) {
  */
 async function switchBranch(branchName) {
   await runGitCommand(`git switch ${branchName}`);
-  core.info(`Switched to branch: ${branchName}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Switched to branch: ${branchName}`);
 }
 
 
@@ -34017,7 +34017,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3942);
 /* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4320);
 /* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
-/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(9209);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(5141);
 /* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(2629);
 /* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(7032);
 /* harmony import */ var _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(4887);
@@ -34753,8 +34753,8 @@ var lib_github = __nccwpck_require__(7985);
 var formatter = __nccwpck_require__(5878);
 // EXTERNAL MODULE: ./src/git/branches.js
 var branches = __nccwpck_require__(2629);
-// EXTERNAL MODULE: ./src/git/git.js + 1 modules
-var git = __nccwpck_require__(9209);
+// EXTERNAL MODULE: ./src/git/git.js
+var git = __nccwpck_require__(5141);
 ;// CONCATENATED MODULE: ./src/milestone/state.js
 /**
  * State Management Module
@@ -35975,7 +35975,7 @@ function generatePhasesFromRequirements(answers) {
 /* unused harmony export parsePhaseNumber */
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5317);
+/* harmony import */ var node_child_process__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(1421);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9023);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(7985);
@@ -36001,7 +36001,7 @@ function generatePhasesFromRequirements(answers) {
 
 
 
-const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec);
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_2__.exec);
 
 /**
  * Parse phase number from command arguments

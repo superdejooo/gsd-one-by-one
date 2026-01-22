@@ -13,7 +13,7 @@
 
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { exec } from "child_process";
+import { exec } from "node:child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import { postComment, getWorkflowRunUrl } from "../lib/github.js";
