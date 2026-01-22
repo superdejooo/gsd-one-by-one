@@ -2345,7 +2345,7 @@ __export(index_exports, {
   Octokit: () => Octokit
 });
 module.exports = __toCommonJS(index_exports);
-var import_universal_user_agent = __nccwpck_require__(3843);
+var import_universal_user_agent = __nccwpck_require__(7900);
 var import_before_after_hook = __nccwpck_require__(5029);
 var import_request = __nccwpck_require__(8636);
 var import_graphql = __nccwpck_require__(5448);
@@ -2523,7 +2523,7 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 var import_request3 = __nccwpck_require__(8636);
-var import_universal_user_agent = __nccwpck_require__(3843);
+var import_universal_user_agent = __nccwpck_require__(7900);
 
 // pkg/dist-src/version.js
 var VERSION = "7.1.1";
@@ -5398,6 +5398,31 @@ function removeHook(state, name, method) {
 
 /***/ }),
 
+/***/ 7900:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 4552:
 /***/ (function(__unused_webpack_module, exports) {
 
@@ -6906,7 +6931,7 @@ __export(dist_src_exports, {
 module.exports = __toCommonJS(dist_src_exports);
 
 // pkg/dist-src/defaults.js
-var import_universal_user_agent = __nccwpck_require__(3843);
+var import_universal_user_agent = __nccwpck_require__(5024);
 
 // pkg/dist-src/version.js
 var VERSION = "9.0.6";
@@ -7259,6 +7284,31 @@ var endpoint = withDefaults(null, DEFAULTS);
 
 /***/ }),
 
+/***/ 5024:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 3708:
 /***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
@@ -7385,7 +7435,7 @@ __export(dist_src_exports, {
 });
 module.exports = __toCommonJS(dist_src_exports);
 var import_endpoint = __nccwpck_require__(4471);
-var import_universal_user_agent = __nccwpck_require__(3843);
+var import_universal_user_agent = __nccwpck_require__(7480);
 
 // pkg/dist-src/version.js
 var VERSION = "8.4.1";
@@ -7581,6 +7631,31 @@ var request = withDefaults(import_endpoint.endpoint, {
 });
 // Annotate the CommonJS export names for ESM import in node:
 0 && (0);
+
+
+/***/ }),
+
+/***/ 7480:
+/***/ ((__unused_webpack_module, exports) => {
+
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function getUserAgent() {
+  if (typeof navigator === "object" && "userAgent" in navigator) {
+    return navigator.userAgent;
+  }
+
+  if (typeof process === "object" && process.version !== undefined) {
+    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
+  }
+
+  return "<environment undetectable>";
+}
+
+exports.getUserAgent = getUserAgent;
+//# sourceMappingURL=index.js.map
 
 
 /***/ }),
@@ -31566,31 +31641,6 @@ module.exports = {
 
 /***/ }),
 
-/***/ 3843:
-/***/ ((__unused_webpack_module, exports) => {
-
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function getUserAgent() {
-  if (typeof navigator === "object" && "userAgent" in navigator) {
-    return navigator.userAgent;
-  }
-
-  if (typeof process === "object" && process.version !== undefined) {
-    return `Node.js/${process.version.substr(1)} (${process.platform}; ${process.arch})`;
-  }
-
-  return "<environment undetectable>";
-}
-
-exports.getUserAgent = getUserAgent;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
 /***/ 8264:
 /***/ ((module) => {
 
@@ -33963,7 +34013,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(2629);
 /* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(7032);
 /* harmony import */ var _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(4887);
-/* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(1733);
+/* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(9711);
 /* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__ = __nccwpck_require__(4241);
 /* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(9992);
 
@@ -34677,7 +34727,7 @@ function sanitizeArguments(args) {
 
 /***/ }),
 
-/***/ 1733:
+/***/ 9711:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 
@@ -35410,6 +35460,168 @@ ${questionsText}
 *Reply with your answers to continue.*`;
 }
 
+;// CONCATENATED MODULE: ./src/lib/projects.js
+/**
+ * GitHub Projects v2 GraphQL Queries Module
+ *
+ * Read-only queries for GitHub Projects v2 API.
+ * IMPORTANT: No mutations - iteration creation causes data loss.
+ * See 08.1-RESEARCH.md for details on API limitations.
+ */
+
+
+
+
+/**
+ * Get project by number
+ *
+ * @param {string} owner - Organization or user login
+ * @param {number} projectNumber - Project number from URL
+ * @param {boolean} isOrg - True for organization projects, false for user projects
+ * @returns {Promise<{id: string, title: string, url: string}|null>} Project details or null if not found
+ */
+async function getProject(owner, projectNumber, isOrg = true) {
+  try {
+    const query = isOrg
+      ? `
+        query($owner: String!, $number: Int!) {
+          organization(login: $owner) {
+            projectV2(number: $number) {
+              id
+              title
+              url
+            }
+          }
+        }
+      `
+      : `
+        query($owner: String!, $number: Int!) {
+          user(login: $owner) {
+            projectV2(number: $number) {
+              id
+              title
+              url
+            }
+          }
+        }
+      `;
+
+    const result = await lib_github/* octokit */.A8.graphql(query, {
+      owner,
+      number: projectNumber,
+    });
+
+    const project = isOrg ? result.organization?.projectV2 : result.user?.projectV2;
+
+    if (!project) {
+      core.warning(`Project #${projectNumber} not found for ${owner}`);
+      return null;
+    }
+
+    core.info(`Found project: ${project.title} (${project.url})`);
+    return project;
+  } catch (error) {
+    if (error.status === 404 || error.status === 403) {
+      core.warning(
+        `Project #${projectNumber} not found or no permission. Error: ${error.message}`
+      );
+      return null;
+    }
+    core.error(`GraphQL error fetching project: ${error.message}`);
+    return null;
+  }
+}
+
+/**
+ * Get iterations for a project
+ *
+ * @param {string} projectId - Project node ID
+ * @returns {Promise<Array<{id: string, title: string, startDate: string}>>} Array of iterations or empty array
+ */
+async function getIterations(projectId) {
+  try {
+    const query = `
+      query($projectId: ID!) {
+        node(id: $projectId) {
+          ... on ProjectV2 {
+            fields(first: 20) {
+              nodes {
+                ... on ProjectV2IterationField {
+                  id
+                  name
+                  configuration {
+                    iterations {
+                      id
+                      title
+                      startDate
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    `;
+
+    const result = await lib_github/* octokit */.A8.graphql(query, { projectId });
+
+    const fields = result.node?.fields?.nodes || [];
+    const iterationField = fields.find((f) => f.configuration?.iterations);
+
+    if (!iterationField) {
+      core.warning("No iteration field found in project");
+      return [];
+    }
+
+    const iterations = iterationField.configuration.iterations || [];
+    core.info(`Found ${iterations.length} iterations in project`);
+
+    return iterations;
+  } catch (error) {
+    core.error(`GraphQL error fetching iterations: ${error.message}`);
+    return [];
+  }
+}
+
+/**
+ * Find iteration by title
+ *
+ * @param {string} owner - Organization or user login
+ * @param {number} projectNumber - Project number from URL
+ * @param {string} iterationTitle - Iteration title to find (case-insensitive)
+ * @param {boolean} isOrg - True for organization projects, false for user projects
+ * @returns {Promise<{id: string, title: string, startDate: string}|null>} Iteration if found, null otherwise
+ */
+async function findIteration(owner, projectNumber, iterationTitle, isOrg = true) {
+  // Get project
+  const project = await getProject(owner, projectNumber, isOrg);
+  if (!project) {
+    return null;
+  }
+
+  // Get iterations
+  const iterations = await getIterations(project.id);
+  if (iterations.length === 0) {
+    return null;
+  }
+
+  // Find by title (case-insensitive)
+  const iteration = iterations.find(
+    (i) => i.title.toLowerCase() === iterationTitle.toLowerCase()
+  );
+
+  if (iteration) {
+    core.info(`Found iteration: ${iteration.title}`);
+  } else {
+    core.warning(`Iteration "${iterationTitle}" not found in project #${projectNumber}`);
+  }
+
+  return iteration || null;
+}
+
+// EXTERNAL MODULE: ./src/lib/config.js
+var lib_config = __nccwpck_require__(3942);
 ;// CONCATENATED MODULE: ./src/milestone/index.js
 /**
  * Milestone Workflow Orchestrator
@@ -35422,6 +35634,8 @@ ${questionsText}
  * - GitHub posting (lib/github.js)
  * - Summary generation (summarizer.js)
  */
+
+
 
 
 
@@ -35469,6 +35683,41 @@ function parseMilestoneNumber(commandArgs) {
   }
 
   throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+}
+
+/**
+ * Validate project iteration exists for milestone
+ *
+ * @param {string} owner - Repository owner
+ * @param {number} milestoneNumber - Milestone number
+ * @param {object} config - Configuration object
+ * @returns {Promise<object>} Validation result
+ */
+async function validateProjectIteration(owner, milestoneNumber, config) {
+  // Check if project config exists
+  const projectNumber = config?.project?.number;
+  if (!projectNumber) {
+    core.info('No project configured, skipping iteration validation');
+    return { validated: false, reason: 'no-project-configured' };
+  }
+
+  const isOrg = config?.project?.isOrg ?? true;
+  const iterationTitle = `v${milestoneNumber}`;  // Convention: v1, v2, etc.
+
+  const iteration = await findIteration(owner, projectNumber, iterationTitle, isOrg);
+
+  if (iteration) {
+    core.info(`Found project iteration: ${iteration.title}`);
+    return { validated: true, iteration };
+  } else {
+    core.warning(`Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`);
+    return {
+      validated: false,
+      reason: 'iteration-not-found',
+      expected: iterationTitle,
+      setupGuide: 'See docs/project-setup.md for setup instructions'
+    };
+  }
 }
 
 /**
@@ -35640,6 +35889,21 @@ async function executeMilestoneWorkflow(context, commandArgs) {
     await saveState(owner, repo, milestoneNumber, state, milestoneData.phases);
 
     // Step 12: Generate and post summary comment
+    const nextSteps = [
+      "Review the planning documents in `.github/planning/milestones/`",
+      "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
+      "Use `@gsd-bot execute-phase` to execute planned work"
+    ];
+
+    // Step 13: Validate project iteration
+    const config = await (0,lib_config/* loadConfig */.Z)(owner, repo);
+    const validationResult = await validateProjectIteration(owner, milestoneNumber, config);
+
+    // Append warning to next steps if iteration not found
+    if (!validationResult.validated && validationResult.reason === 'iteration-not-found') {
+      nextSteps.push(`⚠️  Create project iteration "${validationResult.expected}" in GitHub Projects for tracking`);
+    }
+
     const summary = generateMilestoneSummary({
       milestoneNumber,
       status: "Planning Documents Created",
@@ -35649,11 +35913,7 @@ async function executeMilestoneWorkflow(context, commandArgs) {
         answered: Object.keys(state.requirements.answered),
         pending: []
       },
-      nextSteps: [
-        "Review the planning documents in `.github/planning/milestones/`",
-        "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
-        "Use `@gsd-bot execute-phase` to execute planned work"
-      ]
+      nextSteps
     });
 
     await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, summary);
@@ -35666,6 +35926,7 @@ async function executeMilestoneWorkflow(context, commandArgs) {
       milestone: milestoneNumber,
       files: fileList.map(f => f.path),
       branch: `gsd/${milestoneNumber}`,
+      projectIteration: validationResult,
       message: "Milestone created successfully with planning documents"
     };
 
