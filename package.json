@@ -1,5 +1,5 @@
 {
-  "name": "gsd-one-by-one",
+  "name": "@superdejooo/gsd-one-by-one",
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
@@ -8,10 +8,18 @@
     "setup:ccr": "node --input-type=module -e \"import {generateCCRConfig} from './src/llm/config-generator.js'; generateCCRConfig()\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "GitHub Action for GSD (Get Shit Done) workflow automation",
+  "keywords": [
+    "claude",
+    "code",
+    "gsd",
+    "ccr",
+    "router",
+    "llm",
+    "anthropic"
+  ],
+  "author": "superdejooo",
+  "license": "MIT",
+  "description": "Autonomous AI development through GitHub Issues - powered by Claude Code and GSD",
   "dependencies": {
     "@actions/core": "^2.0.2",
     "@actions/github": "^7.0.0",
