@@ -5,7 +5,7 @@ import { throttling } from "@octokit/plugin-throttling";
 // Create throttled octokit instance
 const ThrottledOctokit = github.GitHub.plugin(throttling);
 
-const octokit = new ThrottledOctokit({
+export const octokit = new ThrottledOctokit({
   auth: core.getInput("token") || process.env.GITHUB_TOKEN,
   throttle: {
     onRateLimit: (retryAfter, options, octokit, retryCount) => {
