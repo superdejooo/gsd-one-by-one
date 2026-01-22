@@ -2,8 +2,8 @@
 
 ## Milestones
 
-- ✅ **v1.0 MVP** — GitHub-native GSD via Reusable Action (shipped 2026-01-22)
-- 📋 **v1.1** — `gsd:plan-phase` and `gsd:execute-phase` commands (in progress)
+- **v1.0 MVP** --- GitHub-native GSD via Reusable Action (shipped 2026-01-22)
+- **v1.1** --- `gsd:plan-phase` and `gsd:execute-phase` commands (in progress)
 
 ---
 
@@ -24,16 +24,16 @@
 - PLAN-02: Phase planner creates detailed execution plans with tasks, dependencies, and verification
 - PLAN-03: Plans are committed to `.planning/phases/{n}/` directory
 
-**Status:** ✅ Complete (2026-01-22)
+**Status:** Complete (2026-01-22)
 
 **Plans:** 1 plan | **Waves:** 1
 
-- [x] 07-01-PLAN.md — Foundation (command allowlist, phase-planner.js module, command dispatch)
+- [x] 07-01-PLAN.md --- Foundation (command allowlist, phase-planner.js module, command dispatch)
 
 **Files Created:**
-- `src/milestone/phase-planner.js` — Phase planning logic (8 exports)
-- `src/lib/validator.js` — ALLOWLIST includes "plan-phase"
-- `src/index.js` — Command dispatch for plan-phase workflow
+- `src/milestone/phase-planner.js` --- Phase planning logic (8 exports)
+- `src/lib/validator.js` --- ALLOWLIST includes "plan-phase"
+- `src/index.js` --- Command dispatch for plan-phase workflow
 
 ---
 
@@ -44,21 +44,26 @@
 **Requirements:**
 - EXEC-01: `gsd:execute-phase` command executes planned actions with wave-based parallelization
 - EXEC-02: Agent can read GitHub issue status to determine resume point
-- EXEC-03: Agent updates issue status as tasks complete (pending → in-progress → complete)
+- EXEC-03: Agent updates issue status as tasks complete (pending -> in-progress -> complete)
 - RETRY-01: Workflow can resume from last incomplete action on retry
 
-**Success Criteria:**
-1. Command parses `@gsd-bot execute-phase N` or `/gsd:execute-phase N`
-2. Bot responds with execution status comment
-3. Executor reads plan files from `.planning/phases/{n}/`
-4. Actions execute in waves (parallel where independent, sequential where dependent)
-5. Executor checks issue status to resume from last incomplete action
-6. Executor updates issue status as tasks progress
-7. Bot posts summary when phase execution completes
+**Status:** Planning complete
 
-**Files Created:**
-- `src/milestone/phase-executor.js` — Phase execution logic
-- Updated `.planning/phases/{n}/*.md` with execution notes
+**Plans:** 1 plan | **Waves:** 1
+
+- [ ] 08-01-PLAN.md --- Execute-phase command (allowlist, phase-executor.js module, command dispatch)
+
+**Files to Create:**
+- `src/milestone/phase-executor.js` --- Phase execution logic with enhanced output parsing
+- `src/lib/validator.js` --- ALLOWLIST includes "execute-phase"
+- `src/index.js` --- Command dispatch for execute-phase workflow
+
+**Implementation Notes:**
+- 30-minute timeout (vs 10 min for planning)
+- Parses GSD output for completed actions, next steps, questions
+- Posts structured comment instead of raw output pass-through
+- Returns hasQuestions flag for conversational continuation
+- GSD handles all internal state tracking, commits, parallelization
 
 ---
 
@@ -78,26 +83,26 @@
 5. Issues are updated to "complete" when verification passes
 
 **Files Modified:**
-- `src/milestone/phase-planner.js` — Add issue creation
-- `src/milestone/phase-executor.js` — Add issue status reading/updating
+- `src/milestone/phase-planner.js` --- Add issue creation
+- `src/milestone/phase-executor.js` --- Add issue status reading/updating
 
 ---
 
 ## Phase Summary
 
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
-| 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 6 criteria |
-| 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, EXEC-03, RETRY-01 | 7 criteria |
-| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02 | 5 criteria |
+| # | Phase | Goal | Requirements | Plans |
+|---|-------|------|--------------|-------|
+| 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 1 plan (complete) |
+| 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, EXEC-03, RETRY-01 | 1 plan (planned) |
+| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02 | TBD |
 
 ---
 
 ## Dependencies
 
-- Phase 7 → Phase 8: Phase planner creates plans that executor reads
-- Phase 8 → Phase 9: Issue tracking integrates with execution
-- All phases → v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
+- Phase 7 -> Phase 8: Phase planner creates plans that executor reads
+- Phase 8 -> Phase 9: Issue tracking integrates with execution
+- All phases -> v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
 
 ---
 
