@@ -9,6 +9,7 @@ import { runGitCommand, createAndSwitchBranch, switchBranch, configureGitIdentit
 import { createMilestoneBranch, createPhaseBranch, slugify, branchExists } from "./git/branches.js";
 import { withErrorHandling } from "./errors/handler.js";
 import { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown } from "./milestone/planning-docs.js";
+import { executeMilestoneWorkflow, parseMilestoneNumber } from "./milestone/index.js";
 
 // Trigger bundling of modules
 const _githubModule = { postComment, getWorkflowRunUrl };
@@ -17,7 +18,8 @@ const _gitModule = { runGitCommand, createAndSwitchBranch, switchBranch, configu
 const _branchModule = { createMilestoneBranch, createPhaseBranch, slugify, branchExists };
 const _errorModule = { withErrorHandling };
 const _planningModule = { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule);
+const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule);
 
 try {
   // Get inputs from action.yml
@@ -60,6 +62,19 @@ try {
 
     // Sanitize arguments
     const sanitizedArgs = args ? sanitizeArguments(args) : {};
+
+    // Command dispatch for milestone workflow
+    if (parsed.command === "new-milestone") {
+      core.info("Dispatching to milestone workflow");
+      const result = await executeMilestoneWorkflow(
+        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        sanitizedArgs
+      );
+      core.info(`Milestone workflow result: ${JSON.stringify(result)}`);
+      core.setOutput("milestone-complete", result.complete);
+      core.setOutput("milestone-phase", result.phase || "unknown");
+      return { commandFound: true, command: parsed.command, ...result };
+    }
 
     // Load configuration
     const config = await loadConfig(repoOwner, repoName);
