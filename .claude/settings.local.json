@@ -1,10 +1,18 @@
 {
   "permissions": {
     "allow": [
+      "Edit",
+      "Write",
+      "Bash",
       "WebSearch",
       "WebFetch(domain:docs.github.com)",
       "WebFetch(domain:cli.github.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(cat:*)",
+      "Skill(gsd:pause-work)",
+      "Skill(gsd:plan-phase)"
     ]
   }
 }

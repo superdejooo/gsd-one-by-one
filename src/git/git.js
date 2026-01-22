@@ -1,0 +1,60 @@
+import { promisify } from "node:util";
+import { exec } from "node:child_process";
+import * as core from "@actions/core";
+
+const execAsync = promisify(exec);
+
+/**
+ * Execute git command with error handling
+ * @param {string} command - Git command to execute
+ * @returns {Promise<string>} Command output
+ */
+export async function runGitCommand(command) {
+  core.debug(`Executing: ${command}`);
+  try {
+    const { stdout, stderr } = await execAsync(command);
+    if (stderr) {
+      core.warning(`Git command warning: ${stderr}`);
+    }
+    return stdout.trim();
+  } catch (error) {
+    core.error(`Git command failed: ${command}`);
+    core.error(`Exit code: ${error.code}`);
+    core.error(`Error: ${error.message}`);
+    throw error;
+  }
+}
+
+/**
+ * Configure git identity for commits
+ * @param {string} name - Git user name
+ * @param {string} email - Git user email
+ */
+export async function configureGitIdentity(name, email) {
+  await runGitCommand(`git config set user.name "${name}"`);
+  await runGitCommand(`git config set user.email "${email}"`);
+  core.info(`Git identity configured: ${name} <${email}>`);
+}
+
+/**
+ * Create and switch to new branch
+ * @param {string} branchName - Name of branch to create
+ * @param {string} [startPoint] - Optional start point (commit, branch, tag)
+ */
+export async function createAndSwitchBranch(branchName, startPoint = null) {
+  const command = startPoint
+    ? `git switch -c ${branchName} ${startPoint}`
+    : `git switch -c ${branchName}`;
+
+  await runGitCommand(command);
+  core.info(`Created and switched to branch: ${branchName}`);
+}
+
+/**
+ * Switch to existing branch
+ * @param {string} branchName - Name of branch to switch to
+ */
+export async function switchBranch(branchName) {
+  await runGitCommand(`git switch ${branchName}`);
+  core.info(`Switched to branch: ${branchName}`);
+}

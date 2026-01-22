@@ -1,1 +1,1 @@
-{"mode": "yolo", "depth": "comprehensive", "parallel": true}
+{"mode": "yolo", "depth": "comprehensive", "parallel": true, "model_profile": "balanced"}
