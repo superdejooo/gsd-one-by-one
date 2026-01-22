@@ -91,6 +91,10 @@ Planning docs created in .planning/ folder
 3. **execute-phase** — AI implements the plan with atomic commits
 4. **verify-work** — Validate features work as expected *(coming soon)*
 
+## Documentation
+
+- **[Project Board Setup](docs/project-setup.md)** — Set up GitHub Projects for visual milestone tracking
+
 ## Planning Documents
 
 All artifacts are stored in `.planning/` (GSD standard):
