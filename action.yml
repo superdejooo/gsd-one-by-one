@@ -32,5 +32,5 @@ outputs:
     description: 'Parsed and sanitized arguments (JSON string)'
 
 runs:
-  using: 'node24'
+  using: 'node20'
   main: 'dist/index.js'
