@@ -113,8 +113,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Implement write access validation via GitHub API
-- [ ] 06-02: Add authorization error handling and user feedback
+- [x] 06-01-PLAN.md — Create authorization validator module with GitHub API permission checking
+- [x] 06-02-PLAN.md — Integrate authorization check into index.js and extend error handling
 
 ## Progress
 
@@ -128,4 +128,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. CCR Integration | 4/4 | Complete | 2026-01-22 |
 | 4. GitHub Integration & Response | 0/3 | Planned | - |
 | 5. Milestone Creation Workflow | 4/4 | Complete | 2026-01-22 |
-| 6. Security & Authorization | 0/2 | Not started | - |
+| 6. Security & Authorization | 2/2 | Complete | 2026-01-22 |
