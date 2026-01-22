@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Milestone: v1.1 (Plan & Execute Commands)
-Phase: 08 of 09 (Phase Execution Command)
-Plan: 01 of 01 in Phase 8
-Status: Phase complete - Plan 01 complete
-Last activity: 2026-01-22 — Completed 08-01-PLAN.md (execute-phase command wiring)
+Phase: 08.1 of 09 (GitHub Projects & Issue Tracking)
+Plan: 01 of 03 in Phase 8.1
+Status: In progress - Plan 01 complete
+Last activity: 2026-01-22 — Completed 08.1-01-PLAN.md (labels module)
 
-**Progress:** ██████████ 1/1 plans in Phase 8 (100%)
-**Overall v1.1:** ██░░░░░░░░ 2/4 phases completed (50%)
+**Progress:** ███░░░░░░░ 1/3 plans in Phase 8.1 (33%)
+**Overall v1.1:** ██░░░░░░░░ 2.33/5 phases completed (47%)
 
 ## v1.0 Performance Summary
 
@@ -40,9 +40,9 @@ Last activity: 2026-01-22 — Completed 08-01-PLAN.md (execute-phase command wir
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 2 (07-01, 08-01)
-- Average duration: 4.5 min
-- Total execution time: 0.15 hours
+- Plans completed: 3 (07-01, 08-01, 08.1-01)
+- Average duration: 3.7 min
+- Total execution time: 0.18 hours
 
 **By Phase (v1.1):**
 
@@ -50,6 +50,7 @@ Last activity: 2026-01-22 — Completed 08-01-PLAN.md (execute-phase command wir
 |-------|-------|-------|----------|
 | 07    | 1     | 7 min | 7 min    |
 | 08    | 1     | 2 min | 2 min    |
+| 08.1  | 1     | 2 min | 2 min    |
 
 ---
 
@@ -140,6 +141,14 @@ Recent decisions affecting current work:
 - Structured output parsing with regex extracts completed actions, next steps, questions from markdown
 - Collapsible details section for full raw output - keeps comments clean while preserving detail
 
+**From 08.1-01 (Labels Module):**
+- Status labels use status: prefix for namespacing and filtering
+- 422 errors handled gracefully (label already exists from race condition)
+- updateIssueStatus uses atomic replacement (setLabels) not additive (addLabels)
+- Four-label taxonomy covers complete workflow: pending → in-progress → complete/blocked
+- Colors follow GitHub's semantic palette: purple (pending), yellow (in-progress), green (complete), red (blocked)
+- Label helpers use shared octokit instance from github.js (no duplicate auth)
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -155,7 +164,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-22
-New session: 2026-01-22 — Completed 08-01-PLAN.md (Phase Execution Command)
+New session: 2026-01-22 — Completed 08.1-01-PLAN.md (Labels Module)
 Resume file: None (full execution completed)
 
 ## Next Steps
