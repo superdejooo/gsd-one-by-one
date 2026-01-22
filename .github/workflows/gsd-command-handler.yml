@@ -32,7 +32,7 @@ jobs:
         run: npm install -g claude-code@latest
 
       - name: Install Claude Code Router
-        run: npm install -g @musistudio/claude-code-router@2.1.15
+        run: npm install -g @musistudio/claude-code-router@latest
 
       - name: Generate CCR Configuration
         env:
