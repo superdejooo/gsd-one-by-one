@@ -31,12 +31,15 @@ The v1.0 MVP delivers:
 - Permission validation before execution
 - CCR integration for CI-safe LLM execution
 
-## Next Milestone Goals (v1.1)
+## Current Milestone: v1.1 — Plan & Execute Commands
 
-- `gsd:plan-phase` command — plan execution for a phase
-- `gsd:execute-phase` command — execute planned actions
+**Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
+
+**Target features:**
+- `gsd:plan-phase` command — Plan execution for a phase
+- `gsd:execute-phase` command — Execute planned actions
 - GitHub issues for each action (not just phases)
-- Workflow retry/resume logic
+- Bidirectional status sync (agent reads ticket status)
 
 ---
 
@@ -59,15 +62,21 @@ These requirements were shipped and validated in v1.0:
 
 ### Active (v1.1)
 
-- [ ] `gsd:plan-phase` command to plan execution for a phase
-- [ ] `gsd:execute-phase` command to execute planned actions
-- [ ] Create GitHub issues for each action (not just phases)
-- [ ] Bidirectional status sync (agent reads ticket status)
+- [ ] **PLAN-01**: `gsd:plan-phase` command parses phase number and triggers phase planning workflow
+- [ ] **PLAN-02**: Phase planner creates detailed execution plans with tasks, dependencies, and verification
+- [ ] **PLAN-03**: Plans are committed to `.planning/phases/{n}/` directory
+- [ ] **EXEC-01**: `gsd:execute-phase` command executes planned actions with wave-based parallelization
+- [ ] **EXEC-02**: Agent can read GitHub issue status to determine resume point
+- [ ] **EXEC-03**: Agent updates issue status as tasks complete (pending → in-progress → complete)
+- [ ] **ISSUE-01**: Each action in a plan creates a corresponding GitHub issue
+- [ ] **ISSUE-02**: Issue body contains action details, verification criteria, and phase context
+- [ ] **RETRY-01**: Workflow can resume from last incomplete action on retry
 
 ### Out of Scope
 
 - [Jira integration] — planned for v2 with GitHub-Jira mirroring
-- [Workflow retry logic] — v1.1 adds basic retry capability
+- [Complex multi-repo workflows] — single repo focus for v1.x
+- [Real-time progress dashboard] — issue comments sufficient for v1.x
 
 ---
 
@@ -96,4 +105,4 @@ These requirements were shipped and validated in v1.0:
 
 ---
 
-*Last updated: 2026-01-22 after v1.0 milestone*
+*Last updated: 2026-01-22 after v1.0 milestone, v1.1 started*

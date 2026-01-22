@@ -1,174 +1,81 @@
-# Requirements
+# Requirements: GSD for GitHub v1.1
 
-**Project:** GSD for GitHub (Reusable Action)
-**Milestone:** v1 - gsd:new-milestone command
-**Last Updated:** 2026-01-22
-**Architecture:** Reusable GitHub Action - projects reference Action package via workflow file
+**Defined:** 2026-01-22
+**Milestone:** v1.1 — Plan & Execute Commands
+**Core Value:** Enable autonomous AI-driven development that runs in CI/CD, responds to GitHub issue comments, creates and updates planning artifacts in the repo, and tracks progress via GitHub issues.
 
-## v1 Requirements
+## v1.1 Requirements
 
-### Authentication & Permissions
+Requirements for the Plan & Execute Commands milestone.
 
-- [x] **AUTH-01**: System uses GITHUB_TOKEN with scoped permissions (`contents: write`, `issues: write`, `pull-requests: write`)
-- [x] **AUTH-02**: Workflow explicitly declares permissions in YAML to avoid silent failures
-- [x] **AUTH-03**: Agent validates that trigger user has write access to repository before executing
+### Phase Planning
 
-### Command Parsing
+- [ ] **PLAN-01**: `gsd:plan-phase` command parses phase number and triggers phase planning workflow
+- [ ] **PLAN-02**: Phase planner creates detailed execution plans with tasks, dependencies, and verification
+- [ ] **PLAN-03**: Plans are committed to `.planning/phases/{n}/` directory
 
-- [x] **PARS-01**: Agent extracts `@gsd-bot` mention from issue/PR comment body
-- [x] **PARS-02**: Agent detects specific command after mention (e.g., `new-milestone`)
-- [x] **PARS-03**: Agent parses command arguments and flags from comment
-- [x] **PARS-04**: Agent only responds to comment `created` events (not edited or deleted)
+### Phase Execution
 
-### GitHub Integration
+- [ ] **EXEC-01**: `gsd:execute-phase` command executes planned actions with wave-based parallelization
+- [ ] **EXEC-02**: Agent can read GitHub issue status to determine resume point
+- [ ] **EXEC-03**: Agent updates issue status as tasks complete (pending → in-progress → complete)
 
-- [ ] **GITH-01**: Agent posts comments to issue/PR via GitHub CLI (gh)
-- [ ] **GITH-02**: Agent creates milestone branch `gsd/<milestone-number>` when milestone is initiated
-- [ ] **GITH-03**: Agent creates phase branches `gsd/<milestone-number>/<phase-id>-<slugified-phase-name>` for each phase
-- [ ] **GITH-04**: Agent commits planning docs to `.github/planning/` directory in the repo
-- [ ] **GITH-05**: Agent configures git (user.name, user.email) before making commits
+### Issue Tracking
 
-### Workflow Execution (Reusable Action)
+- [ ] **ISSUE-01**: Each action in a plan creates a corresponding GitHub issue
+- [ ] **ISSUE-02**: Issue body contains action details, verification criteria, and phase context
 
-- [x] **WORK-01**: Reusable Action accepts inputs: issue number, repo owner, repo name, comment body
-- [x] **WORK-02**: Action publishes as package with version tags (v1, v2, etc.)
-- [x] **WORK-03**: Action uses Node.js 24.x runtime
-- [x] **WORK-04**: Action exits after posting response
-- [x] **WORK-05**: Project adds workflow file referencing Action: `uses: gsd-org/gsd-github-action@v1`
+### Workflow Resilience
 
-### Claude Code Router (CCR) - Execution Layer
-
-- [x] **CCR-01**: Action bundles Claude Code Router (CCR) for CI-safe LLM execution
-- [x] **CCR-02**: Action pins CCR version (not user-configurable)
-- [x] **CCR-03**: Action generates CCR config at `~/.claude-code-router/config.json` at runtime
-- [x] **CCR-04**: Action interpolates API keys from GitHub Actions secrets into CCR config
-- [x] **CCR-05**: CCR handles all LLM invocations (GSD never calls Claude Code directly)
-- [x] **CCR-06**: Action installs CCR via package manager with pinned version
-- [x] **CCR-07**: CCR runs in non-interactive mode (no TTY, no prompts)
-
-### Concurrency
-
-- [x] **CONC-01**: Workflow uses concurrency group based on branch name to prevent duplicate runs on same branch
-- [x] **CONC-02**: Workflow allows concurrent runs on different branches (one per milestone)
-- [x] **CONC-03**: `cancel-in-progress: true` to cancel previous run when new comment triggers workflow on same branch
-
-### Error Handling
-
-- [ ] **ERR-01**: Agent posts clear, structured error messages to issue comments
-- [ ] **ERR-02**: Agent includes workflow run URL in error comments for debugging
-- [ ] **ERR-03**: Agent handles GitHub API rate limits gracefully with retry logic
-- [x] **ERR-04**: Agent validates and sanitizes all user input to prevent command injection
-- [ ] **ERR-05**: Agent catches and reports unexpected errors without crashing workflow
-
-### Milestone Creation (gsd:new-milestone)
-
-- [ ] **MILE-01**: Agent creates `PROJECT.md` in `.github/planning/` with milestone context
-- [ ] **MILE-02**: Agent creates `STATE.md` in `.github/planning/` with milestone number and status
-- [ ] **MILE-03**: Agent creates `ROADMAP.md` in `.github/planning/` with phase structure
-- [ ] **MILE-04**: Agent commits all planning docs to the milestone branch
-- [ ] **MILE-05**: Agent posts summary comment listing created files and next steps
-
-### Requirements Gathering
-
-- [ ] **REQG-01**: Agent posts requirements questions in comments (bulk format)
-- [ ] **REQG-02**: User answers via new comment, which triggers new workflow run
-- [ ] **REQG-03**: Agent reads user answers from new comments
-- [ ] **REQG-04**: Agent continues requirements gathering across multiple workflow runs until satisfied
-
-### Config File
-
-- [x] **CONF-01**: Agent reads `.github/gsd-config.json` from repository
-- [x] **CONF-02**: Config file contains label mappings (phases, status)
-- [x] **CONF-03**: Config file contains path definitions (planning directory)
-- [x] **CONF-04**: Agent uses default values if config file is missing
-
----
+- [ ] **RETRY-01**: Workflow can resume from last incomplete action on retry
 
 ## v2 Requirements (Deferred)
 
-### Additional Commands
+### Multi-Repo Support
 
-- [ ] **V2-01**: `gsd:plan-phase` command to plan execution for a phase
-- [ ] **V2-02**: `gsd:execute-phase` command to execute planned actions
-- [ ] **V2-03**: `gsd:verify-work` command to verify built features
+- **MREPO-01**: Support for cross-repository workflow orchestration
+- **MREPO-02**: Issue linking across repositories
+- **MREPO-03**: Shared planning context for multi-repo projects
 
-### Advanced Features
+### Integration
 
-- [ ] **V2-04**: Create GitHub issues for each action (not just phases)
-- [ ] **V2-05**: Jira integration with GitHub-Jira mirroring
-- [ ] **V2-06**: Bidirectional status sync (agent reads ticket status)
-- [ ] **V2-07**: Workflow retry/resume logic
-- [ ] **V2-08**: Incremental documentation updates (merge with existing content)
-- [ ] **V2-09**: Structured research synthesis (multi-domain parallel research)
+- **JIRA-01**: Bidirectional sync between GitHub issues and Jira tickets
+- **JIRA-02**: Import existing Jira issues as GSD actions
+- **JIRA-03**: Export GSD plans to Jira epics
 
----
+### Analytics
+
+- **ANALYT-01**: Track velocity metrics across milestones
+- **ANALYT-02**: Burndown chart generation
+- **ANALYT-03**: Performance dashboards
 
 ## Out of Scope
 
-- [Action code in project repos] — Reusable Action architecture, projects reference package via workflow file
-- [User-configurable CCR] — CCR version and config are pinned by Action, not user-configurable
-- [User-configurable GSD core] — GSD core version is pinned by Action
-- [Direct Claude Code/CLI calls] — All LLM execution goes through CCR
-- [Persistent servers] — Serverless GitHub Actions approach, no separate bot server
-- [External databases] — All state stored in repository files
-- [GitHub App for v1] — Using GITHUB_TOKEN, GitHub App deferred to v2
-- [Self-hosted runners] — Using github.com hosted runners (ubuntu-latest)
-- [Fork execution] — Not supporting workflow execution from forks in v1
-- [Direct REST API calls] — Using GitHub CLI (gh) for all GitHub interactions
-- [PAT authentication] — Using GITHUB_TOKEN, not personal access tokens
-- [Commit-pinned actions] — Using version tags (@v1, @v2, etc.) not specific commits
-
----
+| Feature | Reason |
+|---------|--------|
+| Jira integration | Defer to v2 with GitHub-Jira mirroring |
+| Multi-repo workflows | Single repo focus for v1.x |
+| Real-time progress dashboard | Issue comments sufficient for v1.x |
+| Complex branching strategies | Main branch workflow for v1.x |
 
 ## Traceability
 
-| REQ-ID | Phase | Status |
-|--------|-------|--------|
-| AUTH-01 | Phase 1 | Complete |
-| AUTH-02 | Phase 1 | Complete |
-| AUTH-03 | Phase 6 | Complete |
-| PARS-01 | Phase 2 | Complete |
-| PARS-02 | Phase 2 | Complete |
-| PARS-03 | Phase 2 | Complete |
-| PARS-04 | Phase 2 | Complete |
-| GITH-01 | Phase 4 | Pending |
-| GITH-02 | Phase 4 | Pending |
-| GITH-03 | Phase 4 | Pending |
-| GITH-04 | Phase 4 | Pending |
-| GITH-05 | Phase 4 | Pending |
-| WORK-01 | Phase 1 | Complete |
-| WORK-02 | Phase 1 | Complete |
-| WORK-03 | Phase 1 | Complete |
-| WORK-04 | Phase 1 | Complete |
-| WORK-05 | Phase 1 | Complete |
-| CCR-01 | Phase 3 | Complete |
-| CCR-02 | Phase 3 | Complete |
-| CCR-03 | Phase 3 | Complete |
-| CCR-04 | Phase 3 | Complete |
-| CCR-05 | Phase 3 | Complete |
-| CCR-06 | Phase 3 | Complete |
-| CCR-07 | Phase 3 | Complete |
-| CONC-01 | Phase 1 | Complete |
-| CONC-02 | Phase 1 | Complete |
-| CONC-03 | Phase 1 | Complete |
-| ERR-01 | Phase 4 | Pending |
-| ERR-02 | Phase 4 | Pending |
-| ERR-03 | Phase 4 | Pending |
-| ERR-04 | Phase 2 | Complete |
-| ERR-05 | Phase 4 | Pending |
-| MILE-01 | Phase 5 | Pending |
-| MILE-02 | Phase 5 | Pending |
-| MILE-03 | Phase 5 | Pending |
-| MILE-04 | Phase 5 | Pending |
-| MILE-05 | Phase 5 | Pending |
-| REQG-01 | Phase 5 | Pending |
-| REQG-02 | Phase 5 | Pending |
-| REQG-03 | Phase 5 | Pending |
-| REQG-04 | Phase 5 | Pending |
-| CONF-01 | Phase 2 | Complete |
-| CONF-02 | Phase 2 | Complete |
-| CONF-03 | Phase 2 | Complete |
-| CONF-04 | Phase 2 | Complete |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| PLAN-01 | Phase 7 | Pending |
+| PLAN-02 | Phase 7 | Pending |
+| PLAN-03 | Phase 7 | Pending |
+| EXEC-01 | Phase 8 | Pending |
+| EXEC-02 | Phase 8 | Pending |
+| EXEC-03 | Phase 8 | Pending |
+| ISSUE-01 | Phase 9 | Pending |
+| ISSUE-02 | Phase 9 | Pending |
+| RETRY-01 | Phase 8 | Pending |
+
+**Coverage:**
+- v1.1 requirements: 9 total
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
-*Last updated: 2026-01-22*
+*Requirements defined: 2026-01-22 for v1.1 milestone*
