@@ -16,9 +16,12 @@ Requirements for the Plan & Execute Commands milestone.
 
 ### Phase Execution
 
-- [ ] **EXEC-01**: `gsd:execute-phase` command executes planned actions with wave-based parallelization
-- [ ] **EXEC-02**: Agent can read GitHub issue status to determine resume point
-- [ ] **EXEC-03**: Agent updates issue status as tasks complete (pending → in-progress → complete)
+- [x] **EXEC-01**: `gsd:execute-phase` command executes planned actions with wave-based parallelization
+- [x] **EXEC-02**: Agent can read state from `.planning/` folder to determine resume point (GSD internal)
+
+### Issue Status Updates (Phase 9)
+
+- [ ] **EXEC-03**: Agent updates issue status as tasks complete (pending → in-progress → complete) — moved to Phase 9 (requires ISSUE-01 first)
 
 ### Issue Tracking
 
@@ -27,7 +30,7 @@ Requirements for the Plan & Execute Commands milestone.
 
 ### Workflow Resilience
 
-- [ ] **RETRY-01**: Workflow can resume from last incomplete action on retry
+- [x] **RETRY-01**: Workflow can resume from last incomplete action on retry
 
 ## v2 Requirements (Deferred)
 
@@ -65,12 +68,12 @@ Requirements for the Plan & Execute Commands milestone.
 | PLAN-01 | Phase 7 | Complete |
 | PLAN-02 | Phase 7 | Complete |
 | PLAN-03 | Phase 7 | Complete |
-| EXEC-01 | Phase 8 | Pending |
-| EXEC-02 | Phase 8 | Pending |
-| EXEC-03 | Phase 8 | Pending |
+| EXEC-01 | Phase 8 | Complete |
+| EXEC-02 | Phase 8 | Complete |
+| RETRY-01 | Phase 8 | Complete |
 | ISSUE-01 | Phase 9 | Pending |
 | ISSUE-02 | Phase 9 | Pending |
-| RETRY-01 | Phase 8 | Pending |
+| EXEC-03 | Phase 9 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 9 total
