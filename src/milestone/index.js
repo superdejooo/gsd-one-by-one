@@ -20,6 +20,8 @@ import { loadState, saveState, createInitialState, isRequirementsComplete, updat
 import { createPlanningDocs } from "./planning-docs.js";
 import { getNewComments, parseUserAnswers, formatRequirementsQuestions, parseAnswersFromResponse, DEFAULT_QUESTIONS } from "./requirements.js";
 import { generateMilestoneSummary } from "./summarizer.js";
+import { findIteration } from "../lib/projects.js";
+import { loadConfig } from "../lib/config.js";
 
 /**
  * Parse milestone number from command arguments
@@ -56,6 +58,41 @@ export function parseMilestoneNumber(commandArgs) {
   }
 
   throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+}
+
+/**
+ * Validate project iteration exists for milestone
+ *
+ * @param {string} owner - Repository owner
+ * @param {number} milestoneNumber - Milestone number
+ * @param {object} config - Configuration object
+ * @returns {Promise<object>} Validation result
+ */
+async function validateProjectIteration(owner, milestoneNumber, config) {
+  // Check if project config exists
+  const projectNumber = config?.project?.number;
+  if (!projectNumber) {
+    core.info('No project configured, skipping iteration validation');
+    return { validated: false, reason: 'no-project-configured' };
+  }
+
+  const isOrg = config?.project?.isOrg ?? true;
+  const iterationTitle = `v${milestoneNumber}`;  // Convention: v1, v2, etc.
+
+  const iteration = await findIteration(owner, projectNumber, iterationTitle, isOrg);
+
+  if (iteration) {
+    core.info(`Found project iteration: ${iteration.title}`);
+    return { validated: true, iteration };
+  } else {
+    core.warning(`Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`);
+    return {
+      validated: false,
+      reason: 'iteration-not-found',
+      expected: iterationTitle,
+      setupGuide: 'See docs/project-setup.md for setup instructions'
+    };
+  }
 }
 
 /**
@@ -227,6 +264,21 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
     await saveState(owner, repo, milestoneNumber, state, milestoneData.phases);
 
     // Step 12: Generate and post summary comment
+    const nextSteps = [
+      "Review the planning documents in `.github/planning/milestones/`",
+      "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
+      "Use `@gsd-bot execute-phase` to execute planned work"
+    ];
+
+    // Step 13: Validate project iteration
+    const config = await loadConfig(owner, repo);
+    const validationResult = await validateProjectIteration(owner, milestoneNumber, config);
+
+    // Append warning to next steps if iteration not found
+    if (!validationResult.validated && validationResult.reason === 'iteration-not-found') {
+      nextSteps.push(`⚠️  Create project iteration "${validationResult.expected}" in GitHub Projects for tracking`);
+    }
+
     const summary = generateMilestoneSummary({
       milestoneNumber,
       status: "Planning Documents Created",
@@ -236,11 +288,7 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
         answered: Object.keys(state.requirements.answered),
         pending: []
       },
-      nextSteps: [
-        "Review the planning documents in `.github/planning/milestones/`",
-        "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
-        "Use `@gsd-bot execute-phase` to execute planned work"
-      ]
+      nextSteps
     });
 
     await postComment(owner, repo, issueNumber, summary);
@@ -253,6 +301,7 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
       milestone: milestoneNumber,
       files: fileList.map(f => f.path),
       branch: `gsd/${milestoneNumber}`,
+      projectIteration: validationResult,
       message: "Milestone created successfully with planning documents"
     };
 
