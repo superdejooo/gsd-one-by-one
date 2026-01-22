@@ -1,3 +1,5 @@
+import { checkAuthorization, formatAuthorizationError } from "./auth/index.js";
+import { octokit } from "./lib/github.js";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { parseComment, parseArguments } from "./lib/parser.js";
@@ -19,7 +21,8 @@ const _branchModule = { createMilestoneBranch, createPhaseBranch, slugify, branc
 const _errorModule = { withErrorHandling };
 const _planningModule = { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown };
 const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule);
+const _authModule = { checkAuthorization, formatAuthorizationError };
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_authModule);
 
 try {
   // Get inputs from action.yml
@@ -49,6 +52,22 @@ try {
       core.setOutput("response-posted", "false");
       return { commandFound: false };
     }
+
+    // CRITICAL: Authorization check BEFORE any git operations or state modifications
+    core.info(`Checking authorization for user`);
+    const authResult = await checkAuthorization(octokit);
+
+    if (!authResult.authorized) {
+      core.info(`User ${authResult.username} not authorized: ${authResult.reason}`);
+      const workflowUrl = getWorkflowRunUrl();
+      const errorComment = formatAuthorizationError(authResult.username, `${repoOwner}/${repoName}`, workflowUrl);
+      await postComment(repoOwner, repoName, github.context.issue?.number, errorComment);
+      core.setOutput("command-found", "true");
+      core.setOutput("authorized", "false");
+      return { commandFound: true, authorized: false, reason: authResult.reason };
+    }
+
+    core.info(`User ${authResult.username} authorized with ${authResult.permission} access`);
 
     core.info(`Found command: ${parsed.command}`);
     core.info(`Arguments: ${parsed.args || '(none)'}`);
