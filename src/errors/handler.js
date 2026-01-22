@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
 import { formatErrorComment } from "./formatter.js";
+import { AuthorizationError } from "../auth/errors.js";
 import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 
 /**
@@ -17,7 +18,16 @@ export async function withErrorHandling(operation, context) {
   } catch (error) {
     core.setFailed(error.message);
 
-    // Post formatted error to issue/PR
+    // Authorization errors use user-friendly messages (already formatted)
+    if (error.isAuthorizationError === true) {
+      core.info("Authorization error detected - posting user-friendly message");
+      if (context.issueNumber) {
+        await postComment(context.owner, context.repo, context.issueNumber, error.userMessage);
+      }
+      return { success: false, error: error.message, isAuthorizationError: true };
+    }
+
+    // Post formatted error to issue/PR for technical errors
     if (context.issueNumber) {
       const errorComment = formatErrorComment(error, workflowUrl);
       await postComment(context.owner, context.repo, context.issueNumber, errorComment);
