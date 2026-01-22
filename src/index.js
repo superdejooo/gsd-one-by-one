@@ -145,8 +145,6 @@ try {
 
     // Execute GSD command via Claude Code Router stdin pipe
     // CCR wraps Claude Code CLI for non-interactive CI/CD execution
-    const { exec } = require('child_process');
-
     // TODO: Execute command logic in later phases (Phase 5+)
     // Example execution:
     // exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
