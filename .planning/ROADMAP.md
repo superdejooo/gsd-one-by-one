@@ -105,10 +105,27 @@
 
 **Goal:** Create GitHub issues for each action and enable bidirectional status sync.
 
+**Depends on:** Phase 8.1
+
 **Requirements:**
 - ISSUE-01: Each action in a plan creates a corresponding GitHub issue
 - ISSUE-02: Issue body contains action details, verification criteria, and phase context
-- EXEC-03: Agent updates issue status as tasks complete (pending → in-progress → complete) — moved from Phase 8
+- EXEC-03: Agent updates issue status as tasks complete (pending -> in-progress -> complete) — moved from Phase 8
+
+**Status:** Planned
+
+**Plans:** 3 plans | **Waves:** 2
+
+- [ ] 09-01-PLAN.md — Issues module (src/lib/issues.js with task parsing and issue CRUD)
+- [ ] 09-02-PLAN.md — Phase planner integration (create issues after planning)
+- [ ] 09-03-PLAN.md — Phase executor integration (update status during execution)
+
+**Files Created:**
+- `src/lib/issues.js` — Issue creation and task parsing (4 exports)
+
+**Files Modified:**
+- `src/milestone/phase-planner.js` — Add issue creation after planning
+- `src/milestone/phase-executor.js` — Add status updates during execution
 
 **Success Criteria:**
 1. Phase planner creates GitHub issues when generating plan
@@ -116,10 +133,6 @@
 3. Issues are labeled with phase number and status (pending/in-progress)
 4. Phase executor can read issue status via GitHub API
 5. Issues are updated to "complete" when verification passes
-
-**Files Modified:**
-- `src/milestone/phase-planner.js` --- Add issue creation
-- `src/milestone/phase-executor.js` --- Add issue status reading/updating
 
 ---
 
@@ -130,7 +143,7 @@
 | 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 1 plan (complete) |
 | 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, RETRY-01 | 1 plan (complete) |
 | 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans (complete) |
-| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | TBD |
+| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | 3 plans |
 
 ---
 
