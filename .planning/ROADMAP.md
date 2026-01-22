@@ -11,7 +11,7 @@
 
 **Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
 
-**Phases:** 3 phases | **Requirements:** 9 mapped
+**Phases:** 4 phases | **Requirements:** 9 mapped
 
 ---
 
@@ -68,6 +68,31 @@
 
 ---
 
+### Phase 8.1: GitHub Projects & Issue Tracking and Organization (INSERTED)
+
+**Goal:** Infrastructure for organizing milestone work — labels as source of truth, GitHub Projects for visual grouping, minimal API work.
+
+**Depends on:** Phase 8
+
+**Plans:** 3 plans | **Waves:** 1
+
+Plans:
+- [ ] 08.1-01-PLAN.md — Label helpers (labels.js module with STATUS_LABELS, ensureLabelsExist, applyLabels, updateIssueStatus)
+- [ ] 08.1-02-PLAN.md — Project GraphQL queries (projects.js module, milestone iteration validation)
+- [ ] 08.1-03-PLAN.md — User documentation (project-setup.md guide for manual iteration setup)
+
+**Scope:**
+- Label helpers (create, apply, update status labels)
+- Project query helpers (get project, list iterations - READ ONLY)
+- Update `new-milestone` to validate iteration exists
+- Documentation: how user sets up their project board
+
+**CRITICAL Constraint:** No automatic iteration creation via API (causes data loss per research). Users create iterations manually, workflow validates they exist.
+
+**Context:** See `.planning/phases/08.1-github-projects-issue-tracking-and-organization/08.1-CONTEXT.md`
+
+---
+
 ### Phase 9: Issue Tracking Integration
 
 **Goal:** Create GitHub issues for each action and enable bidirectional status sync.
@@ -96,6 +121,7 @@
 |---|-------|------|--------------|-------|
 | 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 1 plan (complete) |
 | 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, RETRY-01 | 1 plan (complete) |
+| 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans |
 | 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | TBD |
 
 ---
@@ -103,7 +129,8 @@
 ## Dependencies
 
 - Phase 7 -> Phase 8: Phase planner creates plans that executor reads
-- Phase 8 -> Phase 9: Issue tracking integrates with execution
+- Phase 8 -> Phase 8.1: Project infrastructure builds on execute-phase foundation
+- Phase 8.1 -> Phase 9: Issue tracking uses labels infrastructure
 - All phases -> v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
 
 ---

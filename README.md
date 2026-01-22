@@ -1,5 +1,7 @@
 # GSD for GitHub
 
+> **⚠️ Work in Progress** — This project is under active development. Contributions and feedback are welcome!
+
 A **reusable GitHub Action** that brings autonomous AI-driven project management to your repository through GitHub Issue comments.
 
 Built on [Claude Code](https://claude.ai/code) and the [GSD (Get Shit Done)](https://www.npmjs.com/package/get-shit-done-cc) skill, this Action enables AI-powered planning, execution, and verification workflows — all triggered by commenting on GitHub Issues.
