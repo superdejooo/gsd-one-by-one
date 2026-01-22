@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: superdejooo/gsd-github-action@v1
+      - uses: superdejooo/gsd-one-by-one@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
