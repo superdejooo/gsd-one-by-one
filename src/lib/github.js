@@ -1,9 +1,9 @@
 import * as core from "@actions/core";
-import * as github from "@actions/github";
+import { Octokit } from "@octokit/rest";
 import { throttling } from "@octokit/plugin-throttling";
 
 // Create throttled octokit instance
-const ThrottledOctokit = github.GitHub.plugin(throttling);
+const ThrottledOctokit = Octokit.plugin(throttling);
 
 export const octokit = new ThrottledOctokit({
   auth: core.getInput("token") || process.env.GITHUB_TOKEN,

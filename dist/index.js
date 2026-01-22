@@ -31681,6 +31681,14 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6595:
+/***/ ((module) => {
+
+module.exports = eval("require")("@octokit/rest");
+
+
+/***/ }),
+
 /***/ 2613:
 /***/ ((module) => {
 
@@ -34285,8 +34293,8 @@ __nccwpck_require__.d(__webpack_exports__, {
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(7484);
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: ./node_modules/@vercel/ncc/dist/ncc/@@notfound.js?@octokit/rest
+var rest = __nccwpck_require__(6595);
 // EXTERNAL MODULE: ./node_modules/bottleneck/light.js
 var light = __nccwpck_require__(3251);
 ;// CONCATENATED MODULE: ./node_modules/@octokit/plugin-throttling/dist-bundle/index.js
@@ -34523,7 +34531,7 @@ throttling.triggersNotification = triggersNotification;
 
 
 // Create throttled octokit instance
-const ThrottledOctokit = github.GitHub.plugin(throttling);
+const ThrottledOctokit = rest.Octokit.plugin(throttling);
 
 const octokit = new ThrottledOctokit({
   auth: core.getInput("token") || process.env.GITHUB_TOKEN,
