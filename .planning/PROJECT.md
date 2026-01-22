@@ -2,19 +2,52 @@
 
 ## What This Is
 
-A **reusable GitHub Action** that integrates the Get Shit Done (GSD) project management system with GitHub. Enables fully autonomous agentic development workflows through GitHub Issues and GitHub Actions.
+A **reusable GitHub Action** that brings the [GSD (Get Shit Done)](https://github.com/anthropics/claude-code) project management skill to GitHub. This Action wraps the existing GSD CLI skill and exposes it through GitHub Issue comments, enabling autonomous AI-driven development without local CLI usage.
+
+**Built On:**
+- **[Claude Code](https://claude.ai/code)** — Anthropic's AI coding assistant CLI
+- **[GSD Skill](https://www.npmjs.com/package/get-shit-done-cc)** — Project management plugin for Claude Code
+- **[Claude Code Router (CCR)](https://www.npmjs.com/package/@musistudio/claude-code-router)** — CI-safe proxy for non-interactive LLM execution
 
 **Architecture:**
 - Distributed as a reusable GitHub Action package
 - Projects install by adding a workflow file that references the Action
 - No code is copied into project repositories; all logic runs from the Action package
-- Uses **Claude Code Router (CCR)** for CI-safe LLM execution
+- Commands execute via CCR → Claude Code → GSD Skill pipeline
 
-This is NOT a new project from scratch - it wraps the existing GSD skill, command patterns, research agents, and execution framework. The goal is to port GSD's proven workflows to GitHub Issues with future Jira mirroring capability.
+This is NOT a new project from scratch — it wraps the existing GSD skill, command patterns, research agents, and execution framework. Planning documents follow GSD standard structure in `.planning/` folder.
 
 ## Core Value
 
-Enable autonomous AI-driven development that runs in CI/CD, responds to GitHub issue comments, creates and updates planning artifacts in the repo, and tracks progress via GitHub issues - all without requiring local CLI usage.
+Enable autonomous AI-driven development that runs in CI/CD, responds to GitHub issue comments, creates and updates planning artifacts in the repo, and tracks progress via GitHub issues — all without requiring local CLI usage.
+
+## Command Flow (GSD Workflow)
+
+The GSD workflow follows a structured sequence. This Action exposes these commands via `@gsd-bot` mentions:
+
+```
+@gsd-bot new-project          → Initialize project, deep context gathering
+         ↓
+@gsd-bot new-milestone N      → Create milestone, gather requirements (multi-turn)
+         ↓
+@gsd-bot plan-phase N         → Research + plan phase implementation
+         ↓
+@gsd-bot execute-phase N      → Execute plan with atomic commits
+         ↓
+@gsd-bot verify-work          → Validate features through UAT
+```
+
+**Current Implementation:**
+- ✅ `new-milestone` — Shipped in v1.0
+- ✅ `plan-phase` — Implemented in v1.1
+- ✅ `execute-phase` — Implemented in v1.1
+- ⏳ `new-project` — Planned for future (projects start with milestone for now)
+- ⏳ `verify-work` — Planned for future
+
+**Artifacts Generated:** All planning documents stored in `.planning/` folder (GSD standard):
+- `PROJECT.md`, `STATE.md`, `ROADMAP.md` — Project-level docs
+- `phases/{N}/RESEARCH.md`, `PLAN.md`, `SUMMARY.md` — Per-phase docs
+- `milestones/{N}/` — Milestone-specific docs
 
 ## Current State (v1.0 MVP Shipped)
 
@@ -26,7 +59,7 @@ The v1.0 MVP delivers:
 - Reusable GitHub Action with Node.js 24 runtime
 - `@gsd-bot new-milestone` command via GitHub issue comments
 - Requirements gathering via multi-turn comment interaction
-- Planning document creation (PROJECT.md, STATE.md, ROADMAP.md) in `.github/planning/`
+- Planning document creation (PROJECT.md, STATE.md, ROADMAP.md) in `.planning/`
 - Branch creation with `gsd/{n}` naming convention
 - Permission validation before execution
 - CCR integration for CI-safe LLM execution
@@ -54,7 +87,7 @@ These requirements were shipped and validated in v1.0:
 - ✓ gsd-new-milestone command works via GitHub issue comment — v1.0
 - ✓ Agent gathers requirements interactively via GitHub comments — v1.0
 - ✓ Agent can ask follow-up questions in comments (multiple iterations) — v1.0
-- ✓ Agent creates planning docs in `.github/planning/` — v1.0
+- ✓ Agent creates planning docs in `.planning/` — v1.0
 - ✓ Agent commits planning docs to the repo — v1.0
 - ✓ Agent posts summary comment when milestone is created — v1.0
 - ✓ Agent uses GitHub CLI (gh) or Octokit for API interactions — v1.0
@@ -91,17 +124,25 @@ These requirements were shipped and validated in v1.0:
 | Branch naming with milestone/phase | Organized, easy to identify | ✓ Working |
 | Phase + status labels only | Simple scheme for v1, user-defined | ✓ Working |
 | Requirements in comments (follow-up allowed) | Interactive, allows clarification | ✓ Working |
+| Planning docs in `.planning/` (not `.github/planning/`) | GSD CLI standard, visible in repo root, consistent with local CLI usage | ✓ Standard |
 
 ---
 
 ## Tech Stack
 
-- **Node.js 24** - Action runtime
-- **@actions/core** - GitHub Actions toolkit
-- **@actions/github** - GitHub API client
-- **@octokit/plugin-throttling** - Rate limit handling
-- **Claude Code Router (CCR)** - CI-safe LLM execution
-- **JavaScript (ESM)** - Action implementation
+**AI/LLM Pipeline:**
+- **Claude Code CLI** (`claude-code@latest`) — Anthropic's AI coding assistant
+- **GSD Skill** (`get-shit-done-cc`) — Project management plugin for Claude Code
+- **Claude Code Router** (`@musistudio/claude-code-router@2.1.15`) — CI-safe proxy for non-interactive execution
+
+**GitHub Action Runtime:**
+- **Node.js 24** — Action runtime
+- **@actions/core** — GitHub Actions toolkit (logging, outputs)
+- **@actions/github** — GitHub API client (Octokit)
+- **@octokit/plugin-throttling** — Rate limit handling
+- **@vercel/ncc** — Bundle to single distributable file
+
+**Language:** JavaScript (ESM modules)
 
 ---
 

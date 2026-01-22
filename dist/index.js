@@ -31694,6 +31694,13 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("fs");
 
 /***/ }),
 
+/***/ 1943:
+/***/ ((module) => {
+
+module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("fs/promises");
+
+/***/ }),
+
 /***/ 8611:
 /***/ ((module) => {
 
@@ -33461,6 +33468,189 @@ module.exports = parseParams
 
 /***/ }),
 
+/***/ 5322:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   T: () => (/* binding */ formatAuthorizationError)
+/* harmony export */ });
+/* unused harmony export AuthorizationError */
+/**
+ * Authorization-specific error class
+ * Provides clear error identification and user-friendly messages
+ */
+class AuthorizationError extends Error {
+  /**
+   * @param {string} message - Technical error message for logging
+   * @param {string} userMessage - User-friendly message for display
+   */
+  constructor(message, userMessage) {
+    super(message);
+    this.name = "AuthorizationError";
+    this.userMessage = userMessage;
+    this.isAuthorizationError = true;
+  }
+}
+
+/**
+ * Format authorization error for GitHub comment
+ * @param {string} username - Triggering username
+ * @param {string} repo - Repository name (owner/repo format)
+ * @param {string} workflowUrl - Link to workflow run
+ * @returns {string} Formatted markdown error message
+ */
+function formatAuthorizationError(username, repo, workflowUrl) {
+  return `## Permission Denied
+
+@${username} does not have write access to this repository.
+
+### Required Permissions
+
+To trigger the GSD milestone workflow, you need:
+- **Write** access to \`${repo}\`, or
+- **Maintain** role, or
+- **Admin** role
+
+### How to Request Access
+
+1. Contact a repository maintainer or admin
+2. Ask them to add you as a collaborator with write permissions
+3. Once added, you'll be able to use the @gsd-bot commands
+
+**Workflow Run:** [View Logs](${workflowUrl})`;
+}
+
+
+/***/ }),
+
+/***/ 863:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  K6: () => (/* reexport */ checkAuthorization),
+  TI: () => (/* reexport */ errors/* formatAuthorizationError */.T)
+});
+
+// UNUSED EXPORTS: AuthorizationError, getAuthContext, hasWriteAccess
+
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var lib_github = __nccwpck_require__(3228);
+;// CONCATENATED MODULE: ./src/auth/validator.js
+
+
+/**
+ * Check if user has write access to repository
+ * @param {object} octokit - Authenticated Octokit instance
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {string} username - GitHub username to check
+ * @returns {Promise<boolean>} True if user has write access
+ */
+async function hasWriteAccess(octokit, owner, repo, username) {
+  try {
+    const response = await octokit.rest.repos.getCollaboratorPermissionLevel({
+      owner,
+      repo,
+      username,
+    });
+
+    const permission = response.data.permission;
+    // write, maintain, and admin all have write access
+    return ["admin", "write", "maintain"].includes(permission);
+  } catch (error) {
+    if (error.status === 404) {
+      // User is not a collaborator at all
+      return false;
+    }
+    throw error; // Rethrow unexpected errors
+  }
+}
+
+/**
+ * Get authorization context from webhook payload
+ * @returns {object} Authorization context with user and repo info
+ */
+function getAuthContext() {
+  const payload = github.context.payload;
+  const sender = payload.sender;
+
+  return {
+    username: sender?.login,
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    issueNumber: payload.issue?.number || payload.pull_request?.number,
+    isComment: payload.comment?.id !== undefined,
+  };
+}
+
+/**
+ * Check authorization for the triggering user
+ * @param {object} octokit - Authenticated Octokit instance
+ * @returns {Promise<object>} Authorization result with authorized, username, permission, and reason
+ */
+async function checkAuthorization(octokit) {
+  const payload = lib_github.context.payload;
+
+  // Get triggering user from webhook sender
+  const username = payload.sender?.login;
+  if (!username) {
+    return {
+      authorized: false,
+      username: null,
+      permission: null,
+      reason: "Could not identify triggering user from webhook payload",
+    };
+  }
+
+  const { owner, repo } = lib_github.context.repo;
+
+  try {
+    // Check collaborator permission level
+    const response = await octokit.rest.repos.getCollaboratorPermissionLevel({
+      owner,
+      repo,
+      username,
+    });
+
+    const permission = response.data.permission;
+    const hasWriteAccess = ["admin", "write", "maintain"].includes(permission);
+
+    return {
+      authorized: hasWriteAccess,
+      username,
+      permission,
+      roleName: response.data.role_name,
+    };
+  } catch (error) {
+    if (error.status === 404) {
+      // User is not a collaborator
+      return {
+        authorized: false,
+        username,
+        permission: null,
+        reason: "User is not a collaborator on this repository",
+      };
+    }
+    // Rethrow unexpected errors
+    throw error;
+  }
+}
+
+// EXTERNAL MODULE: ./src/auth/errors.js
+var errors = __nccwpck_require__(5322);
+;// CONCATENATED MODULE: ./src/auth/index.js
+// Authorization module - Public API
+// Validates user permissions before command execution
+
+// Re-export all public functions from validator and errors modules
+
+
+
+
+/***/ }),
+
 /***/ 5878:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
@@ -33560,7 +33750,9 @@ ${summary}`;
 /* harmony export */ });
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
 /* harmony import */ var _formatter_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5878);
-/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7985);
+/* harmony import */ var _auth_errors_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5322);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(7985);
+
 
 
 
@@ -33572,7 +33764,7 @@ ${summary}`;
  * @returns {Promise<object>} Operation result
  */
 async function withErrorHandling(operation, context) {
-  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_2__/* .getWorkflowRunUrl */ .g)();
+  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_3__/* .getWorkflowRunUrl */ .gx)();
 
   try {
     const result = await operation();
@@ -33580,10 +33772,19 @@ async function withErrorHandling(operation, context) {
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
 
-    // Post formatted error to issue/PR
+    // Authorization errors use user-friendly messages (already formatted)
+    if (error.isAuthorizationError === true) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Authorization error detected - posting user-friendly message");
+      if (context.issueNumber) {
+        await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_3__/* .postComment */ .Gy)(context.owner, context.repo, context.issueNumber, error.userMessage);
+      }
+      return { success: false, error: error.message, isAuthorizationError: true };
+    }
+
+    // Post formatted error to issue/PR for technical errors
     if (context.issueNumber) {
       const errorComment = (0,_formatter_js__WEBPACK_IMPORTED_MODULE_1__/* .formatErrorComment */ .l)(error, workflowUrl);
-      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_2__/* .postComment */ .G)(context.owner, context.repo, context.issueNumber, errorComment);
+      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_3__/* .postComment */ .Gy)(context.owner, context.repo, context.issueNumber, errorComment);
     }
 
     return { success: false, error: error.message };
@@ -33750,16 +33951,27 @@ async function switchBranch(branchName) {
 /***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
-/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
-/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(4287);
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3942);
-/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(4320);
-/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(7985);
-/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(5878);
-/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(9209);
-/* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(2629);
-/* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(7032);
+/* harmony import */ var _auth_index_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(863);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7985);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7484);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(3228);
+/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(4287);
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3942);
+/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4320);
+/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(9209);
+/* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(2629);
+/* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(7032);
+/* harmony import */ var _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(4887);
+/* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(1733);
+/* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__ = __nccwpck_require__(4241);
+/* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(9992);
+
+
+
+
+
+
 
 
 
@@ -33772,70 +33984,129 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 // Trigger bundling of modules
-const _githubModule = { postComment: _lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .G, getWorkflowRunUrl: _lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .getWorkflowRunUrl */ .g };
-const _formatterModule = { formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_5__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_5__/* .formatSuccessComment */ .m };
-const _gitModule = { runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_6__/* .runGitCommand */ .tD, createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_6__/* .createAndSwitchBranch */ .mj, switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_6__/* .switchBranch */ .Df, configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_6__/* .configureGitIdentity */ .Zd };
-const _branchModule = { createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_7__/* .createMilestoneBranch */ .HT, createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_7__/* .createPhaseBranch */ .sT, slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_7__/* .slugify */ .Yv, branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_7__/* .branchExists */ .TV };
-const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_8__/* .withErrorHandling */ .U };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule);
+const _githubModule = { postComment: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy, getWorkflowRunUrl: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx };
+const _formatterModule = { formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatSuccessComment */ .m };
+const _gitModule = { runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .runGitCommand */ .tD, createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .createAndSwitchBranch */ .mj, switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .switchBranch */ .Df, configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .configureGitIdentity */ .Zd };
+const _branchModule = { createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createMilestoneBranch */ .HT, createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createPhaseBranch */ .sT, slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .slugify */ .Yv, branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .branchExists */ .TV };
+const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U };
+const _planningModule = { createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .createPlanningDocs */ .Hm, generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateProjectMarkdown */ .MU, generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateStateMarkdown */ .qL, generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateRoadmapMarkdown */ .ru };
+const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .B, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .parseMilestoneNumber */ .f };
+const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A };
+const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q };
+const _authModule = { checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI };
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_authModule);
 
 try {
   // Get inputs from action.yml
-  const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("issue-number");
-  const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-owner");
-  const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("repo-name");
-  const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput("comment-body");
+  const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-number");
+  const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-owner");
+  const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-name");
+  const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("comment-body");
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`);
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Comment body: ${commentBody}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Comment body: ${commentBody}`);
 
   // Extract GitHub context for error handling
   const githubContext = {
-    owner: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo.owner,
-    repo: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.repo.repo,
-    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_1__.context.issue?.number,
+    owner: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.owner,
+    repo: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.repo,
+    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
   };
 
   // Execute with error handling
-  const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_8__/* .withErrorHandling */ .U)(async () => {
+  const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U)(async () => {
     // Parse comment to extract command
-    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_9__/* .parseComment */ .v)(commentBody);
+    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_14__/* .parseComment */ .v)(commentBody);
 
     if (!parsed) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("No @gsd-bot command found in comment");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "false");
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "false");
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "false");
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "false");
       return { commandFound: false };
     }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Found command: ${parsed.command}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Arguments: ${parsed.args || '(none)'}`);
+    // CRITICAL: Authorization check BEFORE any git operations or state modifications
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Checking authorization for user`);
+    const authResult = await (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6)(_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8);
+
+    if (!authResult.authorized) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`User ${authResult.username} not authorized: ${authResult.reason}`);
+      const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx)();
+      const errorComment = (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI)(authResult.username, `${repoOwner}/${repoName}`, workflowUrl);
+      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy)(repoOwner, repoName, _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number, errorComment);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("authorized", "false");
+      return { commandFound: true, authorized: false, reason: authResult.reason };
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`User ${authResult.username} authorized with ${authResult.permission} access`);
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Found command: ${parsed.command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || '(none)'}`);
 
     // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_9__/* .parseArguments */ .W)(parsed.args) : {};
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed arguments: ${JSON.stringify(args)}`);
+    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_14__/* .parseArguments */ .W)(parsed.args) : {};
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
 
     // Validate command
-    (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .validateCommand */ .M)(parsed.command);
+    (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_5__/* .validateCommand */ .M)(parsed.command);
 
     // Sanitize arguments
-    const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_3__/* .sanitizeArguments */ .m)(args) : {};
+    const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_5__/* .sanitizeArguments */ .m)(args) : {};
+
+    // Command dispatch for milestone workflow
+    if (parsed.command === "new-milestone") {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone workflow");
+      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .B)(
+        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
+        sanitizedArgs
+      );
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Milestone workflow result: ${JSON.stringify(result)}`);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-complete", result.complete);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-phase", result.phase || "unknown");
+      return { commandFound: true, command: parsed.command, ...result };
+    }
+
+    // Command dispatch for phase planning workflow
+    if (parsed.command === "plan-phase") {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase planning workflow");
+      const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A)(
+        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
+        sanitizedArgs
+      );
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-planned", result.complete);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
+      return { commandFound: true, command: parsed.command, ...result };
+    }
+
+    // Command dispatch for phase execution workflow
+    if (parsed.command === "execute-phase") {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase execution workflow");
+      const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q)(
+        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
+        sanitizedArgs
+      );
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("has-questions", result.hasQuestions);
+      return { commandFound: true, command: parsed.command, ...result };
+    }
 
     // Load configuration
-    const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_2__/* .loadConfig */ .Z)(repoOwner, repoName);
+    const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_4__/* .loadConfig */ .Z)(repoOwner, repoName);
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Configuration loaded and validated");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Config paths: ${JSON.stringify(config.paths)}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Configuration loaded and validated");
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Config paths: ${JSON.stringify(config.paths)}`);
 
     // Set outputs
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command-found", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("response-posted", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("command", parsed.command);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("config-loaded", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput("arguments", JSON.stringify(sanitizedArgs));
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "true");
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command", parsed.command);
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("config-loaded", "true");
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("arguments", JSON.stringify(sanitizedArgs));
 
     // Configure git identity for commits
-    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_6__/* .configureGitIdentity */ .Zd)(
+    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .configureGitIdentity */ .Zd)(
       "github-actions[bot]",
       "41898282+github-actions[bot]@users.noreply.github.com"
     );
@@ -33861,13 +34132,13 @@ try {
   }, githubContext);
 
   if (!result.success) {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Command execution failed - error posted to issue");
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Command execution failed - error posted to issue");
   }
 
   // Clean exit - no explicit return needed
 } catch (error) {
   // Set failed exit code
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(`Action failed: ${error.message}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.setFailed(`Action failed: ${error.message}`);
 }
 
 __webpack_async_result__();
@@ -33957,8 +34228,9 @@ function getDefaultConfig() {
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  g: () => (/* binding */ getWorkflowRunUrl),
-  G: () => (/* binding */ postComment)
+  gx: () => (/* binding */ getWorkflowRunUrl),
+  A8: () => (/* binding */ octokit),
+  Gy: () => (/* binding */ postComment)
 });
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
@@ -34346,7 +34618,7 @@ function parseArguments(argsString) {
  * Allowlist of valid commands
  * For v1, only new-milestone is implemented
  */
-const ALLOWED_COMMANDS = ["new-milestone"];
+const ALLOWED_COMMANDS = ["new-milestone", "plan-phase", "execute-phase"];
 
 /**
  * Validate command against allowlist
@@ -34400,6 +34672,1701 @@ function sanitizeArguments(args) {
   });
 
   return sanitized;
+}
+
+
+/***/ }),
+
+/***/ 1733:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  B: () => (/* binding */ executeMilestoneWorkflow),
+  f: () => (/* binding */ parseMilestoneNumber)
+});
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(3228);
+// EXTERNAL MODULE: ./src/lib/github.js + 1 modules
+var lib_github = __nccwpck_require__(7985);
+// EXTERNAL MODULE: ./src/errors/formatter.js
+var formatter = __nccwpck_require__(5878);
+// EXTERNAL MODULE: ./src/git/branches.js
+var branches = __nccwpck_require__(2629);
+// EXTERNAL MODULE: ./src/git/git.js + 1 modules
+var git = __nccwpck_require__(9209);
+;// CONCATENATED MODULE: ./src/milestone/state.js
+/**
+ * State Management Module
+ * Persists requirements gathering progress across workflow runs using STATE.md files
+ */
+
+
+
+
+/**
+ * STATE_FILE path pattern
+ * @constant
+ */
+const STATE_FILE = ".github/planning/milestones/{n}/STATE.md";
+
+/**
+ * Parse state content from STATE.md file
+ * Extracts key information from markdown format
+ * @param {string} content - Raw STATE.md content
+ * @returns {object} Parsed state object
+ */
+function parseStateMarkdown(content) {
+  const state = {
+    milestone: null,
+    status: "planning",
+    createdAt: null,
+    lastRunAt: null,
+    runCount: 0,
+    lastCommentId: 0,
+    requirements: {
+      complete: false,
+      answered: {},
+      pending: []
+    },
+    phases: []
+  };
+
+  const lines = content.split('\n');
+  let currentSection = '';
+
+  for (const line of lines) {
+    // Detect section headers
+    if (line.startsWith('## ')) {
+      currentSection = line.replace('## ', '').trim();
+      continue;
+    }
+
+    // Parse key-value pairs from the header section
+    const keyValueMatch = line.match(/\*\*([^*]+):\*\* (.+)/);
+    if (keyValueMatch) {
+      const key = keyValueMatch[1].trim();
+      const value = keyValueMatch[2].trim();
+
+      switch (key) {
+        case 'Milestone':
+          state.milestone = parseInt(value, 10);
+          break;
+        case 'Status':
+          state.status = value;
+          break;
+        case 'Started':
+          state.createdAt = value;
+          break;
+        case 'Last Run':
+          state.lastRunAt = value;
+          break;
+        case 'Run Count':
+          state.runCount = parseInt(value, 10) || 0;
+          break;
+        case 'Last Comment ID':
+          state.lastCommentId = parseInt(value, 10) || 0;
+          break;
+      }
+    }
+
+    // Parse requirements status in Requirements Gathering section
+    if (currentSection === 'Requirements Gathering') {
+      if (line.startsWith('**Status:**')) {
+        const statusText = line.replace('**Status:**', '').trim();
+        state.requirements.complete = statusText === 'Complete';
+      }
+      if (line.startsWith('**Questions Answered:**')) {
+        // Parse answered count - we'll need to update answered array from elsewhere
+      }
+    }
+  }
+
+  return state;
+}
+
+/**
+ * Generate STATE.md content from state object
+ * Compatible with generateStateMarkdown in planning-docs.js
+ * @param {object} state - State object
+ * @param {Array} phases - Phase definitions
+ * @returns {string} Markdown content
+ */
+function generateStateMarkdown(state, phases = []) {
+  const {
+    milestone,
+    status,
+    createdAt,
+    lastRunAt,
+    runCount,
+    requirements
+  } = state;
+
+  const phaseRows = phases.length > 0
+    ? phases.map((p, i) => {
+        const phaseNum = String(i + 1).padStart(2, '0');
+        const phaseName = p.name || "Unnamed Phase";
+        const phaseStatus = p.status || "pending";
+        return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
+      }).join('\n')
+    : "|   | (none defined) | pending |";
+
+  const reqStatus = requirements?.complete ? "Complete" : "In Progress";
+  const answeredCount = Object.keys(requirements?.answered || {}).length;
+  const pendingCount = requirements?.pending?.length || 0;
+
+  return `# Milestone ${milestone} State
+
+**Milestone:** ${milestone}
+**Status:** ${status || "planning"}
+**Last Updated:** ${new Date().toISOString()}
+
+## Phase Status
+
+| Phase | Name | Status |
+|-------|------|--------|
+${phaseRows}
+
+## Requirements Gathering
+
+**Status:** ${reqStatus}
+**Questions Answered:** ${answeredCount}
+**Questions Pending:** ${pendingCount}
+
+## Workflow
+
+**Started:** ${createdAt || "N/A"}
+**Last Run:** ${lastRunAt || "N/A"}
+**Run Count:** ${runCount || 1}
+
+---
+*State file for GSD milestone tracking.*
+`;
+}
+
+/**
+ * Create initial state for a new milestone
+ * @param {number} milestoneNumber - Milestone number
+ * @returns {object} Initial state object
+ */
+function createInitialState(milestoneNumber) {
+  const now = new Date().toISOString();
+
+  return {
+    milestone: milestoneNumber,
+    status: "requirements-gathering",
+    createdAt: now,
+    lastRunAt: null,
+    runCount: 0,
+    lastCommentId: 0,
+    requirements: {
+      complete: false,
+      answered: {},
+      pending: []
+    },
+    workflow: {
+      startedAt: now,
+      lastRunAt: null,
+      runCount: 0,
+      lastCommentId: 0
+    },
+    phases: []
+  };
+}
+
+/**
+ * Load state from STATE.md file via GitHub Contents API
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} milestoneNumber - Milestone number
+ * @returns {Promise<object>} State object
+ */
+async function loadState(owner, repo, milestoneNumber) {
+  const token = core.getInput("token") || process.env.GITHUB_TOKEN;
+  const octokit = github.getOctokit(token);
+  const path = STATE_FILE.replace("{n}", milestoneNumber);
+
+  try {
+    const response = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path
+    });
+
+    const content = Buffer.from(response.data.content, "base64").toString("utf-8");
+    const state = parseStateMarkdown(content);
+
+    core.info(`Loaded state for milestone ${milestoneNumber} from ${path}`);
+    return state;
+  } catch (error) {
+    if (error.status === 404) {
+      core.info(`State file not found for milestone ${milestoneNumber}, creating initial state`);
+      return createInitialState(milestoneNumber);
+    }
+    throw error;
+  }
+}
+
+/**
+ * Save state to STATE.md file via GitHub Contents API
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} milestoneNumber - Milestone number
+ * @param {object} state - State object to save
+ * @param {Array} phases - Phase definitions (optional)
+ * @returns {Promise<void>}
+ */
+async function saveState(owner, repo, milestoneNumber, state, phases = []) {
+  const token = core.getInput("token") || process.env.GITHUB_TOKEN;
+  const octokit = github.getOctokit(token);
+  const path = STATE_FILE.replace("{n}", milestoneNumber);
+  const content = generateStateMarkdown(state, phases);
+  const encodedContent = Buffer.from(content).toString("base64");
+
+  // Get current file SHA for update (or null for create)
+  let sha = null;
+  try {
+    const existing = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path
+    });
+    sha = existing.data.sha;
+  } catch (error) {
+    if (error.status !== 404) throw error;
+    // File doesn't exist, sha remains null for create
+  }
+
+  await octokit.rest.repos.createOrUpdateFileContents({
+    owner,
+    repo,
+    path,
+    message: `chore: Update milestone ${milestoneNumber} state`,
+    content: encodedContent,
+    sha: sha // Omit for create, include for update
+  });
+
+  core.info(`State saved to ${path}`);
+}
+
+/**
+ * Check if all required questions have been answered
+ * @param {object} state - State object
+ * @param {Array<{id: string, required: boolean}>} questions - Question definitions
+ * @returns {boolean} True if all required questions are answered
+ */
+function isRequirementsComplete(state, questions) {
+  const { answered, complete } = state.requirements;
+
+  // If explicitly marked complete, trust that
+  if (complete) {
+    return true;
+  }
+
+  // Check if all required questions have answers
+  const requiredQuestions = questions.filter(q => q.required);
+  const allRequiredAnswered = requiredQuestions.every(q => answered[q.id]);
+
+  return allRequiredAnswered;
+}
+
+/**
+ * Update state with a new answer
+ * @param {object} state - State object to update
+ * @param {string} questionId - Question identifier
+ * @param {string} answer - Answer text
+ * @param {number} commentId - GitHub comment ID
+ * @returns {object} Updated state
+ */
+function updateRequirementsAnswer(state, questionId, answer, commentId) {
+  // Add to answered
+  state.requirements.answered[questionId] = answer;
+
+  // Remove from pending if present
+  state.requirements.pending = state.requirements.pending.filter(q => q !== questionId);
+
+  // Update last comment ID
+  state.workflow.lastCommentId = commentId;
+
+  return state;
+}
+
+/**
+ * Initialize pending questions list from question definitions
+ * @param {object} state - State object
+ * @param {Array<{id: string}>} questions - Question definitions
+ * @returns {object} Updated state
+ */
+function initializePendingQuestions(state, questions) {
+  state.requirements.pending = questions.map(q => q.id);
+  return state;
+}
+
+/**
+ * Update workflow metadata (run count, last run time)
+ * @param {object} state - State object
+ * @returns {object} Updated state
+ */
+function updateWorkflowRun(state) {
+  state.workflow = state.workflow || {
+    startedAt: state.createdAt,
+    runCount: 0,
+    lastRunAt: null,
+    lastCommentId: state.lastCommentId || 0
+  };
+
+  state.workflow.runCount++;
+  state.workflow.lastRunAt = new Date().toISOString();
+
+  return state;
+}
+
+/**
+ * Mark requirements as complete
+ * @param {object} state - State object
+ * @returns {object} Updated state
+ */
+function markRequirementsComplete(state) {
+  state.requirements.complete = true;
+  state.status = "planning";
+  return state;
+}
+
+// EXTERNAL MODULE: ./src/milestone/planning-docs.js + 1 modules
+var planning_docs = __nccwpck_require__(4887);
+;// CONCATENATED MODULE: ./src/milestone/requirements.js
+/**
+ * Requirements gathering module for milestone creation workflow
+ *
+ * Provides functionality to:
+ * - Fetch new comments from GitHub issues
+ * - Parse user answers from comments
+ * - Format requirements questions for posting
+ * - Parse answers from user responses
+ */
+
+
+
+
+/**
+ * Default requirements questions for milestone creation
+ * @constant
+ * @type {Array<{id: string, question: string, required: boolean}>}
+ */
+const DEFAULT_QUESTIONS = [
+  {
+    id: "scope",
+    question: "What is the primary goal of this milestone?",
+    required: true
+  },
+  {
+    id: "features",
+    question: "What are the key features or deliverables?",
+    required: true
+  },
+  {
+    id: "constraints",
+    question: "Are there any technical constraints or requirements?",
+    required: false
+  },
+  {
+    id: "timeline",
+    question: "What is the expected timeline?",
+    required: false
+  }
+];
+
+/**
+ * Check if a comment is from a bot
+ * @param {object} comment - GitHub comment object
+ * @returns {boolean} True if comment is from a bot
+ */
+function isBotComment(comment) {
+  const user = comment.user;
+
+  // Check for github-actions[bot]
+  if (user.login === "github-actions[bot]") {
+    return true;
+  }
+
+  // Check for generic bot type
+  if (user.type === "Bot") {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Get new comments since the last processed comment ID
+ *
+ * Fetches all comments for an issue, filters to only new comments
+ * (those with ID greater than lastProcessedId), and excludes bot comments.
+ *
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {number} lastProcessedId - ID of the last processed comment (default: 0)
+ * @returns {Promise<Array<object>>} New human comments, sorted by ID ascending
+ */
+async function getNewComments(owner, repo, issueNumber, lastProcessedId = 0) {
+  const token = core.getInput("token") || process.env.GITHUB_TOKEN;
+  const octokit = github.getOctokit(token);
+
+  // Fetch all comments using pagination
+  const comments = await octokit.paginate(
+    octokit.rest.issues.listComments,
+    {
+      owner,
+      repo,
+      issue_number: issueNumber,
+      per_page: 100
+    }
+  );
+
+  // Filter to only new comments (higher ID = newer)
+  const newComments = comments.filter(c => c.id > lastProcessedId);
+
+  // Filter out bot comments
+  const humanComments = newComments.filter(c => !isBotComment(c));
+
+  // Sort by ID ascending (oldest first)
+  return humanComments.sort((a, b) => a.id - b.id);
+}
+
+/**
+ * Parse user answers from comment objects
+ *
+ * Extracts human responses from a list of comments, filtering out
+ * any bot comments and returning structured answer objects.
+ *
+ * @param {Array<object>} comments - Array of GitHub comment objects
+ * @returns {Array<{commentId: number, user: string, body: string, timestamp: string}>}
+ *   Array of parsed user answers
+ */
+function parseUserAnswers(comments) {
+  const answers = [];
+
+  for (const comment of comments) {
+    // Skip bot comments
+    if (isBotComment(comment)) {
+      continue;
+    }
+
+    // Parse answer content
+    const answer = {
+      commentId: comment.id,
+      user: comment.user.login,
+      body: comment.body,
+      timestamp: comment.created_at
+    };
+
+    answers.push(answer);
+  }
+
+  return answers;
+}
+
+/**
+ * Format requirements questions as markdown for posting
+ *
+ * Creates a formatted markdown block showing all questions with status icons:
+ * - :white_check_mark: for answered questions
+ * - :hourglass: for pending questions
+ *
+ * Existing answers are shown in blockquotes.
+ *
+ * @param {Array<{id: string, question: string, required: boolean}>} questions - Question definitions
+ * @param {object} existingAnswers - Map of question ID to answer text
+ * @returns {string} Markdown-formatted questions
+ */
+function formatRequirementsQuestions(questions, existingAnswers = {}) {
+  let markdown = `## Requirements Gathering\n\n`;
+
+  markdown += `Please answer the following questions to help plan this milestone. `;
+  markdown += `Reply with your answers and I'll continue gathering until we have everything needed.\n\n`;
+
+  markdown += `---\n\n### Questions\n\n`;
+
+  for (const q of questions) {
+    const existing = existingAnswers[q.id];
+    const status = existing ? ":white_check_mark:" : ":hourglass:";
+    const answeredText = existing ? " *(answered)*" : "";
+
+    markdown += `#### ${status} ${q.question}${answeredText}\n\n`;
+
+    if (existing) {
+      markdown += `> ${existing}\n\n`;
+    }
+  }
+
+  markdown += `---\n\n**Reply with your answers** (answer the questions marked with :hourglass:).\n`;
+
+  return markdown;
+}
+
+/**
+ * Parse user response into structured answers
+ *
+ * Supports two parsing strategies:
+ * 1. Q: prefix patterns (e.g., "Q: scope: Build auth")
+ * 2. Paragraph order fallback (each paragraph maps to next pending question)
+ *
+ * @param {string} body - User's comment body
+ * @param {Array<{id: string, question: string}>} questions - Question definitions
+ * @param {object} existingAnswers - Previously collected answers (optional)
+ * @returns {object} Answers keyed by question ID
+ */
+function parseAnswersFromResponse(body, questions, existingAnswers = {}) {
+  const answers = {};
+
+  // Split body into paragraphs/lines
+  const lines = body.split(/\n+/).filter(line => line.trim());
+
+  // Build patterns for each question
+  const questionPatterns = questions.map(q => ({
+    id: q.id,
+    patterns: [
+      new RegExp(`(?:Q${q.id}|Question\\s*${q.id}|${q.id}[:\\s]*)`, 'i'),
+      new RegExp(`(?:Q\\s*${q.id}|${q.id}[:\\s]*)`, 'i')
+    ]
+  }));
+
+  // Track which questions have been answered
+  const answeredIds = new Set(Object.keys(existingAnswers || {}));
+  const pendingQuestions = questions.filter(q => !answeredIds.has(q.id));
+
+  // Current position in pending questions
+  let currentQuestionIndex = 0;
+
+  for (const line of lines) {
+    // Skip empty lines
+    if (!line.trim()) continue;
+
+    // Skip checkboxes and question headers
+    if (line.match(/^[-*]\s*\[\s*\]/) || line.match(/^###?\s*Q\d+/i)) {
+      continue;
+    }
+
+    // Try to match a question prefix
+    let matched = false;
+
+    for (const qPattern of questionPatterns) {
+      for (const pattern of qPattern.patterns) {
+        const match = line.match(pattern);
+        if (match) {
+          // Remove the question prefix from the answer
+          const answer = line.replace(pattern, '').trim();
+          if (answer) {
+            answers[qPattern.id] = answer;
+          }
+          matched = true;
+          break;
+        }
+      }
+      if (matched) break;
+    }
+
+    // If no prefix matched and we have pending questions, use order-based parsing
+    if (!matched && currentQuestionIndex < pendingQuestions.length) {
+      const q = pendingQuestions[currentQuestionIndex];
+
+      // Skip if this line looks like a header or list item
+      if (line.match(/^[-*]\s+/) || line.match(/^\d+\.\s+/)) {
+        continue;
+      }
+
+      answers[q.id] = line.trim();
+      currentQuestionIndex++;
+    }
+  }
+
+  return answers;
+}
+
+;// CONCATENATED MODULE: ./src/milestone/summarizer.js
+/**
+ * Milestone Summary Generator Module
+ *
+ * Generates markdown-formatted summary comments for milestone creation completion.
+ * Used by the milestone workflow orchestrator to post completion summaries.
+ */
+
+/**
+ * Generate summary comment for milestone creation
+ *
+ * Creates a comprehensive markdown summary including:
+ * - Milestone header with status
+ * - Table of created files with purposes
+ * - Requirements completion status
+ * - Numbered next steps list
+ * - Branch reference
+ * - Bot signature footer
+ *
+ * @param {object} data - Milestone creation data
+ * @param {number} data.milestoneNumber - Milestone number
+ * @param {string} [data.status] - Current workflow status
+ * @param {Array<{path: string, purpose: string}>} [data.files] - Created files with purposes
+ * @param {object} [data.requirements] - Requirements gathering status
+ * @param {boolean} data.requirements.complete - Whether all requirements gathered
+ * @param {Array<string>} [data.requirements.answered] - List of answered question IDs
+ * @param {Array<string>} [data.requirements.pending] - List of pending question IDs
+ * @param {Array<string>} [data.nextSteps] - Array of next step strings
+ * @returns {string} Markdown-formatted summary comment
+ */
+function generateMilestoneSummary(data) {
+  const {
+    milestoneNumber,
+    status = "Requirements Gathering",
+    files = [],
+    requirements = {},
+    nextSteps = []
+  } = data;
+
+  // Build files table
+  const filesTable = files.length > 0
+    ? files.map(f => `| \`${f.path}\` | ${f.purpose} |`).join('\n')
+    : "| (none) | |";
+
+  // Build requirements status
+  const reqStatus = requirements.complete
+    ? ":white_check_mark: All requirements gathered"
+    : `:hourglass: ${requirements.pending?.length || "Some"} question(s) pending`;
+
+  const answeredList = requirements.answered?.length > 0
+    ? `Answered: ${requirements.answered.map(q => `\`${q}\``).join(', ')}`
+    : "None yet";
+
+  // Build next steps
+  const nextStepsList = nextSteps.length > 0
+    ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
+    : "1. Answer remaining requirements questions in comments\n2. I'll continue planning once all questions are answered";
+
+  const branchName = `gsd/${milestoneNumber}`;
+
+  return `## Milestone ${milestoneNumber} Created
+
+**Status:** ${status}
+
+### Files Created
+
+| File | Purpose |
+|------|---------|
+${filesTable}
+
+### Requirements Status
+
+${reqStatus}
+- ${answeredList}
+
+### Next Steps
+
+${nextStepsList}
+
+---
+
+**Branch:** \`${branchName}\`
+
+---
+*This milestone was created by GSD Bot. Reply to continue requirements gathering or planning.*`;
+}
+
+/**
+ * Generate abbreviated summary for partial completion
+ * Used when requirements gathering is not yet complete
+ *
+ * @param {number} milestoneNumber - Milestone number
+ * @param {object} requirements - Requirements status
+ * @param {Array<string>} pendingQuestions - List of pending question IDs
+ * @returns {string} Markdown summary for partial completion
+ */
+function generatePartialSummary(milestoneNumber, requirements, pendingQuestions) {
+  const questionsText = pendingQuestions.length > 0
+    ? pendingQuestions.map(q => `- ${q}`).join('\n')
+    : "- (all answered, awaiting confirmation)";
+
+  return `## Milestone ${milestoneNumber}: Requirements Gathering
+
+**Status:** In Progress
+**Progress:** ${requirements.answered?.length || 0} answered, ${pendingQuestions.length} pending
+
+### Pending Questions
+
+Please answer the following questions to complete requirements gathering:
+
+${questionsText}
+
+### Next Steps
+
+1. Reply with your answers to the pending questions
+2. I'll process your answers and continue the workflow
+3. Once all required questions are answered, planning documents will be created
+
+---
+*Reply with your answers to continue.*`;
+}
+
+;// CONCATENATED MODULE: ./src/milestone/index.js
+/**
+ * Milestone Workflow Orchestrator
+ *
+ * Ties together all milestone creation modules:
+ * - Planning documents (planning-docs.js)
+ * - Requirements gathering (requirements.js)
+ * - State management (state.js)
+ * - Git operations (git/branches.js, git/git.js)
+ * - GitHub posting (lib/github.js)
+ * - Summary generation (summarizer.js)
+ */
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Parse milestone number from command arguments
+ * Supports formats:
+ * - "5" (just the number)
+ * - "--milestone 5"
+ * - "--milestone=5"
+ *
+ * @param {string} commandArgs - Command arguments string
+ * @returns {number} Parsed milestone number
+ * @throws {Error} If milestone number cannot be parsed
+ */
+function parseMilestoneNumber(commandArgs) {
+  if (!commandArgs) {
+    throw new Error("Milestone number is required");
+  }
+
+  // Try to extract from --milestone flag
+  const milestoneFlagMatch = commandArgs.match(/--milestone[=\s]+(\d+)/);
+  if (milestoneFlagMatch) {
+    return parseInt(milestoneFlagMatch[1], 10);
+  }
+
+  // Try to extract from -m flag
+  const mFlagMatch = commandArgs.match(/-m[=\s]+(\d+)/);
+  if (mFlagMatch) {
+    return parseInt(mFlagMatch[1], 10);
+  }
+
+  // Try to extract standalone number at the end
+  const standaloneMatch = commandArgs.match(/(\d+)$/);
+  if (standaloneMatch) {
+    return parseInt(standaloneMatch[1], 10);
+  }
+
+  throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+}
+
+/**
+ * Commit planning documents to the milestone branch
+ *
+ * @param {number} milestoneNumber - Milestone number
+ * @param {Array<{path: string, purpose: string}>} files - Files to commit
+ * @returns {Promise<void>}
+ */
+async function commitPlanningDocs(milestoneNumber, files) {
+  // Configure git identity for commits
+  await (0,git/* configureGitIdentity */.Zd)(
+    "github-actions[bot]",
+    "41898282+github-actions[bot]@users.noreply.github.com"
+  );
+
+  // Create milestone branch if it doesn't exist
+  const branchName = `gsd/${milestoneNumber}`;
+  const exists = await (0,branches/* branchExists */.TV)(branchName);
+
+  if (!exists) {
+    await (0,branches/* createMilestoneBranch */.HT)(milestoneNumber);
+  } else {
+    // Switch to existing branch
+    await (0,git/* runGitCommand */.tD)(`git switch ${branchName}`);
+    core.info(`Switched to existing branch: ${branchName}`);
+  }
+
+  // Stage all planning files
+  for (const file of files) {
+    await (0,git/* runGitCommand */.tD)(`git add "${file.path}"`);
+    core.info(`Staged ${file.path}`);
+  }
+
+  // Create commit with planning docs
+  const fileNames = files.map(f => f.path.split('/').pop()).join(', ');
+  await (0,git/* runGitCommand */.tD)(`git commit -m "docs(m${milestoneNumber}): Create initial planning documents
+
+- ${fileNames}
+
+Generated by GSD Bot"`);
+
+  core.info(`Committed ${files.length} planning files to ${branchName}`);
+}
+
+/**
+ * Execute the complete milestone creation workflow
+ *
+ * This orchestrator handles the full lifecycle:
+ * 1. Load or create state
+ * 2. Fetch and parse new user comments
+ * 3. Update requirements with new answers
+ * 4. If incomplete: post pending questions, save state, return
+ * 5. If complete: create planning docs, commit to branch, post summary
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @param {string} commandArgs - Command arguments string
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executeMilestoneWorkflow(context, commandArgs) {
+  const { owner, repo, issueNumber } = context;
+  const workflowUrl = (0,lib_github/* getWorkflowRunUrl */.gx)();
+
+  core.info(`Starting milestone workflow for ${owner}/${repo}#${issueNumber}`);
+
+  try {
+    // Step 1: Parse milestone number from arguments
+    const milestoneNumber = parseMilestoneNumber(commandArgs);
+    core.info(`Parsed milestone number: ${milestoneNumber}`);
+
+    // Step 2: Load existing state or create initial state
+    let state = await loadState(owner, repo, milestoneNumber);
+
+    // Step 3: Update workflow metadata (run count, last run time)
+    updateWorkflowRun(state);
+
+    // Step 4: Get new comments since last processed
+    const lastProcessedId = state.workflow?.lastCommentId || 0;
+    const newComments = await getNewComments(owner, repo, issueNumber, lastProcessedId);
+
+    // Step 5: Parse user answers from new comments
+    const userAnswers = parseUserAnswers(newComments);
+
+    // Step 6: Merge new answers into state
+    if (userAnswers.length > 0) {
+      for (const answer of userAnswers) {
+        const parsedAnswers = parseAnswersFromResponse(answer.body, DEFAULT_QUESTIONS, state.requirements.answered);
+
+        // Update state with each parsed answer
+        for (const [questionId, answerText] of Object.entries(parsedAnswers)) {
+          updateRequirementsAnswer(state, questionId, answerText, answer.commentId);
+        }
+      }
+    }
+
+    // Initialize pending questions if not already done
+    if (!state.requirements.pending || state.requirements.pending.length === 0) {
+      initializePendingQuestions(state, DEFAULT_QUESTIONS);
+    }
+
+    // Step 7: Check if requirements gathering is complete
+    const requirementsComplete = isRequirementsComplete(state, DEFAULT_QUESTIONS);
+
+    if (!requirementsComplete) {
+      // Requirements not yet complete - post pending questions
+      core.info("Requirements not complete, posting pending questions");
+
+      const questionsMarkdown = formatRequirementsQuestions(
+        DEFAULT_QUESTIONS,
+        state.requirements.answered
+      );
+
+      await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, questionsMarkdown);
+
+      // Save state for next run
+      await saveState(owner, repo, milestoneNumber, state);
+
+      return {
+        complete: false,
+        phase: "requirements-gathering",
+        milestone: milestoneNumber,
+        answered: Object.keys(state.requirements.answered),
+        pending: state.requirements.pending,
+        message: "Waiting for user answers to complete requirements gathering"
+      };
+    }
+
+    // Step 8: Requirements complete - transition to planning phase
+    core.info("All required questions answered, creating planning documents");
+
+    // Mark requirements as complete
+    markRequirementsComplete(state);
+    state.status = "planning";
+
+    // Build milestone data for planning documents
+    const milestoneData = {
+      owner,
+      repo,
+      milestoneNumber,
+      title: state.requirements.answered.scope ? `Milestone ${milestoneNumber}: ${state.requirements.answered.scope.substring(0, 50)}` : `Milestone ${milestoneNumber}`,
+      goal: state.requirements.answered.scope || "To be defined",
+      scope: state.requirements.answered.constraints || "To be defined",
+      features: state.requirements.answered.features ? state.requirements.answered.features.split('\n').filter(f => f.trim()) : [],
+      requirements: {
+        complete: true,
+        answered: Object.keys(state.requirements.answered),
+        pending: []
+      },
+      phases: [],
+      totalPhases: 6,
+      status: "planning",
+      createdAt: state.createdAt,
+      lastRunAt: state.workflow?.lastRunAt,
+      runCount: state.workflow?.runCount || 1
+    };
+
+    // Step 9: Create planning documents
+    const files = await (0,planning_docs/* createPlanningDocs */.Hm)(milestoneData);
+    const fileList = Object.values(files);
+
+    // Step 10: Commit all files to milestone branch
+    await commitPlanningDocs(milestoneNumber, fileList);
+
+    // Step 11: Save final state
+    await saveState(owner, repo, milestoneNumber, state, milestoneData.phases);
+
+    // Step 12: Generate and post summary comment
+    const summary = generateMilestoneSummary({
+      milestoneNumber,
+      status: "Planning Documents Created",
+      files: fileList,
+      requirements: {
+        complete: true,
+        answered: Object.keys(state.requirements.answered),
+        pending: []
+      },
+      nextSteps: [
+        "Review the planning documents in `.github/planning/milestones/`",
+        "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
+        "Use `@gsd-bot execute-phase` to execute planned work"
+      ]
+    });
+
+    await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, summary);
+
+    core.info(`Milestone ${milestoneNumber} workflow complete`);
+
+    return {
+      complete: true,
+      phase: "milestone-created",
+      milestone: milestoneNumber,
+      files: fileList.map(f => f.path),
+      branch: `gsd/${milestoneNumber}`,
+      message: "Milestone created successfully with planning documents"
+    };
+
+  } catch (error) {
+    core.error(`Milestone workflow error: ${error.message}`);
+
+    // Post error comment
+    const errorComment = (0,formatter/* formatErrorComment */.l)(error, "milestone creation");
+    await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, errorComment);
+
+    throw error;
+  }
+}
+
+/**
+ * Generate phases from requirements answers
+ * Helper function to transform requirements into phase structure
+ *
+ * @param {object} answers - User-provided requirements answers
+ * @returns {Array} Phase definitions
+ */
+function generatePhasesFromRequirements(answers) {
+  return [
+    { name: "Foundation Setup", goal: "Initial project structure and dependencies", status: "pending", dependencies: "None" },
+    { name: "Core Implementation", goal: "Main feature implementation", status: "pending", dependencies: "Phase 1" },
+    { name: "Integration", goal: "Connect components and verify functionality", status: "pending", dependencies: "Phase 2" },
+    { name: "Testing & Verification", goal: "Testing, bug fixes, and final verification", status: "pending", dependencies: "Phase 3" }
+  ];
+}
+
+
+/***/ }),
+
+/***/ 9992:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   q: () => (/* binding */ executePhaseExecutionWorkflow)
+/* harmony export */ });
+/* unused harmony export parsePhaseNumber */
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5317);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9023);
+/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(7985);
+/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
+/**
+ * Phase Execution Workflow Module
+ *
+ * Executes GSD's built-in execute-plan command via CCR (Claude Code Router)
+ * with enhanced output parsing for structured GitHub comments.
+ *
+ * Key differences from phase-planner.js:
+ * - 30-minute timeout (execution takes longer than planning)
+ * - Parses output to extract completed actions, next steps, questions
+ * - Posts structured comment instead of raw pass-through
+ * - Returns hasQuestions flag for conversational continuation
+ */
+
+
+
+
+
+
+
+
+
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec);
+
+/**
+ * Parse phase number from command arguments
+ * Supports formats:
+ * - "7" (just the number)
+ * - "--phase 7"
+ * - "--phase=7"
+ * - "-p 7"
+ * - "-p=7"
+ *
+ * @param {string} commandArgs - Command arguments string
+ * @returns {number} Parsed phase number
+ * @throws {Error} If phase number cannot be parsed
+ */
+function parsePhaseNumber(commandArgs) {
+  if (!commandArgs) {
+    throw new Error("Phase number is required");
+  }
+
+  // Try to extract from --phase flag
+  const phaseFlagMatch = commandArgs.match(/--phase[=\s]+(\d+)/);
+  if (phaseFlagMatch) {
+    return parseInt(phaseFlagMatch[1], 10);
+  }
+
+  // Try to extract from -p flag
+  const pFlagMatch = commandArgs.match(/-p[=\s]+(\d+)/);
+  if (pFlagMatch) {
+    return parseInt(pFlagMatch[1], 10);
+  }
+
+  // Try to extract standalone number at the end
+  const standaloneMatch = commandArgs.match(/(\d+)$/);
+  if (standaloneMatch) {
+    return parseInt(standaloneMatch[1], 10);
+  }
+
+  throw new Error("Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.");
+}
+
+/**
+ * Parse GSD execution output to extract structured sections
+ * @param {string} output - Raw GSD output
+ * @returns {object} Parsed sections
+ */
+function parseExecutionOutput(output) {
+  const sections = {
+    completedActions: [],
+    nextSteps: [],
+    questions: [],
+    hasQuestions: false
+  };
+
+  // Extract completed actions (checkmarks, "completed", task markers)
+  const completedPattern = /(?:[*-]\s*)?(?:\[x\]|completed?:?|done:?)\s*(.+)/gi;
+  let match;
+  while ((match = completedPattern.exec(output)) !== null) {
+    sections.completedActions.push(match[1].trim());
+  }
+
+  // Extract next steps section
+  const nextStepsMatch = output.match(/(?:##?\s*)?next steps?:?\s*\n((?:[-*]\s*.+\n?)+)/i);
+  if (nextStepsMatch) {
+    sections.nextSteps = nextStepsMatch[1]
+      .split('\n')
+      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
+      .map(line => line.replace(/^[-*]\s*/, '').trim())
+      .filter(line => line.length > 0);
+  }
+
+  // Extract questions (agent asking for input)
+  const questionsMatch = output.match(/(?:##?\s*)?questions?:?\s*\n((?:[-*]\s*.+\n?)+)/i);
+  if (questionsMatch) {
+    sections.questions = questionsMatch[1]
+      .split('\n')
+      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
+      .map(line => line.replace(/^[-*]\s*/, '').trim())
+      .filter(line => line.length > 0);
+    sections.hasQuestions = sections.questions.length > 0;
+  }
+
+  return sections;
+}
+
+/**
+ * Format parsed output into structured GitHub comment
+ * @param {object} parsed - Parsed sections from parseExecutionOutput
+ * @param {string} rawOutput - Original raw output for details section
+ * @returns {string} Formatted markdown comment
+ */
+function formatExecutionComment(parsed, rawOutput) {
+  let comment = `## Phase Execution Update\n\n`;
+
+  if (parsed.completedActions.length > 0) {
+    comment += `### Completed\n\n`;
+    parsed.completedActions.forEach(action => {
+      comment += `- [x] ${action}\n`;
+    });
+    comment += `\n`;
+  }
+
+  if (parsed.nextSteps.length > 0) {
+    comment += `### Next Steps\n\n`;
+    parsed.nextSteps.forEach(step => {
+      comment += `- ${step}\n`;
+    });
+    comment += `\n`;
+  }
+
+  if (parsed.questions.length > 0) {
+    comment += `### Questions\n\n`;
+    parsed.questions.forEach(question => {
+      comment += `- ${question}\n`;
+    });
+    comment += `\n**Reply to this comment to answer these questions. The workflow will resume when you reply.**\n\n`;
+  }
+
+  // Include raw output in collapsible section
+  comment += `<details>\n<summary>Full Output</summary>\n\n\`\`\`\n${rawOutput}\n\`\`\`\n\n</details>`;
+
+  return comment;
+}
+
+/**
+ * Execute the complete phase execution workflow
+ *
+ * This orchestrator handles:
+ * 1. Parse phase number from command arguments
+ * 2. Execute GSD execute-plan command via CCR
+ * 3. Capture output from command execution
+ * 4. Validate output for errors
+ * 5. Parse output for structured sections
+ * 6. Post formatted result to GitHub issue
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @param {string} commandArgs - Command arguments string
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executePhaseExecutionWorkflow(context, commandArgs) {
+  const { owner, repo, issueNumber } = context;
+  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .getWorkflowRunUrl */ .gx)();
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
+
+  try {
+    // Step 1: Parse phase number
+    const phaseNumber = parsePhaseNumber(commandArgs);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed phase number: ${phaseNumber}`);
+
+    // Step 2: Execute GSD execute-plan via CCR
+    // 30 minute timeout - execution takes longer than planning
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath}`;
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 1800000 }); // 30 min timeout
+    } catch (error) {
+      exitCode = error.code || 1;
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Step 3: Read captured output
+    let output = "";
+    try {
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(outputPath, "utf-8");
+    } catch (error) {
+      output = "(No output captured)";
+    }
+
+    // Step 4: Validate for errors
+    const isError = exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(output) ||
+      /Error:|Something went wrong|failed/i.test(output) ||
+      /Unknown command|invalid arguments|validation failed/i.test(output);
+
+    // Step 5: Post result to GitHub
+    if (isError) {
+      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
+      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
+      throw new Error(`Phase execution failed: ${output.substring(0, 500)}`);
+    }
+
+    // Step 6: Parse and format structured output
+    const parsed = parseExecutionOutput(output);
+    const formattedComment = formatExecutionComment(parsed, output);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
+
+    // Cleanup output file
+    try {
+      await fs_promises__WEBPACK_IMPORTED_MODULE_4__.unlink(outputPath);
+    } catch (e) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Phase ${phaseNumber} execution workflow complete`);
+
+    return {
+      complete: !parsed.hasQuestions,
+      phaseNumber,
+      hasQuestions: parsed.hasQuestions,
+      completedCount: parsed.completedActions.length,
+      message: parsed.hasQuestions
+        ? "Phase execution paused - questions require user input"
+        : "Phase execution completed successfully"
+    };
+
+  } catch (error) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Phase execution workflow error: ${error.message}`);
+    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(error, workflowUrl);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
+    throw error;
+  }
+}
+
+
+/***/ }),
+
+/***/ 4241:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (/* binding */ executePhaseWorkflow)
+/* harmony export */ });
+/* unused harmony export parsePhaseNumber */
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(3228);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5317);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9023);
+/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(7985);
+/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
+/**
+ * Phase Planning Workflow Module
+ *
+ * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
+ * and captures output for GitHub commenting.
+ */
+
+
+
+
+
+
+
+
+
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_2__.exec);
+
+/**
+ * Parse phase number from command arguments
+ * Supports formats:
+ * - "7" (just the number)
+ * - "--phase 7"
+ * - "--phase=7"
+ * - "-p 7"
+ * - "-p=7"
+ *
+ * @param {string} commandArgs - Command arguments string
+ * @returns {number} Parsed phase number
+ * @throws {Error} If phase number cannot be parsed
+ */
+function parsePhaseNumber(commandArgs) {
+  if (!commandArgs) {
+    throw new Error("Phase number is required");
+  }
+
+  // Try to extract from --phase flag
+  const phaseFlagMatch = commandArgs.match(/--phase[=\s]+(\d+)/);
+  if (phaseFlagMatch) {
+    return parseInt(phaseFlagMatch[1], 10);
+  }
+
+  // Try to extract from -p flag
+  const pFlagMatch = commandArgs.match(/-p[=\s]+(\d+)/);
+  if (pFlagMatch) {
+    return parseInt(pFlagMatch[1], 10);
+  }
+
+  // Try to extract standalone number at the end
+  const standaloneMatch = commandArgs.match(/(\d+)$/);
+  if (standaloneMatch) {
+    return parseInt(standaloneMatch[1], 10);
+  }
+
+  throw new Error("Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.");
+}
+
+/**
+ * Execute the complete phase planning workflow
+ *
+ * This orchestrator handles:
+ * 1. Parse phase number from command arguments
+ * 2. Execute GSD plan-phase command via CCR
+ * 3. Capture output from command execution
+ * 4. Validate output for errors
+ * 5. Post result to GitHub issue
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @param {string} commandArgs - Command arguments string
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executePhaseWorkflow(context, commandArgs) {
+  const { owner, repo, issueNumber } = context;
+  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .getWorkflowRunUrl */ .gx)();
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
+
+  try {
+    // Step 1: Parse phase number from arguments
+    const phaseNumber = parsePhaseNumber(commandArgs);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed phase number: ${phaseNumber}`);
+
+    // Step 2: Execute GSD plan-phase command via CCR
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = `echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > ${outputPath}`;
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 600000 }); // 10 minute timeout
+    } catch (error) {
+      exitCode = error.code || 1;
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Step 3: Read captured output
+    let output = "";
+    try {
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(outputPath, "utf-8");
+    } catch (error) {
+      output = "(No output captured)";
+    }
+
+    // Step 4: Validate for errors
+    const isError = exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(output) ||
+      /Error:|Something went wrong|failed/i.test(output) ||
+      /Unknown command|invalid arguments|validation failed/i.test(output);
+
+    // Step 5: Post result to GitHub
+    if (isError) {
+      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
+      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
+      throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
+    }
+
+    // Post success - pass through GSD output
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+
+    // Cleanup output file
+    try {
+      await fs_promises__WEBPACK_IMPORTED_MODULE_4__.unlink(outputPath);
+    } catch (e) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Phase ${phaseNumber} planning workflow complete`);
+
+    return {
+      complete: true,
+      phaseNumber,
+      message: "Phase planning completed successfully"
+    };
+
+  } catch (error) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Phase planning workflow error: ${error.message}`);
+
+    // Post error comment
+    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(error, workflowUrl);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
+
+    throw error;
+  }
+}
+
+
+/***/ }),
+
+/***/ 4887:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  Hm: () => (/* binding */ createPlanningDocs),
+  MU: () => (/* binding */ generateProjectMarkdown),
+  ru: () => (/* binding */ generateRoadmapMarkdown),
+  qL: () => (/* binding */ generateStateMarkdown)
+});
+
+;// CONCATENATED MODULE: external "node:fs/promises"
+const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:fs/promises");
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+;// CONCATENATED MODULE: ./src/milestone/planning-docs.js
+/**
+ * Planning Documents Generator
+ * Creates PROJECT.md, STATE.md, and ROADMAP.md files for milestone creation
+ */
+
+
+
+
+/**
+ * Create all planning documents for a milestone
+ * @param {object} milestoneData - Milestone context
+ * @param {string} milestoneData.owner - Repository owner
+ * @param {string} milestoneData.repo - Repository name
+ * @param {number} milestoneData.milestoneNumber - Milestone number
+ * @param {string} milestoneData.title - Milestone title
+ * @param {string} milestoneData.goal - Primary goal
+ * @param {string} milestoneData.scope - Scope description
+ * @param {Array<string>} milestoneData.features - Key features
+ * @param {object} milestoneData.requirements - Requirements status
+ * @param {Array} milestoneData.phases - Phase definitions
+ * @param {string} milestoneData.status - Current status
+ * @param {string} milestoneData.createdAt - Creation timestamp
+ * @param {string} milestoneData.lastRunAt - Last run timestamp
+ * @param {number} milestoneData.runCount - Number of workflow runs
+ * @returns {Promise<object>} Files map with paths and purposes
+ */
+async function createPlanningDocs(milestoneData) {
+  const { owner, repo, milestoneNumber } = milestoneData;
+  const planningDir = `.github/planning/milestones/${milestoneNumber}`;
+  const files = {};
+
+  // Create directory structure
+  await promises_namespaceObject.mkdir(planningDir, { recursive: true });
+  await promises_namespaceObject.mkdir(`${planningDir}/phases`, { recursive: true });
+  core.info(`Created directory structure: ${planningDir}/`);
+
+  // Create PROJECT.md
+  const projectContent = generateProjectMarkdown(milestoneData);
+  const projectPath = `${planningDir}/PROJECT.md`;
+  await promises_namespaceObject.writeFile(projectPath, projectContent);
+  files.project = { path: projectPath, purpose: "Milestone context and goals" };
+  core.info(`Created ${projectPath}`);
+
+  // Create STATE.md
+  const stateContent = generateStateMarkdown(milestoneData);
+  const statePath = `${planningDir}/STATE.md`;
+  await promises_namespaceObject.writeFile(statePath, stateContent);
+  files.state = { path: statePath, purpose: "Milestone number and status" };
+  core.info(`Created ${statePath}`);
+
+  // Create ROADMAP.md
+  const roadmapContent = generateRoadmapMarkdown(milestoneData);
+  const roadmapPath = `${planningDir}/ROADMAP.md`;
+  await promises_namespaceObject.writeFile(roadmapPath, roadmapContent);
+  files.roadmap = { path: roadmapPath, purpose: "Phase structure" };
+  core.info(`Created ${roadmapPath}`);
+
+  return files;
+}
+
+/**
+ * Generate PROJECT.md content
+ * @param {object} data - Milestone data
+ * @returns {string} Markdown content for PROJECT.md
+ */
+function generateProjectMarkdown(data) {
+  const {
+    milestoneNumber,
+    title,
+    goal,
+    scope,
+    features,
+    requirements,
+    createdAt
+  } = data;
+
+  const featuresList = features && features.length > 0
+    ? features.map(f => `- ${f}`).join('\n')
+    : "- To be defined";
+
+  const requirementsSummary = requirements?.answered && Object.keys(requirements.answered).length > 0
+    ? Object.entries(requirements.answered)
+      .map(([key, value]) => `| \`${key}\` | ${value || "(empty)"} |`)
+      .join('\n')
+    : "| |";
+
+  return `# Milestone ${milestoneNumber}: ${title}
+
+**Created:** ${createdAt || new Date().toISOString()}
+**Status:** Planning
+
+## Goal
+
+${goal || "To be defined during requirements gathering."}
+
+## Scope
+
+${scope || "To be defined during requirements gathering."}
+
+## Key Features
+
+${featuresList}
+
+## Requirements Summary
+
+| Question | Answer |
+|----------|--------|
+${requirementsSummary}
+
+---
+*This file is part of the GSD milestone planning process.*
+`;
+}
+
+/**
+ * Generate STATE.md content
+ * @param {object} data - Milestone data
+ * @returns {string} Markdown content for STATE.md
+ */
+function generateStateMarkdown(data) {
+  const {
+    milestoneNumber,
+    status,
+    phases,
+    requirements,
+    createdAt,
+    lastRunAt,
+    runCount
+  } = data;
+
+  const phaseRows = phases && phases.length > 0
+    ? phases.map((p, i) => {
+        const phaseNum = String(i + 1).padStart(2, '0');
+        const phaseName = p.name || "Unnamed Phase";
+        const phaseStatus = p.status || "pending";
+        return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
+      }).join('\n')
+    : "|   | (none defined) | pending |";
+
+  const reqStatus = requirements?.complete ? "Complete" : "In Progress";
+  const answeredCount = Object.keys(requirements?.answered || {}).length;
+  const pendingCount = requirements?.pending?.length || 0;
+
+  return `# Milestone ${milestoneNumber} State
+
+**Milestone:** ${milestoneNumber}
+**Status:** ${status || "planning"}
+**Last Updated:** ${new Date().toISOString()}
+
+## Phase Status
+
+| Phase | Name | Status |
+|-------|------|--------|
+${phaseRows}
+
+## Requirements Gathering
+
+**Status:** ${reqStatus}
+**Questions Answered:** ${answeredCount}
+**Questions Pending:** ${pendingCount}
+
+## Workflow
+
+**Started:** ${createdAt || "N/A"}
+**Last Run:** ${lastRunAt || "N/A"}
+**Run Count:** ${runCount || 1}
+
+---
+*State file for GSD milestone tracking.*
+`;
+}
+
+/**
+ * Generate ROADMAP.md content
+ * @param {object} data - Milestone data
+ * @returns {string} Markdown content for ROADMAP.md
+ */
+function generateRoadmapMarkdown(data) {
+  const { milestoneNumber, phases, totalPhases } = data;
+
+  const phaseCount = totalPhases || (phases?.length || 0);
+
+  let phaseStructure = "";
+  if (phases && phases.length > 0) {
+    phaseStructure = phases.map((p, i) => {
+      const phaseNum = i + 1;
+      const phaseName = p.name || `Phase ${phaseNum}`;
+      const phaseGoal = p.goal || "To be defined";
+      const phaseDeps = p.dependencies || "None";
+      const phaseStatus = p.status || "pending";
+
+      return `### Phase ${phaseNum}: ${phaseName}
+
+- **Status:** ${phaseStatus}
+- **Goal:** ${phaseGoal}
+- **Dependencies:** ${phaseDeps}
+`;
+    }).join('\n');
+  } else {
+    phaseStructure = "Phases will be defined during planning.";
+  }
+
+  return `# Milestone ${milestoneNumber} Roadmap
+
+**Total Phases:** ${phaseCount}
+
+## Phase Structure
+
+${phaseStructure}
+
+## Execution Order
+
+${phases && phases.length > 0
+  ? phases.map((p, i) => `${i + 1}. Phase ${i + 1}: ${p.name || `Phase ${i + 1}`}`).join('\n')
+  : "1. Phase 1: Foundation Setup\n2. Phase 2: Core Implementation\n3. Phase 3: Integration\n4. Phase 4: Testing & Verification"}
+
+## Notes
+
+- Each phase is implemented in its own branch
+- Planning documents are created before implementation
+- Requirements are gathered before detailed planning
+
+---
+*This roadmap guides milestone execution.*
+`;
 }
 
 
