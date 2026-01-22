@@ -32,10 +32,15 @@
 5. Plans include tasks with dependencies, verification, and wave grouping
 6. Bot posts summary comment with plan location when complete
 
+**Plans:** 2 plans | **Waves:** 2
+
+- [ ] 07-01-PLAN.md — Wave 1: Foundation (command allowlist, phase-planner.js module, command dispatch)
+- [ ] 07-02-PLAN.md — Wave 2: Plan generation (self-referential PLAN.md files, summary documents)
+
 **Files Created:**
-- `src/milestone/phase-planner.js` — Phase planning logic
-- `.planning/phases/{n}/07-01-PLAN.md` — Wave 1 plan
-- `.planning/phases/{n}/07-02-PLAN.md` — Wave 2 plan (if needed)
+- `src/milestone/phase-planner.js` — Phase planning logic (8 exports)
+- `src/lib/validator.js` — ALLOWLIST includes "plan-phase"
+- `src/index.js` — Command dispatch for plan-phase workflow
 
 ---
 
