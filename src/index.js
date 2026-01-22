@@ -13,6 +13,7 @@ import { withErrorHandling } from "./errors/handler.js";
 import { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown } from "./milestone/planning-docs.js";
 import { executeMilestoneWorkflow, parseMilestoneNumber } from "./milestone/index.js";
 import { executePhaseWorkflow } from "./milestone/phase-planner.js";
+import { executePhaseExecutionWorkflow } from "./milestone/phase-executor.js";
 
 // Trigger bundling of modules
 const _githubModule = { postComment, getWorkflowRunUrl };
@@ -23,8 +24,9 @@ const _errorModule = { withErrorHandling };
 const _planningModule = { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown };
 const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
 const _phasePlannerModule = { executePhaseWorkflow };
+const _phaseExecutorModule = { executePhaseExecutionWorkflow };
 const _authModule = { checkAuthorization, formatAuthorizationError };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_authModule);
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_authModule);
 
 try {
   // Get inputs from action.yml
@@ -106,6 +108,19 @@ try {
       );
       core.setOutput("phase-planned", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
+      return { commandFound: true, command: parsed.command, ...result };
+    }
+
+    // Command dispatch for phase execution workflow
+    if (parsed.command === "execute-phase") {
+      core.info("Dispatching to phase execution workflow");
+      const result = await executePhaseExecutionWorkflow(
+        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        sanitizedArgs
+      );
+      core.setOutput("phase-executed", result.complete);
+      core.setOutput("phase-number", result.phaseNumber);
+      core.setOutput("has-questions", result.hasQuestions);
       return { commandFound: true, command: parsed.command, ...result };
     }
 
