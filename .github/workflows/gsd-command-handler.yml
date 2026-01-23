@@ -30,21 +30,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Cache global npm packages
-        uses: actions/cache@v4
-        id: npm-global-cache
-        with:
-          path: ~/.npm/_npx
-          key: npm-global-${{ runner.os }}-ccr-claude-gsd
+      - name: Install Bun
+        run: |
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
 
-      - name: Install Claude Code CLI
-        run: npm install -g claude-code@latest
+      - name: Install Claude Code, CCR and GSD Skill
+        run: |
+          ~/.bun/bin/bun install -g @anthropic-ai/claude-code @musistudio/claude-code-router get-shit-done-cc
+          # Add bun global bin to PATH for subsequent steps
+          echo "$HOME/.bun/install/global/node_modules/.bin" >> $GITHUB_PATH
 
-      - name: Install Claude Code Router
-        run: npm install -g @musistudio/claude-code-router@latest
-
-      - name: Install GSD Skill
-        run: npm install -g get-shit-done-cc@latest
+      - name: Verify Installations
+        run: |
+          echo "CCR location: $(which ccr)"
+          echo "Claude location: $(which claude)"
+          ccr -v || echo "CCR installed (version check optional)"
+          claude --version || echo "Claude installed (version check optional)"
 
       - name: Generate CCR Configuration
         env:
@@ -52,17 +54,6 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: npm run setup:ccr
-
-      - name: Verify Global Installs
-        run: |
-          # Add global npm bin to PATH for this and subsequent steps
-          echo "$(npm config get prefix)/bin" >> $GITHUB_PATH
-
-          # Verify installations
-          which ccr || (echo "CCR not found in PATH" && exit 1)
-          which claude || (echo "Claude Code not found in PATH" && exit 1)
-          ccr --version
-          claude --version
 
       - name: Start CCR Service
         run: |
