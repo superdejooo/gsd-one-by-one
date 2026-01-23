@@ -11,7 +11,7 @@
 
 **Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
 
-**Phases:** 8 phases | **Requirements:** 9 mapped
+**Phases:** 9 phases | **Requirements:** 15 mapped
 
 ---
 
@@ -213,7 +213,7 @@ Plans:
 
 - Error posting delegated to withErrorHandling wrapper (single source)
 - CCR logs stripped via regex patterns (log_xxx, response 200, JS object notation)
-- GSD block extracted from LAST "GSD ►" marker (handles multiple markers)
+- GSD block extracted from LAST "GSD >" marker (handles multiple markers)
 - Fallback to last 80 lines if no GSD marker found
 - Only explicit [x] checkbox markers matched (not "Complete" text)
 
@@ -252,6 +252,54 @@ Plans:
 
 ---
 
+### Phase 13: Milestone Trigger via "good first issue" Label
+
+**Goal:** Trigger new-milestone workflow automatically when a GitHub issue receives the "good first issue" label. GSD determines milestone number, creates planning artifacts. We parse outputs and update the triggering issue.
+
+**Depends on:** Phase 12
+
+**Requirements:**
+
+- TRIGGER-01: Workflow triggers on `issues.labeled` event when label is "good first issue"
+- TRIGGER-02: Read issue title + body, join with `---`, pass as prompt to `formatCcrCommandWithOutput`
+- TRIGGER-03: Remove `parseMilestoneNumber` from new-milestone flow (GSD determines number)
+- PARSE-01: After GSD completes, parse `.planning/REQUIREMENTS.md` for milestone title and version (vX)
+- PARSE-02: Parse `.planning/ROADMAP.md` for phase numbers and titles
+- UPDATE-01: Update original GitHub issue with milestone info and phase links
+
+**Status:** Not started
+
+**Plans:** 4 plans | **Waves:** 2
+
+Plans:
+- [ ] 13-01-PLAN.md — Workflow trigger and orchestrator (gsd-label-trigger.yml, label-trigger.js, action.yml updates)
+- [ ] 13-02-PLAN.md — Optional milestone number (refactor executeMilestoneWorkflow for GSD-determined numbers)
+- [ ] 13-03-PLAN.md — Planning artifact parsers (planning-parser.js for REQUIREMENTS.md and ROADMAP.md)
+- [ ] 13-04-PLAN.md — Issue update integration (parse metadata after GSD, update triggering issue)
+
+**Wave Structure:**
+- Wave 1: 13-01, 13-02 (parallel - trigger workflow and milestone refactor are independent)
+- Wave 2: 13-03, 13-04 (sequential - 13-03 creates parsers, 13-04 uses them to update issue)
+
+**Files to Create:**
+- `.github/workflows/gsd-label-trigger.yml` — New workflow for label trigger
+- `src/milestone/label-trigger.js` — Label trigger orchestrator
+- `src/lib/planning-parser.js` — Parsers for REQUIREMENTS.md and ROADMAP.md
+
+**Files to Modify:**
+- `action.yml` — Add trigger-type, issue-title, issue-body inputs
+- `src/index.js` — Route label triggers to new workflow
+- `src/milestone/index.js` — Make milestone number optional
+- `src/lib/github.js` — Add updateIssueBody function
+
+**Key Files (GSD outputs):**
+- `.planning/REQUIREMENTS.md` — Created by GSD, contains milestone title + version
+- `.planning/ROADMAP.md` — Updated by GSD, contains all phases with numbers
+
+**Important Note:** REQUIREMENTS.md does not exist between milestones. Its absence signals no active milestone.
+
+---
+
 ## Phase Summary
 
 | #   | Phase                                           | Goal                                       | Requirements                | Plans              |
@@ -263,6 +311,7 @@ Plans:
 | 10  | Test for Each Service, Method, Feature and Flow | Comprehensive testing coverage             | TEST-01: 80%+ coverage      | 7 plans (complete) |
 | 11  | Output Parsing Improvements                     | Fix comment formatting issues              | N/A                         | 1 plan (complete)  |
 | 12  | CCR Command Formatting                          | Centralized command helper                 | N/A                         | 1 plan (complete)  |
+| 13  | Milestone Trigger via Label                     | Auto-trigger on "good first issue" label   | TRIGGER-01..03, PARSE-01..02, UPDATE-01 | 4 plans            |
 
 ---
 
@@ -274,6 +323,7 @@ Plans:
 - Phase 9 -> Phase 10: Testing covers all modules including Phase 9 additions
 - Phase 10 -> Phase 11: Output improvements discovered during testing/live usage
 - Phase 11 -> Phase 12: CCR command refactoring builds on output parsing
+- Phase 12 -> Phase 13: Label trigger uses CCR command helpers for prompt passing
 - All phases -> v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
 
 ---
