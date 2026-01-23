@@ -21,16 +21,8 @@ vi.mock('fs/promises', () => ({
 
 // Mock github.js
 const mockPostComment = vi.fn();
-const mockGetWorkflowRunUrl = vi.fn(() => 'https://example.com/run/123');
 vi.mock('../lib/github.js', () => ({
-  postComment: mockPostComment,
-  getWorkflowRunUrl: mockGetWorkflowRunUrl
-}));
-
-// Mock formatter
-const mockFormatErrorComment = vi.fn((err) => `Error: ${err.message}`);
-vi.mock('../errors/formatter.js', () => ({
-  formatErrorComment: mockFormatErrorComment
+  postComment: mockPostComment
 }));
 
 // Mock @actions/core
@@ -125,21 +117,14 @@ describe('phase-planner.js', () => {
       expect(mockPostComment).toHaveBeenCalledWith('test-owner', 'test-repo', 42, expectedOutput);
     });
 
-    it('posts error comment on failure', async () => {
+    it('throws error on failure (withErrorHandling posts comment)', async () => {
       const error = new Error('Command failed');
       error.code = 1;
       mockExecAsync.mockRejectedValue(error);
       mockReadFile.mockResolvedValue('Error: Planning failed');
 
-      await expect(executePhaseWorkflow(mockContext, '2')).rejects.toThrow();
-
-      expect(mockFormatErrorComment).toHaveBeenCalled();
-      expect(mockPostComment).toHaveBeenCalledWith(
-        'test-owner',
-        'test-repo',
-        42,
-        expect.stringContaining('Error')
-      );
+      await expect(executePhaseWorkflow(mockContext, '2')).rejects.toThrow('Phase planning failed');
+      // Error comment posting is delegated to withErrorHandling wrapper
     });
 
     it('handles command timeout', async () => {
@@ -194,13 +179,7 @@ describe('phase-planner.js', () => {
       mockReadFile.mockResolvedValue('Error: Permission Denied');
 
       await expect(executePhaseWorkflow(mockContext, '3')).rejects.toThrow('Phase planning failed');
-
-      expect(mockPostComment).toHaveBeenCalledWith(
-        'test-owner',
-        'test-repo',
-        42,
-        expect.stringContaining('Error')
-      );
+      // Error comment posting is delegated to withErrorHandling wrapper
     });
   });
 });

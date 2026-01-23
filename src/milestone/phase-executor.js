@@ -16,8 +16,7 @@ import * as github from "@actions/github";
 import { exec } from "node:child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
-import { postComment, getWorkflowRunUrl } from "../lib/github.js";
-import { formatErrorComment } from "../errors/formatter.js";
+import { postComment } from "../lib/github.js";
 import { getPhaseIssues } from "../lib/issues.js";
 import { updateIssueStatus } from "../lib/labels.js";
 
@@ -221,7 +220,6 @@ function formatExecutionComment(parsed, rawOutput) {
  */
 export async function executePhaseExecutionWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = getWorkflowRunUrl();
 
   core.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
 
@@ -268,10 +266,8 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
       /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
       /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
 
-    // Step 5: Post result to GitHub
+    // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      const errorMsg = formatErrorComment(new Error(output.trim()), workflowUrl);
-      await postComment(owner, repo, issueNumber, errorMsg);
       throw new Error(`Phase execution failed: ${output.substring(0, 500)}`);
     }
 
@@ -331,8 +327,6 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
 
   } catch (error) {
     core.error(`Phase execution workflow error: ${error.message}`);
-    const errorComment = formatErrorComment(error, workflowUrl);
-    await postComment(owner, repo, issueNumber, errorComment);
-    throw error;
+    throw error; // withErrorHandling will post the comment
   }
 }

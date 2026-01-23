@@ -11,8 +11,7 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import path from "path";
-import { postComment, getWorkflowRunUrl } from "../lib/github.js";
-import { formatErrorComment } from "../errors/formatter.js";
+import { postComment } from "../lib/github.js";
 import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
 
 const execAsync = promisify(exec);
@@ -120,7 +119,6 @@ function extractPhaseName(phaseDir) {
  */
 export async function executePhaseWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = getWorkflowRunUrl();
 
   core.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
 
@@ -157,10 +155,8 @@ export async function executePhaseWorkflow(context, commandArgs) {
       /Error:|Something went wrong|failed/i.test(output) ||
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
-    // Step 5: Post result to GitHub
+    // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      const errorMsg = formatErrorComment(new Error(output.trim()), workflowUrl);
-      await postComment(owner, repo, issueNumber, errorMsg);
       throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
     }
 
@@ -224,11 +220,6 @@ export async function executePhaseWorkflow(context, commandArgs) {
 
   } catch (error) {
     core.error(`Phase planning workflow error: ${error.message}`);
-
-    // Post error comment
-    const errorComment = formatErrorComment(error, workflowUrl);
-    await postComment(owner, repo, issueNumber, errorComment);
-
-    throw error;
+    throw error; // withErrorHandling will post the comment
   }
 }

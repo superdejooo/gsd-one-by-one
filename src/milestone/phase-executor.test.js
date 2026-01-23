@@ -21,16 +21,8 @@ vi.mock('fs/promises', () => ({
 
 // Mock github.js
 const mockPostComment = vi.fn();
-const mockGetWorkflowRunUrl = vi.fn(() => 'https://example.com/run/456');
 vi.mock('../lib/github.js', () => ({
-  postComment: mockPostComment,
-  getWorkflowRunUrl: mockGetWorkflowRunUrl
-}));
-
-// Mock formatter
-const mockFormatErrorComment = vi.fn((err) => `Error: ${err.message}`);
-vi.mock('../errors/formatter.js', () => ({
-  formatErrorComment: mockFormatErrorComment
+  postComment: mockPostComment
 }));
 
 // Mock @actions/core
@@ -383,21 +375,14 @@ Next steps:
       expect(mockUnlink).toHaveBeenCalledWith(expect.stringMatching(/output-\d+\.txt/));
     });
 
-    it('handles errors and posts error comment', async () => {
+    it('throws error on failure (withErrorHandling posts comment)', async () => {
       const error = new Error('Execution failed');
       error.code = 1;
       mockExecAsync.mockRejectedValue(error);
       mockReadFile.mockResolvedValue('Error: Execution failed');
 
-      await expect(executePhaseExecutionWorkflow(mockContext, '11')).rejects.toThrow();
-
-      expect(mockFormatErrorComment).toHaveBeenCalled();
-      expect(mockPostComment).toHaveBeenCalledWith(
-        'test-owner',
-        'test-repo',
-        100,
-        expect.stringContaining('Error')
-      );
+      await expect(executePhaseExecutionWorkflow(mockContext, '11')).rejects.toThrow('Phase execution failed');
+      // Error comment posting is delegated to withErrorHandling wrapper
     });
 
     it('logs workflow progress', async () => {

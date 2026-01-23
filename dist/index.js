@@ -34496,9 +34496,8 @@ function generatePhasesFromRequirements(answers) {
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9023);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
-/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
-/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
-/* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(3715);
+/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(6764);
+/* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(3715);
 /**
  * Phase Execution Workflow Module
  *
@@ -34511,7 +34510,6 @@ function generatePhasesFromRequirements(answers) {
  * - Posts structured comment instead of raw pass-through
  * - Returns hasQuestions flag for conversational continuation
  */
-
 
 
 
@@ -34567,7 +34565,7 @@ async function updateIssuesForCompletedTasks(owner, repo, completedActions, issu
 
     if (matchingIssue && matchingIssue.status !== 'status:complete') {
       try {
-        await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_8__/* .updateIssueStatus */ .vD)(owner, repo, matchingIssue.number, 'complete');
+        await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_7__/* .updateIssueStatus */ .vD)(owner, repo, matchingIssue.number, 'complete');
         updatedCount++;
         _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Marked issue #${matchingIssue.number} as complete`);
       } catch (error) {
@@ -34722,7 +34720,6 @@ function formatExecutionComment(parsed, rawOutput) {
  */
 async function executePhaseExecutionWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .getWorkflowRunUrl */ .gx)();
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
 
@@ -34769,10 +34766,8 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
       /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
       /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
 
-    // Step 5: Post result to GitHub
+    // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
-      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
       throw new Error(`Phase execution failed: ${output.substring(0, 500)}`);
     }
 
@@ -34783,14 +34778,14 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 7: Update issue status for completed tasks
     let issuesUpdated = 0;
     try {
-      const phaseIssues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_7__/* .getPhaseIssues */ .Ug)(owner, repo, phaseNumber);
+      const phaseIssues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_6__/* .getPhaseIssues */ .Ug)(owner, repo, phaseNumber);
 
       if (phaseIssues.length > 0 && parsed.completedActions.length > 0) {
         // Mark all phase issues as in-progress at start (if still pending)
         for (const issue of phaseIssues) {
           if (issue.status === 'status:pending') {
             try {
-              await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_8__/* .updateIssueStatus */ .vD)(owner, repo, issue.number, 'in-progress');
+              await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_7__/* .updateIssueStatus */ .vD)(owner, repo, issue.number, 'in-progress');
               _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Marked issue #${issue.number} as in-progress`);
             } catch (error) {
               _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to update issue #${issue.number}: ${error.message}`);
@@ -34832,9 +34827,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
 
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Phase execution workflow error: ${error.message}`);
-    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(error, workflowUrl);
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
-    throw error;
+    throw error; // withErrorHandling will post the comment
   }
 }
 
@@ -34855,15 +34848,13 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(6928);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(739);
-/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(5878);
-/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(6764);
+/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
 /**
  * Phase Planning Workflow Module
  *
  * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
-
 
 
 
@@ -34979,7 +34970,6 @@ function extractPhaseName(phaseDir) {
  */
 async function executePhaseWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .getWorkflowRunUrl */ .gx)();
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
 
@@ -35016,10 +35006,8 @@ async function executePhaseWorkflow(context, commandArgs) {
       /Error:|Something went wrong|failed/i.test(output) ||
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
-    // Step 5: Post result to GitHub
+    // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
-      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
       throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
     }
 
@@ -35039,10 +35027,10 @@ async function executePhaseWorkflow(context, commandArgs) {
         for (const planFile of planFiles) {
           _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Processing ${planFile.filename}`);
           const planContent = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(planFile.path, 'utf-8');
-          const tasks = (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_8__/* .extractTasksFromPlan */ .LE)(planContent);
+          const tasks = (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_7__/* .extractTasksFromPlan */ .LE)(planContent);
 
           if (tasks.length > 0) {
-            const issues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_8__/* .createIssuesForTasks */ .wY)(
+            const issues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_7__/* .createIssuesForTasks */ .wY)(
               owner, repo, tasks, phaseNumber, phaseName
             );
             createdIssues.push(...issues);
@@ -35083,12 +35071,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
   } catch (error) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Phase planning workflow error: ${error.message}`);
-
-    // Post error comment
-    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l)(error, workflowUrl);
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
-
-    throw error;
+    throw error; // withErrorHandling will post the comment
   }
 }
 
