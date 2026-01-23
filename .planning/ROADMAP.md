@@ -11,7 +11,7 @@
 
 **Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
 
-**Phases:** 5 phases | **Requirements:** 9 mapped
+**Phases:** 7 phases | **Requirements:** 9 mapped
 
 ---
 
@@ -174,6 +174,33 @@ Plans:
 
 ---
 
+### Phase 11: Output Parsing Improvements
+
+**Goal:** Fix output formatting issues in GitHub comments — duplicate errors, CCR log pollution, false positive task matching.
+
+**Depends on:** Phase 10
+
+**Status:** Complete (2026-01-23)
+
+**Plans:** 1 plan | **Waves:** 1
+
+- [x] 11-01-PLAN.md — Output parsing fixes (duplicate errors, CCR stripping, GSD block extraction)
+
+**Files Modified:**
+- `src/milestone/phase-planner.js` — Removed duplicate error posting
+- `src/milestone/phase-executor.js` — Added stripCcrLogs, extractGsdBlock, fixed task parsing
+- `src/milestone/phase-planner.test.js` — Updated error handling tests
+- `src/milestone/phase-executor.test.js` — Added CCR/GSD extraction tests
+
+**Implementation Notes:**
+- Error posting delegated to withErrorHandling wrapper (single source)
+- CCR logs stripped via regex patterns (log_xxx, response 200, JS object notation)
+- GSD block extracted from LAST "GSD ►" marker (handles multiple markers)
+- Fallback to last 80 lines if no GSD marker found
+- Only explicit [x] checkbox markers matched (not "Complete" text)
+
+---
+
 ## Phase Summary
 
 | # | Phase | Goal | Requirements | Plans |
@@ -183,6 +210,7 @@ Plans:
 | 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans (complete) |
 | 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | 3 plans (complete) |
 | 10 | Test for Each Service, Method, Feature and Flow | Comprehensive testing coverage | TEST-01: 80%+ coverage | 7 plans (complete) |
+| 11 | Output Parsing Improvements | Fix comment formatting issues | N/A | 1 plan (complete) |
 
 ---
 
@@ -192,6 +220,7 @@ Plans:
 - Phase 8 -> Phase 8.1: Project infrastructure builds on execute-phase foundation
 - Phase 8.1 -> Phase 9: Issue tracking uses labels infrastructure
 - Phase 9 -> Phase 10: Testing covers all modules including Phase 9 additions
+- Phase 10 -> Phase 11: Output improvements discovered during testing/live usage
 - All phases -> v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
 
 ---

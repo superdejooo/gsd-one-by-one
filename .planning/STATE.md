@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Milestone: v1.1 (Plan & Execute Commands)
-Phase: 10 of 10 (Test Infrastructure)
-Plan: 07 of 07 complete
+Phase: 11 of 11 (Output Parsing Improvements)
+Plan: 01 of 01 complete
 Status: All phases complete
-Last activity: 2026-01-23 — Executed Phase 9, verified goal achievement, all 347 tests passing
+Last activity: 2026-01-23 — Fixed output parsing, CCR log stripping, duplicate error comments
 
-**Progress:** All phases complete (10/10)
-**Overall v1.1:** ██████████ 6/6 phases complete (100%)
+**Progress:** All phases complete (11/11)
+**Overall v1.1:** ██████████ 7/7 phases complete (100%)
 
 ## v1.0 Performance Summary
 
@@ -40,9 +40,9 @@ Last activity: 2026-01-23 — Executed Phase 9, verified goal achievement, all 3
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 15 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 09-01, 09-02, 09-03, 10-01, 10-02, 10-03, 10-04, 10-05, 10-06, 10-07)
-- Average duration: 6.5 min
-- Total execution time: 1.63 hours
+- Plans completed: 16 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 09-01, 09-02, 09-03, 10-01, 10-02, 10-03, 10-04, 10-05, 10-06, 10-07, 11-01)
+- Average duration: 6.3 min
+- Total execution time: 1.68 hours
 
 **By Phase (v1.1):**
 
@@ -53,6 +53,7 @@ Last activity: 2026-01-23 — Executed Phase 9, verified goal achievement, all 3
 | 08.1  | 3     | 6 min | 2 min    |
 | 09    | 3     | 8 min | 2.7 min  |
 | 10    | 7     | 73 min | 10.4 min |
+| 11    | 1     | 30 min | 30 min   |
 
 ---
 
@@ -223,6 +224,13 @@ Recent decisions affecting current work:
 - Supplementary workflow steps pattern: Execute after primary success, catch errors, log warnings, continue
 - Follow-up comments: Post additional context as separate comment instead of editing original
 
+**From 11-01 (Output Parsing Improvements):**
+- Error posting delegated to withErrorHandling (single source of truth, no duplicates)
+- CCR logs stripped via regex patterns matching [log_xxx], response 200 http://, JS object notation
+- GSD block extracted from LAST "GSD ►" marker (handles multiple markers in long outputs)
+- Fallback to last 80 lines if no GSD marker found (handles non-GSD outputs gracefully)
+- Only explicit [x] checkbox markers matched for completed tasks (prevents false positives from markdown)
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -237,13 +245,14 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-23T06:10:00Z
-Stopped at: Executed all Phase 9 plans, verified goal achievement
+Last session: 2026-01-23T07:45:00Z
+Stopped at: Completed Phase 11, all output parsing improvements done
 Resume file: None
 
 ## Roadmap Evolution
 
 - Phase 10 added: Test for each service, method, feature and flow
+- Phase 11 added: Output parsing improvements (discovered during live testing)
 
 ## Next Steps
 
@@ -264,6 +273,8 @@ Resume file: None
   - [x] 10-05: Workflow Orchestrator & Config Tests (complete)
   - [x] 10-06: Entry Point Integration Tests (complete)
   - [x] 10-07: CI Integration and Finalization (complete)
+- [x] Phase 11: Output Parsing Improvements (complete)
+  - [x] 11-01: Fix duplicate errors, CCR log stripping, GSD block extraction (complete)
 
 **Milestone Ready for Completion:** All requirements satisfied, run `/gsd:complete-milestone` to archive.
 
