@@ -246,6 +246,14 @@ Recent decisions affecting current work:
 - Enables commands like `@gsd-bot new-milestone {prompt}` to pass user prompts to GSD
 - All 9 tests passing, 100% backward compatible
 
+**From quick-006 (Skill Parameter Threading):**
+- formatCcrCommand and formatCcrCommandWithOutput now accept optional skill parameter
+- Skill parameter accepted but NOT used yet (placeholder for future skill selection feature)
+- All callers explicitly pass skill=null for clarity
+- Valid skills documented: github-actions-templates, github-actions-testing, github-project-management, livewire-principles, refactor
+- Parameter threading pattern: add early while codebase small, activate feature later without breaking changes
+- All 13 tests passing (added 4 new tests), 100% backward compatible
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -267,14 +275,15 @@ None yet.
 | 003 | Make new-milestone command require mandatory description parameter | 2026-01-23 | 124f83d | [003-napravi-da-nasa-komanda-gsd-bot-new-mile](./quick/003-napravi-da-nasa-komanda-gsd-bot-new-mile/) |
 | 004 | Add commit and push after agent completes | 2026-01-23 | b311f90 | [004-add-commit-and-push-after-agent-complete](./quick/004-add-commit-and-push-after-agent-complete/) |
 | 005 | Add prompt parameter to formatCcrCommand | 2026-01-23 | d2898b6 | [005-add-prompt-parameter-to-formatccrcommand](./quick/005-add-prompt-parameter-to-formatccrcommand/) |
+| 006 | Add skill parameter to formatCcrCommand | 2026-01-23 | 024a04a | [006-add-skill-parameter-to-formatccrcommand](./quick/006-add-skill-parameter-to-formatccrcommand/) |
 
 ## Session Continuity
 
-Last session: 2026-01-23T09:05:12Z
-Stopped at: Completed quick task 005
+Last session: 2026-01-23T09:27:03Z
+Stopped at: Completed quick task 006
 Resume file: None
 
-Last activity: 2026-01-23 — Completed quick task 005: Add prompt parameter to formatCcrCommand
+Last activity: 2026-01-23 — Completed quick task 006: Add skill parameter to formatCcrCommand
 
 ## Roadmap Evolution
 
