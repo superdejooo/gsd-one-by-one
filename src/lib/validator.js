@@ -9,6 +9,7 @@ const ALLOWED_COMMANDS = [
   "plan-phase",
   "execute-phase",
   "complete-milestone",
+  "reply",
 ];
 
 /**
@@ -17,16 +18,17 @@ const ALLOWED_COMMANDS = [
  * null means skill can be used with any command
  */
 export const SKILL_COMMAND_MAP = {
-  "github-actions-templates": ["plan-phase", "execute-phase"],
+  "github-actions-templates": ["plan-phase", "execute-phase", "reply"],
   "github-actions-testing": null, // All commands (default, always loaded)
   "github-project-management": [
     "new-milestone",
     "plan-phase",
     "execute-phase",
     "complete-milestone",
+    "reply",
   ],
-  "livewire-principles": ["plan-phase", "execute-phase"],
-  "refactor": ["plan-phase", "execute-phase"],
+  "livewire-principles": ["plan-phase", "execute-phase", "reply"],
+  "refactor": ["plan-phase", "execute-phase", "reply"],
 };
 
 /**
