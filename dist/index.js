@@ -34734,7 +34734,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 2: Execute GSD execute-plan via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath} 2>&1`;
+    const command = `ccr code --print "/gsd:execute-plan ${phaseNumber}" > ${outputPath} 2>&1`;
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -34983,7 +34983,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > ${outputPath} 2>&1`;
+    const command = `ccr code --print "/gsd:plan-phase ${phaseNumber}" > ${outputPath} 2>&1`;
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
