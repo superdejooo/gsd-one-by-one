@@ -26,6 +26,23 @@ export async function postComment(owner, repo, issueNumber, body) {
 }
 
 /**
+ * Update issue body with new content
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {string} body - New body content
+ * @returns {Promise<void>}
+ */
+export async function updateIssueBody(owner, repo, issueNumber, body) {
+  await octokit.rest.issues.update({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    body,
+  });
+}
+
+/**
  * Get current workflow run URL
  * @returns {string} Full URL to workflow run
  */
