@@ -25,6 +25,11 @@ vi.mock('../lib/github.js', () => ({
   postComment: mockPostComment
 }));
 
+// Mock ccr-command.js
+vi.mock('../llm/ccr-command.js', () => ({
+  formatCcrCommandWithOutput: (gsdCmd, outputPath) => `ccr code --print "${gsdCmd}" > ${outputPath} 2>&1`
+}));
+
 // Mock @actions/core
 vi.mock('@actions/core', () => ({
   info: vi.fn(),

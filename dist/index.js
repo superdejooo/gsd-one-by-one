@@ -33263,6 +33263,50 @@ function sanitizeArguments(args) {
 
 /***/ }),
 
+/***/ 8330:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   e: () => (/* binding */ formatCcrCommandWithOutput)
+/* harmony export */ });
+/* unused harmony export formatCcrCommand */
+/**
+ * CCR Command Formatting
+ *
+ * Formats GSD commands for execution via Claude Code Router (CCR).
+ * Always prepends the github-actions-testing skill for CI/CD context.
+ */
+
+/**
+ * Format a GSD command for CCR execution
+ *
+ * Pattern: /github-actions-testing and now trigger command /gsd:{command}
+ *
+ * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
+ * @returns {string} Full CCR command string
+ *
+ * @example
+ * formatCcrCommand("/gsd:plan-phase 7")
+ * // Returns: 'ccr code --print "/github-actions-testing and now trigger command /gsd:plan-phase 7"'
+ */
+function formatCcrCommand(gsdCommand) {
+  return `ccr code --print "/github-actions-testing and now trigger command ${gsdCommand}"`;
+}
+
+/**
+ * Format a GSD command for CCR execution with output redirect
+ *
+ * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
+ * @param {string} outputPath - Path to redirect output to
+ * @returns {string} Full CCR command string with output redirect
+ */
+function formatCcrCommandWithOutput(gsdCommand, outputPath) {
+  return `${formatCcrCommand(gsdCommand)} > ${outputPath} 2>&1`;
+}
+
+
+/***/ }),
+
 /***/ 9711:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
@@ -34507,12 +34551,14 @@ function generatePhasesFromRequirements(answers) {
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(8330);
 /**
  * Milestone Completion Workflow Module
  *
  * Executes GSD's built-in complete-milestone command via CCR (Claude Code Router)
  * to archive a completed milestone and prepare for the next version.
  */
+
 
 
 
@@ -34594,7 +34640,7 @@ async function executeMilestoneCompletionWorkflow(context) {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `ccr code --print "/gsd:complete-milestone" > ${outputPath} 2>&1`;
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)('/gsd:complete-milestone', outputPath);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -34676,6 +34722,7 @@ async function executeMilestoneCompletionWorkflow(context) {
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(6764);
 /* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(3715);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(8330);
 /**
  * Phase Execution Workflow Module
  *
@@ -34688,6 +34735,7 @@ async function executeMilestoneCompletionWorkflow(context) {
  * - Posts structured comment instead of raw pass-through
  * - Returns hasQuestions flag for conversational continuation
  */
+
 
 
 
@@ -34990,7 +35038,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = `ccr code --print "${gsdCommand}" > ${outputPath} 2>&1`;
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(gsdCommand, outputPath);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -35107,12 +35155,14 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(6928);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(739);
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(8330);
 /**
  * Phase Planning Workflow Module
  *
  * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
+
 
 
 
@@ -35238,7 +35288,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `ccr code --print "/gsd:plan-phase ${phaseNumber}" > ${outputPath} 2>&1`;
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(`/gsd:plan-phase ${phaseNumber}`, outputPath);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 

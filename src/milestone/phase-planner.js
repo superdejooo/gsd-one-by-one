@@ -13,6 +13,7 @@ import fs from "fs/promises";
 import path from "path";
 import { postComment } from "../lib/github.js";
 import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
+import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 
 const execAsync = promisify(exec);
 
@@ -129,7 +130,7 @@ export async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `ccr code --print "/gsd:plan-phase ${phaseNumber}" > ${outputPath} 2>&1`;
+    const command = formatCcrCommandWithOutput(`/gsd:plan-phase ${phaseNumber}`, outputPath);
 
     core.info(`Executing: ${command}`);
 

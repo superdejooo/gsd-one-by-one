@@ -35,6 +35,11 @@ vi.mock('../lib/github.js', () => ({
   postComment: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock ccr-command.js
+vi.mock('../llm/ccr-command.js', () => ({
+  formatCcrCommandWithOutput: (gsdCmd, outputPath) => `ccr code --print "${gsdCmd}" > ${outputPath} 2>&1`
+}));
+
 import { exec } from 'node:child_process';
 import fs from 'fs/promises';
 import { postComment } from '../lib/github.js';

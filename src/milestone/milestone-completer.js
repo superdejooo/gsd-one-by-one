@@ -10,6 +10,7 @@ import { exec } from "node:child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
+import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 
 const execAsync = promisify(exec);
 
@@ -85,7 +86,7 @@ export async function executeMilestoneCompletionWorkflow(context) {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `ccr code --print "/gsd:complete-milestone" > ${outputPath} 2>&1`;
+    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath);
 
     core.info(`Executing: ${command}`);
 

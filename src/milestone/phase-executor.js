@@ -19,6 +19,7 @@ import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
 import { getPhaseIssues } from "../lib/issues.js";
 import { updateIssueStatus } from "../lib/labels.js";
+import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 
 const execAsync = promisify(exec);
 
@@ -312,7 +313,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = `ccr code --print "${gsdCommand}" > ${outputPath} 2>&1`;
+    const command = formatCcrCommandWithOutput(gsdCommand, outputPath);
 
     core.info(`Executing: ${command}`);
 
