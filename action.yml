@@ -14,6 +14,16 @@ inputs:
   comment-body:
     description: "The comment body text"
     required: true
+  trigger-type:
+    description: "Type of trigger: comment or label"
+    required: false
+    default: "comment"
+  issue-title:
+    description: "Issue title (for label trigger)"
+    required: false
+  issue-body:
+    description: "Issue body (for label trigger)"
+    required: false
   token:
     description: "GitHub token for API access"
     required: false

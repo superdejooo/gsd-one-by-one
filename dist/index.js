@@ -32506,6 +32506,8 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(4241);
 /* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(9992);
 /* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(339);
+/* harmony import */ var _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__ = __nccwpck_require__(1200);
+
 
 
 
@@ -32550,6 +32552,7 @@ const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPAC
 const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q };
 const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L };
+const _labelTriggerModule = { executeLabelTriggerWorkflow: _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b };
 const _authModule = { checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI };
 console.log(
   "Modules loaded:",
@@ -32563,6 +32566,7 @@ console.log(
   !!_phasePlannerModule,
   !!_phaseExecutorModule,
   !!_milestoneCompleterModule,
+  !!_labelTriggerModule,
   !!_authModule,
 );
 
@@ -32572,11 +32576,19 @@ try {
   const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-owner");
   const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-name");
   const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("comment-body");
+  const triggerType = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("trigger-type") || "comment";
+  const issueTitle = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-title");
+  const issueBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-body");
 
   _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
     `Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`,
   );
-  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Comment body: ${commentBody}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Trigger type: ${triggerType}`);
+  if (triggerType === "comment") {
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Comment body: ${commentBody}`);
+  } else {
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Issue title: ${issueTitle}`);
+  }
 
   // Extract GitHub context for error handling
   const githubContext = {
@@ -32587,6 +32599,20 @@ try {
 
   // Execute with error handling
   const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U)(async () => {
+    // Handle label trigger (bypasses authorization - already gated by label permissions)
+    if (triggerType === "label") {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Label trigger detected, dispatching to label workflow");
+      const result = await (0,_milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b)({
+        owner: repoOwner,
+        repo: repoName,
+        issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+        issueTitle,
+        issueBody,
+      });
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("label-trigger-complete", result.complete);
+      return { commandFound: true, ...result };
+    }
+
     // Parse comment to extract command
     const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseComment */ .vj)(commentBody);
 
@@ -33558,12 +33584,12 @@ function sanitizeArguments(args) {
 function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
   let command = gsdCommand;
 
-  // Add skill if provided (before github-actions-testing)
+  // Add optional skill before github-actions-testing
   if (skill) {
     command = `${command} /${skill}`;
   }
 
-  // Always add github-actions-testing
+  // Always add github-actions-testing skill
   command = `${command} /github-actions-testing`;
 
   // Add prompt at the end if provided
@@ -34737,15 +34763,53 @@ async function executeMilestoneWorkflow(
   if (skill) lib_core.info(`Using skill: ${skill} (not used in new-milestone yet)`);
 
   try {
-    // Step 1: Parse milestone number from arguments
-    const milestoneNumber = parseMilestoneNumber(commandArgs);
-    lib_core.info(`Parsed milestone number: ${milestoneNumber}`);
+    // Step 1: Parse milestone number from arguments (optional)
+    let milestoneNumber;
+    try {
+      milestoneNumber = parseMilestoneNumber(commandArgs);
+      lib_core.info(`Parsed milestone number: ${milestoneNumber}`);
+    } catch (e) {
+      // No milestone number provided - GSD will determine from ROADMAP.md
+      lib_core.info('No milestone number provided, GSD will determine next milestone');
+      milestoneNumber = null;
+    }
 
     // Step 2: Parse milestone description from arguments (REQUIRED)
-    const description = parseMilestoneDescription(commandArgs);
+    // If no milestone number, the entire commandArgs is the description
+    const description = milestoneNumber
+      ? parseMilestoneDescription(commandArgs)
+      : commandArgs.trim();
+
+    if (!description || description.length === 0) {
+      throw new Error(
+        "Milestone description is required. Provide a description of your milestone goals and features.",
+      );
+    }
+
     lib_core.info(
       `Parsed milestone description: ${description.substring(0, 100)}...`,
     );
+
+    // Branch A: GSD-managed flow (no milestone number provided)
+    if (milestoneNumber === null) {
+      lib_core.info("Label trigger flow: GSD will handle all planning operations");
+
+      // GSD reads ROADMAP.md, determines next milestone, creates planning artifacts
+      // We just pass the description as a prompt and let GSD handle everything
+      lib_core.info("Executing GSD new-milestone with description as prompt");
+
+      // TODO: Execute CCR command with description/prompt
+      // For now, return early indicating GSD will handle this
+      return {
+        complete: true,
+        phase: "gsd-managed",
+        message: "GSD will determine milestone number and create planning artifacts",
+        description,
+      };
+    }
+
+    // Branch B: Traditional flow (milestone number provided)
+    lib_core.info(`Traditional flow: milestone number ${milestoneNumber} provided`);
 
     // Step 3: Load existing state or create initial state
     let state = await loadState(owner, repo, milestoneNumber);
@@ -34901,6 +34965,126 @@ function generatePhasesFromRequirements(answers) {
       dependencies: "Phase 3",
     },
   ];
+}
+
+
+/***/ }),
+
+/***/ 1200:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   b: () => (/* binding */ executeLabelTriggerWorkflow)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5317);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
+/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(8330);
+/**
+ * Label Trigger Workflow Module
+ *
+ * Executes GSD's new-milestone command when "good first issue" label is added.
+ * Joins issue title and body as prompt for milestone creation.
+ */
+
+
+
+
+
+
+
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
+
+/**
+ * Execute the label trigger workflow
+ *
+ * This orchestrator handles:
+ * 1. Join issue title and body with --- separator
+ * 2. Execute GSD new-milestone command via CCR with issue content as prompt
+ * 3. Capture output from command execution
+ * 4. Validate output for errors
+ * 5. Return result (note: posting comment will happen in future plans)
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for reference
+ * @param {string} context.issueTitle - Issue title
+ * @param {string} context.issueBody - Issue body
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executeLabelTriggerWorkflow(context) {
+  const { owner, repo, issueNumber, issueTitle, issueBody } = context;
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
+    `Starting label trigger workflow for ${owner}/${repo}#${issueNumber}`,
+  );
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Issue title: ${issueTitle}`);
+
+  try {
+    // Step 1: Join title and body with --- separator
+    const prompt = `${issueTitle}\n---\n${issueBody || ""}`;
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Formatted prompt (${prompt.length} chars)`);
+
+    // Step 2: Execute GSD new-milestone via CCR with prompt
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_4__/* .formatCcrCommandWithOutput */ .e)(
+      "/gsd:new-milestone",
+      outputPath,
+      prompt, // Pass issue content as prompt
+      null, // No skill override
+    );
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+
+    // Step 3: Execute command with 10 minute timeout (same as phase planner)
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 600000 });
+    } catch (error) {
+      exitCode = error.code || 1;
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Step 4: Read captured output
+    let output = "";
+    try {
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+    } catch (error) {
+      output = "(No output captured)";
+    }
+
+    // Step 5: Validate for errors
+    const isError =
+      exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(output) ||
+      /Error:|Something went wrong|failed/i.test(output) ||
+      /Unknown command|invalid arguments|validation failed/i.test(output);
+
+    if (isError) {
+      throw new Error(`Label trigger failed: ${output.substring(0, 500)}`);
+    }
+
+    // Cleanup output file
+    try {
+      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
+    } catch (e) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Label trigger workflow complete`);
+
+    return {
+      complete: true,
+      output,
+      message: "Label trigger completed successfully",
+    };
+  } catch (error) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Label trigger workflow error: ${error.message}`);
+    throw error;
+  }
 }
 
 

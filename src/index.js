@@ -41,6 +41,7 @@ import {
 import { executePhaseWorkflow } from "./milestone/phase-planner.js";
 import { executePhaseExecutionWorkflow } from "./milestone/phase-executor.js";
 import { executeMilestoneCompletionWorkflow } from "./milestone/milestone-completer.js";
+import { executeLabelTriggerWorkflow } from "./milestone/label-trigger.js";
 
 // Trigger bundling of modules
 const _githubModule = { postComment, getWorkflowRunUrl };
@@ -68,6 +69,7 @@ const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
 const _phasePlannerModule = { executePhaseWorkflow };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow };
 const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow };
+const _labelTriggerModule = { executeLabelTriggerWorkflow };
 const _authModule = { checkAuthorization, formatAuthorizationError };
 console.log(
   "Modules loaded:",
@@ -81,6 +83,7 @@ console.log(
   !!_phasePlannerModule,
   !!_phaseExecutorModule,
   !!_milestoneCompleterModule,
+  !!_labelTriggerModule,
   !!_authModule,
 );
 
@@ -90,11 +93,19 @@ try {
   const repoOwner = core.getInput("repo-owner");
   const repoName = core.getInput("repo-name");
   const commentBody = core.getInput("comment-body");
+  const triggerType = core.getInput("trigger-type") || "comment";
+  const issueTitle = core.getInput("issue-title");
+  const issueBody = core.getInput("issue-body");
 
   core.info(
     `Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`,
   );
-  core.info(`Comment body: ${commentBody}`);
+  core.info(`Trigger type: ${triggerType}`);
+  if (triggerType === "comment") {
+    core.info(`Comment body: ${commentBody}`);
+  } else {
+    core.info(`Issue title: ${issueTitle}`);
+  }
 
   // Extract GitHub context for error handling
   const githubContext = {
@@ -105,6 +116,20 @@ try {
 
   // Execute with error handling
   const result = await withErrorHandling(async () => {
+    // Handle label trigger (bypasses authorization - already gated by label permissions)
+    if (triggerType === "label") {
+      core.info("Label trigger detected, dispatching to label workflow");
+      const result = await executeLabelTriggerWorkflow({
+        owner: repoOwner,
+        repo: repoName,
+        issueNumber: github.context.issue?.number,
+        issueTitle,
+        issueBody,
+      });
+      core.setOutput("label-trigger-complete", result.complete);
+      return { commandFound: true, ...result };
+    }
+
     // Parse comment to extract command
     const parsed = parseComment(commentBody);
 
