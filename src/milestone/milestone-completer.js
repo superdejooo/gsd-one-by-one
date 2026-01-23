@@ -86,7 +86,7 @@ export async function executeMilestoneCompletionWorkflow(context) {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath);
+    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath, null, null);
 
     core.info(`Executing: ${command}`);
 

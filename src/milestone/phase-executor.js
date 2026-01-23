@@ -313,7 +313,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = formatCcrCommandWithOutput(gsdCommand, outputPath);
+    const command = formatCcrCommandWithOutput(gsdCommand, outputPath, null, null);
 
     core.info(`Executing: ${command}`);
 
