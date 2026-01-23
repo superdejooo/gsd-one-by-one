@@ -71,7 +71,7 @@ vi.mock('@actions/core', () => ({
 }));
 
 // Import after mocking
-const { parseMilestoneNumber, executeMilestoneWorkflow } = await import('./index.js');
+const { parseMilestoneNumber, parseMilestoneDescription, executeMilestoneWorkflow } = await import('./index.js');
 
 describe('parseMilestoneNumber', () => {
   it('parses --milestone 1', () => {
@@ -111,6 +111,49 @@ describe('parseMilestoneNumber', () => {
   });
 });
 
+describe('parseMilestoneDescription', () => {
+  it('extracts description from simple text', () => {
+    expect(parseMilestoneDescription('Build auth system with login and signup')).toBe('Build auth system with login and signup');
+  });
+
+  it('extracts description and removes --milestone flag', () => {
+    expect(parseMilestoneDescription('--milestone 1 Build auth system')).toBe('Build auth system');
+  });
+
+  it('extracts description and removes --milestone=N flag', () => {
+    expect(parseMilestoneDescription('--milestone=1 Build auth system')).toBe('Build auth system');
+  });
+
+  it('extracts description and removes -m flag', () => {
+    expect(parseMilestoneDescription('-m 1 Build auth system')).toBe('Build auth system');
+  });
+
+  it('extracts description and removes -m=N flag', () => {
+    expect(parseMilestoneDescription('-m=1 Build auth system')).toBe('Build auth system');
+  });
+
+  it('throws for empty string', () => {
+    expect(() => parseMilestoneDescription('')).toThrow('Milestone description is required');
+  });
+
+  it('throws for whitespace-only string', () => {
+    expect(() => parseMilestoneDescription('   ')).toThrow('Milestone description is required');
+  });
+
+  it('throws for only milestone flag without description', () => {
+    expect(() => parseMilestoneDescription('--milestone 1')).toThrow('Milestone description is required');
+  });
+
+  it('throws for null', () => {
+    expect(() => parseMilestoneDescription(null)).toThrow('Milestone description is required');
+  });
+
+  it('handles long descriptions', () => {
+    const longDesc = 'a'.repeat(1000);
+    expect(parseMilestoneDescription(longDesc)).toBe(longDesc);
+  });
+});
+
 describe('executeMilestoneWorkflow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -124,19 +167,28 @@ describe('executeMilestoneWorkflow', () => {
       workflow: {
         lastCommentId: 0,
         runCount: 0
-      }
+      },
+      createdAt: '2025-01-01T00:00:00Z'
     });
     mockRequirements.getNewComments.mockResolvedValue([]);
     mockRequirements.parseUserAnswers.mockReturnValue([]);
     mockState.isRequirementsComplete.mockReturnValue(false);
     mockRequirements.formatRequirementsQuestions.mockReturnValue('## Questions\n...');
     mockConfig.loadConfig.mockResolvedValue({});
+    mockPlanningDocs.createPlanningDocs.mockResolvedValue({
+      project: { path: '.github/planning/milestones/1/PROJECT.md', purpose: 'Context' },
+      state: { path: '.github/planning/milestones/1/STATE.md', purpose: 'Status' }
+    });
+    mockBranches.branchExists.mockResolvedValue(false);
+    mockSummarizer.generateMilestoneSummary.mockReturnValue('## Summary');
+    mockProjects.findIteration.mockResolvedValue(null);
   });
 
   it('parses milestone number from arguments', async () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
 
-    await executeMilestoneWorkflow(context, '--milestone 5');
+    // Must include description to avoid error
+    await executeMilestoneWorkflow(context, '--milestone 5 Build authentication system');
 
     expect(mockState.loadState).toHaveBeenCalledWith('test', 'repo', 5);
   });
@@ -144,7 +196,8 @@ describe('executeMilestoneWorkflow', () => {
   it('loads existing state', async () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
 
-    await executeMilestoneWorkflow(context, '1');
+    // Must include description
+    await executeMilestoneWorkflow(context, '1 Build auth system');
 
     expect(mockState.loadState).toHaveBeenCalledWith('test', 'repo', 1);
   });
@@ -157,51 +210,34 @@ describe('executeMilestoneWorkflow', () => {
     };
     mockState.loadState.mockResolvedValue(mockStateObj);
 
-    await executeMilestoneWorkflow(context, '1');
+    await executeMilestoneWorkflow(context, '1 Build auth system');
 
     expect(mockState.updateWorkflowRun).toHaveBeenCalledWith(mockStateObj);
   });
 
-  it('fetches new comments since last processed', async () => {
-    const context = { owner: 'test', repo: 'repo', issueNumber: 123 };
-    const mockStateObj = {
-      requirements: { answered: {}, pending: [] },
-      workflow: { lastCommentId: 456 }
-    };
-    mockState.loadState.mockResolvedValue(mockStateObj);
-
-    await executeMilestoneWorkflow(context, '1');
-
-    expect(mockRequirements.getNewComments).toHaveBeenCalledWith('test', 'repo', 123, 456);
-  });
-
-  it('posts pending questions when requirements incomplete', async () => {
+  it('throws error when description is missing', async () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
-    mockState.isRequirementsComplete.mockReturnValue(false);
-    mockRequirements.formatRequirementsQuestions.mockReturnValue('## Questions markdown');
 
-    const result = await executeMilestoneWorkflow(context, '1');
-
-    expect(mockGithub.postComment).toHaveBeenCalledWith('test', 'repo', 1, '## Questions markdown');
-    expect(result.complete).toBe(false);
-    expect(result.phase).toBe('requirements-gathering');
+    await expect(executeMilestoneWorkflow(context, '1')).rejects.toThrow('Milestone description is required');
   });
 
-  it('creates planning docs when requirements complete', async () => {
+  it('throws error when only milestone flag provided', async () => {
+    const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
+
+    await expect(executeMilestoneWorkflow(context, '--milestone 1')).rejects.toThrow('Milestone description is required');
+  });
+
+  it('populates requirements with description and skips Q&A', async () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
     const mockStateObj = {
       requirements: {
-        answered: {
-          scope: 'Build auth system',
-          features: 'Login\nSignup'
-        },
+        answered: {},
         pending: []
       },
       workflow: { lastCommentId: 0 },
       createdAt: '2025-01-01T00:00:00Z'
     };
     mockState.loadState.mockResolvedValue(mockStateObj);
-    mockState.isRequirementsComplete.mockReturnValue(true);
     mockPlanningDocs.createPlanningDocs.mockResolvedValue({
       project: { path: '.github/planning/milestones/1/PROJECT.md', purpose: 'Context' },
       state: { path: '.github/planning/milestones/1/STATE.md', purpose: 'Status' }
@@ -209,8 +245,11 @@ describe('executeMilestoneWorkflow', () => {
     mockBranches.branchExists.mockResolvedValue(false);
     mockSummarizer.generateMilestoneSummary.mockReturnValue('## Summary');
 
-    const result = await executeMilestoneWorkflow(context, '1');
+    const result = await executeMilestoneWorkflow(context, '1 Build auth system with login and signup');
 
+    // Verify description was populated into requirements
+    expect(mockStateObj.requirements.answered.scope).toBe('Build auth system with login and signup');
+    expect(mockStateObj.requirements.answered.features).toBe('Build auth system with login and signup');
     expect(mockState.markRequirementsComplete).toHaveBeenCalled();
     expect(mockPlanningDocs.createPlanningDocs).toHaveBeenCalled();
     expect(result.complete).toBe(true);
@@ -221,19 +260,18 @@ describe('executeMilestoneWorkflow', () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
     mockState.loadState.mockResolvedValue({
       requirements: {
-        answered: { scope: 'Test', features: 'A\nB' },
+        answered: {},
         pending: []
       },
       workflow: { lastCommentId: 0 }
     });
-    mockState.isRequirementsComplete.mockReturnValue(true);
     mockPlanningDocs.createPlanningDocs.mockResolvedValue({
       project: { path: '.github/planning/milestones/1/PROJECT.md', purpose: 'Context' }
     });
     mockBranches.branchExists.mockResolvedValue(false);
     mockSummarizer.generateMilestoneSummary.mockReturnValue('## Summary');
 
-    await executeMilestoneWorkflow(context, '1');
+    await executeMilestoneWorkflow(context, '1 Build test system');
 
     expect(mockGit.configureGitIdentity).toHaveBeenCalledWith(
       'github-actions[bot]',
@@ -246,19 +284,18 @@ describe('executeMilestoneWorkflow', () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
     mockState.loadState.mockResolvedValue({
       requirements: {
-        answered: { scope: 'Test', features: 'A\nB' },
+        answered: {},
         pending: []
       },
       workflow: { lastCommentId: 0 }
     });
-    mockState.isRequirementsComplete.mockReturnValue(true);
     mockPlanningDocs.createPlanningDocs.mockResolvedValue({
       project: { path: '.github/planning/milestones/1/PROJECT.md', purpose: 'Context' }
     });
     mockBranches.branchExists.mockResolvedValue(false);
     mockSummarizer.generateMilestoneSummary.mockReturnValue('## Milestone Summary');
 
-    await executeMilestoneWorkflow(context, '1');
+    await executeMilestoneWorkflow(context, '1 Build test system');
 
     expect(mockSummarizer.generateMilestoneSummary).toHaveBeenCalled();
     expect(mockGithub.postComment).toHaveBeenCalledWith('test', 'repo', 1, '## Milestone Summary');
@@ -268,12 +305,11 @@ describe('executeMilestoneWorkflow', () => {
     const context = { owner: 'test', repo: 'repo', issueNumber: 1 };
     mockState.loadState.mockResolvedValue({
       requirements: {
-        answered: { scope: 'Test', features: 'A\nB' },
+        answered: {},
         pending: []
       },
       workflow: { lastCommentId: 0 }
     });
-    mockState.isRequirementsComplete.mockReturnValue(true);
     mockPlanningDocs.createPlanningDocs.mockResolvedValue({
       project: { path: '.github/planning/milestones/1/PROJECT.md', purpose: 'Context' },
       state: { path: '.github/planning/milestones/1/STATE.md', purpose: 'Status' }
@@ -281,7 +317,7 @@ describe('executeMilestoneWorkflow', () => {
     mockBranches.branchExists.mockResolvedValue(false);
     mockSummarizer.generateMilestoneSummary.mockReturnValue('## Summary');
 
-    const result = await executeMilestoneWorkflow(context, '1');
+    const result = await executeMilestoneWorkflow(context, '1 Build test system');
 
     expect(result).toEqual({
       complete: true,

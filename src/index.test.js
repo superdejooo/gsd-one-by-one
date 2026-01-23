@@ -252,7 +252,7 @@ describe('index.js command dispatch', () => {
 
     expect(executeMilestoneWorkflow).toHaveBeenCalledWith(
       { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
-      {}
+      ""
     );
     expect(result.commandFound).toBe(true);
     expect(result.command).toBe('new-milestone');

@@ -91,9 +91,10 @@ try {
     // Command dispatch for milestone workflow
     if (parsed.command === "new-milestone") {
       core.info("Dispatching to milestone workflow");
+      // Pass raw args string - parseMilestoneDescription expects the full text
       const result = await executeMilestoneWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       core.info(`Milestone workflow result: ${JSON.stringify(result)}`);
       core.setOutput("milestone-complete", result.complete);

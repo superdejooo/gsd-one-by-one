@@ -51,13 +51,40 @@ export function parseMilestoneNumber(commandArgs) {
     return parseInt(mFlagMatch[1], 10);
   }
 
-  // Try to extract standalone number at the end
-  const standaloneMatch = commandArgs.match(/(\d+)$/);
+  // Try to extract standalone number at the beginning
+  const standaloneMatch = commandArgs.match(/^(\d+)/);
   if (standaloneMatch) {
     return parseInt(standaloneMatch[1], 10);
   }
 
   throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+}
+
+/**
+ * Parse milestone description from command arguments
+ * The description is everything that's not a --milestone or -m flag
+ *
+ * @param {string} commandArgs - Command arguments string
+ * @returns {string} Parsed description
+ * @throws {Error} If description is missing or empty
+ */
+export function parseMilestoneDescription(commandArgs) {
+  if (!commandArgs || commandArgs.trim().length === 0) {
+    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+  }
+
+  // Remove --milestone or -m flags from the description
+  let description = commandArgs;
+  description = description.replace(/--milestone[=\s]+\d+/g, '').trim();
+  description = description.replace(/-m[=\s]+\d+/g, '').trim();
+  // Remove standalone number at the beginning (must be followed by space or end of string)
+  description = description.replace(/^\d+(\s+|$)/, '').trim();
+
+  if (description.length === 0) {
+    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+  }
+
+  return description;
 }
 
 /**
@@ -167,71 +194,30 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
     const milestoneNumber = parseMilestoneNumber(commandArgs);
     core.info(`Parsed milestone number: ${milestoneNumber}`);
 
-    // Step 2: Load existing state or create initial state
+    // Step 2: Parse milestone description from arguments (REQUIRED)
+    const description = parseMilestoneDescription(commandArgs);
+    core.info(`Parsed milestone description: ${description.substring(0, 100)}...`);
+
+    // Step 3: Load existing state or create initial state
     let state = await loadState(owner, repo, milestoneNumber);
 
-    // Step 3: Update workflow metadata (run count, last run time)
+    // Step 4: Update workflow metadata (run count, last run time)
     updateWorkflowRun(state);
 
-    // Step 4: Get new comments since last processed
-    const lastProcessedId = state.workflow?.lastCommentId || 0;
-    const newComments = await getNewComments(owner, repo, issueNumber, lastProcessedId);
+    // Step 5: Skip Q&A gathering - use description directly
+    core.info("Using provided description, skipping requirements gathering Q&A");
 
-    // Step 5: Parse user answers from new comments
-    const userAnswers = parseUserAnswers(newComments);
+    // Populate requirements with description
+    state.requirements.answered = {
+      scope: description,
+      features: description
+    };
 
-    // Step 6: Merge new answers into state
-    if (userAnswers.length > 0) {
-      for (const answer of userAnswers) {
-        const parsedAnswers = parseAnswersFromResponse(answer.body, DEFAULT_QUESTIONS, state.requirements.answered);
-
-        // Update state with each parsed answer
-        for (const [questionId, answerText] of Object.entries(parsedAnswers)) {
-          updateRequirementsAnswer(state, questionId, answerText, answer.commentId);
-        }
-      }
-    }
-
-    // Initialize pending questions if not already done
-    if (!state.requirements.pending || state.requirements.pending.length === 0) {
-      initializePendingQuestions(state, DEFAULT_QUESTIONS);
-    }
-
-    // Step 7: Check if requirements gathering is complete
-    const requirementsComplete = isRequirementsComplete(state, DEFAULT_QUESTIONS);
-
-    if (!requirementsComplete) {
-      // Requirements not yet complete - post pending questions
-      core.info("Requirements not complete, posting pending questions");
-
-      const questionsMarkdown = formatRequirementsQuestions(
-        DEFAULT_QUESTIONS,
-        state.requirements.answered
-      );
-
-      await postComment(owner, repo, issueNumber, questionsMarkdown);
-
-      // Save state for next run
-      await saveState(owner, repo, milestoneNumber, state);
-
-      return {
-        complete: false,
-        phase: "requirements-gathering",
-        milestone: milestoneNumber,
-        answered: Object.keys(state.requirements.answered),
-        pending: state.requirements.pending,
-        message: "Waiting for user answers to complete requirements gathering"
-      };
-    }
-
-    // Step 8: Requirements complete - transition to planning phase
-    core.info("All required questions answered, creating planning documents");
-
-    // Mark requirements as complete
+    // Mark requirements as complete immediately
     markRequirementsComplete(state);
     state.status = "planning";
 
-    // Build milestone data for planning documents
+    // Step 6: Build milestone data for planning documents
     const milestoneData = {
       owner,
       repo,
@@ -253,24 +239,24 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
       runCount: state.workflow?.runCount || 1
     };
 
-    // Step 9: Create planning documents
+    // Step 7: Create planning documents
     const files = await createPlanningDocs(milestoneData);
     const fileList = Object.values(files);
 
-    // Step 10: Commit all files to milestone branch
+    // Step 8: Commit all files to milestone branch
     await commitPlanningDocs(milestoneNumber, fileList);
 
-    // Step 11: Save final state
+    // Step 9: Save final state
     await saveState(owner, repo, milestoneNumber, state, milestoneData.phases);
 
-    // Step 12: Generate and post summary comment
+    // Step 10: Generate and post summary comment
     const nextSteps = [
       "Review the planning documents in `.github/planning/milestones/`",
       "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
       "Use `@gsd-bot execute-phase` to execute planned work"
     ];
 
-    // Step 13: Validate project iteration
+    // Step 11: Validate project iteration
     const config = await loadConfig(owner, repo);
     const validationResult = await validateProjectIteration(owner, milestoneNumber, config);
 

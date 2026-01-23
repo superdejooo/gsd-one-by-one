@@ -12,7 +12,11 @@
       "Bash(git commit:*)",
       "Bash(cat:*)",
       "Skill(gsd:pause-work)",
-      "Skill(gsd:plan-phase)"
+      "Skill(gsd:plan-phase)",
+      "Skill(gsd:quick)",
+      "Skill(gsd:new-milestone)",
+      "Skill(gsd:complete-milestone)",
+      "Skill(gsd:verify-work)"
     ]
   }
 }
