@@ -32590,9 +32590,10 @@ try {
     // Command dispatch for phase planning workflow
     if (parsed.command === "plan-phase") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase planning workflow");
+      // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-planned", result.complete);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
@@ -32602,9 +32603,10 @@ try {
     // Command dispatch for phase execution workflow
     if (parsed.command === "execute-phase") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase execution workflow");
+      // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);

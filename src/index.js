@@ -102,9 +102,10 @@ try {
     // Command dispatch for phase planning workflow
     if (parsed.command === "plan-phase") {
       core.info("Dispatching to phase planning workflow");
+      // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       core.setOutput("phase-planned", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
@@ -114,9 +115,10 @@ try {
     // Command dispatch for phase execution workflow
     if (parsed.command === "execute-phase") {
       core.info("Dispatching to phase execution workflow");
+      // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseExecutionWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       core.setOutput("phase-executed", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
