@@ -1,4 +1,4 @@
-import { createAndSwitchBranch, switchBranch } from "./git.js";
+import { createAndSwitchBranch, switchBranch, runGitCommand } from "./git.js";
 import * as core from "@actions/core";
 
 /**
