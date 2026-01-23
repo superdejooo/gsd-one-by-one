@@ -32,13 +32,13 @@
 export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
   let command = gsdCommand;
 
-  // Always add github-project-management, if none passed
-  if (!skill) {
-    skill = 'github-project-management';
+  // Add optional skill before github-actions-testing
+  if (skill) {
+    command = `${command} /${skill}`;
   }
-  const skillLoader = ` first load this skill .claude/skills/${skill}/SKILL.md , end then, `;
 
-  command = `${command} ${skillLoader}`;
+  // Always add github-actions-testing skill
+  command = `${command} /github-actions-testing`;
 
   // Add prompt at the end if provided
   if (prompt) {

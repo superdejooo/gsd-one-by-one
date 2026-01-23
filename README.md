@@ -131,6 +131,18 @@ The bot will respond and guide you through requirements gathering.
 | `@gsd-bot plan-phase N`    | Create detailed execution plan for phase N               |
 | `@gsd-bot execute-phase N` | Execute the plan for phase N with atomic commits         |
 
+### Using Skills
+
+Add skill flags to enhance commands with specialized expertise:
+
+```
+@gsd-bot plan-phase 7 --manager    # GitHub project management
+@gsd-bot execute-phase 5 --refactor  # Code refactoring patterns
+@gsd-bot plan-phase 3 --livewire   # Laravel Livewire patterns
+```
+
+See [Skills Documentation](docs/skills.md) for all available skills.
+
 ## How It Works
 
 ```
@@ -156,6 +168,7 @@ Planning docs created in .planning/ folder
 
 ## Documentation
 
+- **[Skills System](docs/skills.md)** — Available skills, usage examples, and API reference
 - **[Project Board Setup](docs/project-setup.md)** — Set up GitHub Projects for visual milestone tracking
 
 ## Planning Documents
