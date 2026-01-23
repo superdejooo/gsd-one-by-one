@@ -269,6 +269,35 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 6: Parse and format structured output
     const parsed = parseExecutionOutput(output);
     const formattedComment = formatExecutionComment(parsed, output);
+
+    // Step 7: Update issue status for completed tasks
+    let issuesUpdated = 0;
+    try {
+      const phaseIssues = await getPhaseIssues(owner, repo, phaseNumber);
+
+      if (phaseIssues.length > 0 && parsed.completedActions.length > 0) {
+        // Mark all phase issues as in-progress at start (if still pending)
+        for (const issue of phaseIssues) {
+          if (issue.status === 'status:pending') {
+            try {
+              await updateIssueStatus(owner, repo, issue.number, 'in-progress');
+              core.info(`Marked issue #${issue.number} as in-progress`);
+            } catch (error) {
+              core.warning(`Failed to update issue #${issue.number}: ${error.message}`);
+            }
+          }
+        }
+
+        // Mark completed tasks
+        issuesUpdated = await updateIssuesForCompletedTasks(
+          owner, repo, parsed.completedActions, phaseIssues
+        );
+      }
+    } catch (issueError) {
+      core.warning(`Issue status update failed: ${issueError.message}`);
+      // Don't fail the workflow - execution succeeded, status updates are supplementary
+    }
+
     await postComment(owner, repo, issueNumber, formattedComment);
 
     // Cleanup output file
@@ -285,6 +314,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
       phaseNumber,
       hasQuestions: parsed.hasQuestions,
       completedCount: parsed.completedActions.length,
+      issuesUpdated,
       message: parsed.hasQuestions
         ? "Phase execution paused - questions require user input"
         : "Phase execution completed successfully"
