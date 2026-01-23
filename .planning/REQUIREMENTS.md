@@ -63,22 +63,28 @@ Requirements for the Plan & Execute Commands milestone.
 
 ## Traceability
 
-| Requirement | Phase   | Status   |
-| ----------- | ------- | -------- |
-| PLAN-01     | Phase 7 | Complete |
-| PLAN-02     | Phase 7 | Complete |
-| PLAN-03     | Phase 7 | Complete |
-| EXEC-01     | Phase 8 | Complete |
-| EXEC-02     | Phase 8 | Complete |
-| RETRY-01    | Phase 8 | Complete |
-| ISSUE-01    | Phase 9 | Pending  |
-| ISSUE-02    | Phase 9 | Pending  |
-| EXEC-03     | Phase 9 | Pending  |
+| Requirement | Phase    | Status   |
+| ----------- | -------- | -------- |
+| PLAN-01     | Phase 7  | Complete |
+| PLAN-02     | Phase 7  | Complete |
+| PLAN-03     | Phase 7  | Complete |
+| EXEC-01     | Phase 8  | Complete |
+| EXEC-02     | Phase 8  | Complete |
+| RETRY-01    | Phase 8  | Complete |
+| ISSUE-01    | Phase 9  | Complete |
+| ISSUE-02    | Phase 9  | Complete |
+| EXEC-03     | Phase 9  | Complete |
+| TRIGGER-01  | Phase 13 | Complete |
+| TRIGGER-02  | Phase 13 | Complete |
+| TRIGGER-03  | Phase 13 | Complete |
+| PARSE-01    | Phase 13 | Complete |
+| PARSE-02    | Phase 13 | Complete |
+| UPDATE-01   | Phase 13 | Complete |
 
 **Coverage:**
 
-- v1.1 requirements: 9 total
-- Mapped to phases: 9
+- v1.1 requirements: 15 total
+- Mapped to phases: 15
 - Unmapped: 0 ✓
 
 ---
