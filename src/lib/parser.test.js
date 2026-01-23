@@ -93,6 +93,55 @@ describe("parseComment", () => {
     expect(result).not.toBeNull();
     expect(result.command).toBe("new-milestone");
   });
+
+  // Slash command format tests
+  it('extracts command from "/gsd:reply" slash format', () => {
+    const result = parseComment("/gsd:reply");
+    expect(result).toEqual({
+      botMention: "/gsd:reply",
+      command: "reply",
+      args: "",
+    });
+  });
+
+  it('extracts command and args from "/gsd:reply What is the status?"', () => {
+    const result = parseComment("/gsd:reply What is the status?");
+    expect(result).toEqual({
+      botMention: "/gsd:reply What is the status?",
+      command: "reply",
+      args: "What is the status?",
+    });
+  });
+
+  it('supports slash format with skill flag "/gsd:reply Check the logs --testing"', () => {
+    const result = parseComment("/gsd:reply Check the logs --testing");
+    expect(result).toEqual({
+      botMention: "/gsd:reply Check the logs --testing",
+      command: "reply",
+      args: "Check the logs --testing",
+    });
+    const skill = parseSkillArg(result.args);
+    expect(skill).toBe("github-actions-testing");
+  });
+
+  it('normalizes slash command to lowercase ("/gsd:REPLY" -> "reply")', () => {
+    const result = parseComment("/gsd:REPLY");
+    expect(result).not.toBeNull();
+    expect(result.command).toBe("reply");
+  });
+
+  it("slash format is case-insensitive", () => {
+    const result = parseComment("/GSD:reply");
+    expect(result).not.toBeNull();
+    expect(result.command).toBe("reply");
+  });
+
+  it("prefers slash format over @gsd-bot when both present", () => {
+    const result = parseComment("/gsd:reply Test @gsd-bot new-milestone");
+    expect(result).not.toBeNull();
+    expect(result.command).toBe("reply");
+    expect(result.args).toContain("Test");
+  });
 });
 
 describe("parseArguments", () => {

@@ -1,20 +1,26 @@
 /**
- * Comment parsing for @gsd-bot commands
+ * Comment parsing for @gsd-bot commands and /gsd: slash commands
  *
  * Event Filtering:
  * - Created vs Edited: Already handled by workflow trigger (issue_comment: types: [created])
  * - No redundant event type checks needed in this code
  * - Workflow ensures only comment.created events trigger this action
  *
+ * Supported formats:
+ * - @gsd-bot command-name [args...] (legacy format)
+ * - /gsd:command-name [args...] (slash command format)
+ *
  * See: .github/workflows/gsd-command-handler.yml
  */
 
 const BOT_MENTION = "@gsd-bot";
+const SLASH_PREFIX = "/gsd:";
 
 /**
- * Parse comment body to extract @gsd-bot command
+ * Parse comment body to extract command
+ * Supports both @gsd-bot and /gsd: formats
  * @param {string} commentBody - Raw comment text
- * @returns {object|null} - { botMention, command, args } or null if not mentioned
+ * @returns {object|null} - { botMention, command, args } or null if no command found
  */
 export function parseComment(commentBody) {
   // Trim whitespace and normalize line breaks
@@ -23,28 +29,40 @@ export function parseComment(commentBody) {
     .replace(/\r\n/g, " ")
     .replace(/\n/g, " ");
 
-  // Check if bot is mentioned (case-insensitive)
-  const normalizedForMention = normalizedBody.toLowerCase();
-  if (!normalizedForMention.includes(BOT_MENTION.toLowerCase())) {
-    return null;
+  const normalizedLower = normalizedBody.toLowerCase();
+
+  // Try slash command format first: /gsd:command-name [args...]
+  if (normalizedLower.includes(SLASH_PREFIX.toLowerCase())) {
+    const slashPattern = /\/gsd:(\S+)(?:\s+(.*))?/i;
+    const match = normalizedBody.match(slashPattern);
+
+    if (match) {
+      return {
+        botMention: match[0], // Full matched string for compatibility
+        command: match[1].toLowerCase(), // Normalize to lowercase
+        args: match[2] ? match[2].trim() : "",
+      };
+    }
   }
 
-  // Extract command - pattern: @gsd-bot command-name [args...]
-  const commandPattern = new RegExp(
-    `${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`,
-    "i",
-  );
-  const match = normalizedBody.match(commandPattern);
+  // Fall back to @gsd-bot format: @gsd-bot command-name [args...]
+  if (normalizedLower.includes(BOT_MENTION.toLowerCase())) {
+    const commandPattern = new RegExp(
+      `${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`,
+      "i",
+    );
+    const match = normalizedBody.match(commandPattern);
 
-  if (!match) {
-    return null;
+    if (match) {
+      return {
+        botMention: match[0],
+        command: match[1].toLowerCase(), // Normalize to lowercase
+        args: match[2] ? match[2].trim() : "",
+      };
+    }
   }
 
-  return {
-    botMention: match[0],
-    command: match[1].toLowerCase(), // Normalize to lowercase
-    args: match[2] ? match[2].trim() : "",
-  };
+  return null;
 }
 
 /**
