@@ -35,14 +35,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Claude Code Router & GSD
+        run: |
+          npm install -g @anthropic-ai/claude-code
+          npm install -g get-shit-done-cc
+          npm install -g @musistudio/claude-code-router
+
+      - name: Start Claude Code Router
+        run: |
+          ccr start &
+          sleep 3
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
       - uses: superdejooo/gsd-one-by-one@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.issue.number }}
+          repo-owner: ${{ github.repository_owner }}
+          repo-name: ${{ github.event.repository.name }}
+          comment-body: ${{ github.event.comment.body }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # Or use OpenRouter/DeepSeek as alternatives
-          # OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          # DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
 ```
 
 ### 2. Add Your API Key
