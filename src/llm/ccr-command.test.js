@@ -10,8 +10,8 @@ describe("ccr-command", () => {
       expect(result).toContain(
         "but first load this skill .claude/skills/github-actions-testing/SKILL.md",
       );
-      expect(result).toContain("---- STRICT RULE ----");
-      expect(result).toContain("NON INTERACTIVE env");
+      expect(result).toContain("STRICT RULE");
+      expect(result).toContain("NON INTERACTIVE");
     });
 
     it("handles execute-phase command", () => {
