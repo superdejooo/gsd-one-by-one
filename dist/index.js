@@ -32507,6 +32507,8 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(9992);
 /* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(339);
 /* harmony import */ var _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__ = __nccwpck_require__(3244);
+/* harmony import */ var _milestone_reply_js__WEBPACK_IMPORTED_MODULE_17__ = __nccwpck_require__(8863);
+
 
 
 
@@ -32552,6 +32554,7 @@ const _phasePlannerModule = {executePhaseWorkflow: _milestone_phase_planner_js__
 const _phaseExecutorModule = {executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q};
 const _milestoneCompleterModule = {executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L};
 const _labelTriggerModule = {executeLabelTriggerWorkflow: _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b};
+const _replyModule = {executeReplyWorkflow: _milestone_reply_js__WEBPACK_IMPORTED_MODULE_17__/* .executeReplyWorkflow */ .T};
 const _authModule = {checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI};
 console.log(
     "Modules loaded:",
@@ -32566,6 +32569,7 @@ console.log(
     !!_phaseExecutorModule,
     !!_milestoneCompleterModule,
     !!_labelTriggerModule,
+    !!_replyModule,
     !!_authModule,
 );
 
@@ -32749,6 +32753,22 @@ try {
                 skill,
             );
             _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-completed", result.complete);
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Command dispatch for reply workflow
+        if (parsed.command === "reply") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to reply workflow");
+            const result = await (0,_milestone_reply_js__WEBPACK_IMPORTED_MODULE_17__/* .executeReplyWorkflow */ .T)(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                },
+                parsed.args || "",
+                skill,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("reply-sent", result.complete);
             return {commandFound: true, command: parsed.command, ...result};
         }
 
@@ -33426,6 +33446,7 @@ const ALLOWED_COMMANDS = [
   "plan-phase",
   "execute-phase",
   "complete-milestone",
+  "reply",
 ];
 
 /**
@@ -33434,16 +33455,17 @@ const ALLOWED_COMMANDS = [
  * null means skill can be used with any command
  */
 const SKILL_COMMAND_MAP = {
-  "github-actions-templates": ["plan-phase", "execute-phase"],
+  "github-actions-templates": ["plan-phase", "execute-phase", "reply"],
   "github-actions-testing": null, // All commands (default, always loaded)
   "github-project-management": [
     "new-milestone",
     "plan-phase",
     "execute-phase",
     "complete-milestone",
+    "reply",
   ],
-  "livewire-principles": ["plan-phase", "execute-phase"],
-  "refactor": ["plan-phase", "execute-phase"],
+  "livewire-principles": ["plan-phase", "execute-phase", "reply"],
+  "refactor": ["plan-phase", "execute-phase", "reply"],
 };
 
 /**
@@ -36478,6 +36500,134 @@ ${
 ---
 *This roadmap guides milestone execution.*
 `;
+}
+
+
+/***/ }),
+
+/***/ 8863:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   T: () => (/* binding */ executeReplyWorkflow)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5317);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
+/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(8330);
+/**
+ * Reply Workflow Module
+ *
+ * Executes free-form text prompts via CCR (Claude Code Router)
+ * and captures output for GitHub commenting.
+ */
+
+
+
+
+
+
+
+
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
+
+/**
+ * Execute the reply workflow
+ *
+ * This orchestrator handles:
+ * 1. Validate text parameter is provided
+ * 2. Execute text as prompt via CCR
+ * 3. Capture output from command execution
+ * 4. Validate output for errors
+ * 5. Post result to GitHub issue
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @param {string} commandArgs - The text to send to GSD as prompt
+ * @param {string|null} skill - Optional skill parameter
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executeReplyWorkflow(context, commandArgs, skill = null) {
+  const { owner, repo, issueNumber } = context;
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
+    `Starting reply workflow for ${owner}/${repo}#${issueNumber}`,
+  );
+  if (skill) _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using skill: ${skill}`);
+
+  try {
+    // Step 1: Validate text is provided
+    if (!commandArgs || commandArgs.trim().length === 0) {
+      throw new Error("Reply text is required");
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Reply text: ${commandArgs.substring(0, 100)}...`);
+
+    // Step 2: Execute text as prompt via CCR
+    // We don't use /gsd:reply - just send the text directly as a prompt
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)(
+      "",
+      outputPath,
+      commandArgs,
+      skill,
+    );
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 600000 }); // 10 minute timeout
+    } catch (error) {
+      exitCode = error.code || 1;
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Step 3: Read captured output
+    let output = "";
+    try {
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+    } catch (error) {
+      output = "(No output captured)";
+    }
+
+    // Step 4: Validate for errors
+    const isError =
+      exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(output) ||
+      /Error:|Something went wrong|failed/i.test(output) ||
+      /Unknown command|invalid arguments|validation failed/i.test(output);
+
+    // Step 5: Check for errors (withErrorHandling will post the comment)
+    if (isError) {
+      throw new Error(`Reply failed: ${output.substring(0, 500)}`);
+    }
+
+    // Post success - pass through GSD output
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+
+    // Cleanup output file
+    try {
+      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
+    } catch (e) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Reply workflow complete`);
+
+    return {
+      complete: true,
+      message: "Reply sent successfully",
+    };
+  } catch (error) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Reply workflow error: ${error.message}`);
+    throw error; // withErrorHandling will post the comment
+  }
 }
 
 

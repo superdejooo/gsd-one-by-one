@@ -25,6 +25,7 @@ import {executePhaseWorkflow} from "./milestone/phase-planner.js";
 import {executePhaseExecutionWorkflow} from "./milestone/phase-executor.js";
 import {executeMilestoneCompletionWorkflow} from "./milestone/milestone-completer.js";
 import {executeLabelTriggerWorkflow} from "./milestone/label-trigger.js";
+import {executeReplyWorkflow} from "./milestone/reply.js";
 
 // Trigger bundling of modules
 const _githubModule = {postComment, getWorkflowRunUrl};
@@ -53,6 +54,7 @@ const _phasePlannerModule = {executePhaseWorkflow};
 const _phaseExecutorModule = {executePhaseExecutionWorkflow};
 const _milestoneCompleterModule = {executeMilestoneCompletionWorkflow};
 const _labelTriggerModule = {executeLabelTriggerWorkflow};
+const _replyModule = {executeReplyWorkflow};
 const _authModule = {checkAuthorization, formatAuthorizationError};
 console.log(
     "Modules loaded:",
@@ -67,6 +69,7 @@ console.log(
     !!_phaseExecutorModule,
     !!_milestoneCompleterModule,
     !!_labelTriggerModule,
+    !!_replyModule,
     !!_authModule,
 );
 
@@ -250,6 +253,22 @@ try {
                 skill,
             );
             core.setOutput("milestone-completed", result.complete);
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Command dispatch for reply workflow
+        if (parsed.command === "reply") {
+            core.info("Dispatching to reply workflow");
+            const result = await executeReplyWorkflow(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: github.context.issue?.number,
+                },
+                parsed.args || "",
+                skill,
+            );
+            core.setOutput("reply-sent", result.complete);
             return {commandFound: true, command: parsed.command, ...result};
         }
 
