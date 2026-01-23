@@ -177,6 +177,7 @@ describe('phase-planner.js', () => {
       expect(result).toEqual({
         complete: true,
         phaseNumber: 6,
+        issuesCreated: 0,
         message: 'Phase planning completed successfully'
       });
     });
