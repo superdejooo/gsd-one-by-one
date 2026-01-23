@@ -33299,17 +33299,24 @@ function sanitizeArguments(args) {
 /**
  * Format a GSD command for CCR execution
  *
- * Pattern: /gsd:{command} /github-actions-testing
+ * Pattern: /gsd:{command} /github-actions-testing {prompt?}
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
+ * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
  * @returns {string} Full CCR command string
  *
  * @example
  * formatCcrCommand("/gsd:plan-phase 7")
  * // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"'
+ *
+ * @example
+ * formatCcrCommand("/gsd:new-milestone", "Build a login system")
+ * // Returns: 'ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"'
  */
-function formatCcrCommand(gsdCommand) {
-  return `ccr code --print "${gsdCommand} /github-actions-testing"`;
+function formatCcrCommand(gsdCommand, prompt = null) {
+  const baseCommand = `${gsdCommand} /github-actions-testing`;
+  const fullCommand = prompt ? `${baseCommand} ${prompt}` : baseCommand;
+  return `ccr code --print "${fullCommand}"`;
 }
 
 /**
@@ -33317,10 +33324,11 @@ function formatCcrCommand(gsdCommand) {
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
  * @param {string} outputPath - Path to redirect output to
+ * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
  * @returns {string} Full CCR command string with output redirect
  */
-function formatCcrCommandWithOutput(gsdCommand, outputPath) {
-  return `${formatCcrCommand(gsdCommand)} > ${outputPath} 2>&1`;
+function formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null) {
+  return `${formatCcrCommand(gsdCommand, prompt)} > ${outputPath} 2>&1`;
 }
 
 
