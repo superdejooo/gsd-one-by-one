@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 ## Current Position
 
 Milestone: v1.1 (Plan & Execute Commands)
-Phase: 11 of 11 (Output Parsing Improvements)
+Phase: 12 of 12 (CCR Command Formatting)
 Plan: 01 of 01 complete
 Status: All phases complete
-Last activity: 2026-01-23 — Fixed output parsing, CCR log stripping, duplicate error comments
+Last activity: 2026-01-23 — Extracted CCR command formatting to helper function
 
-**Progress:** All phases complete (11/11)
-**Overall v1.1:** ██████████ 7/7 phases complete (100%)
+**Progress:** All phases complete (12/12)
+**Overall v1.1:** ██████████ 8/8 phases complete (100%)
 
 ## v1.0 Performance Summary
 
@@ -40,9 +40,9 @@ Last activity: 2026-01-23 — Fixed output parsing, CCR log stripping, duplicate
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 16 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 09-01, 09-02, 09-03, 10-01, 10-02, 10-03, 10-04, 10-05, 10-06, 10-07, 11-01)
-- Average duration: 6.3 min
-- Total execution time: 1.68 hours
+- Plans completed: 17 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 09-01, 09-02, 09-03, 10-01, 10-02, 10-03, 10-04, 10-05, 10-06, 10-07, 11-01, 12-01)
+- Average duration: 6.2 min
+- Total execution time: 1.85 hours
 
 **By Phase (v1.1):**
 
@@ -54,6 +54,7 @@ Last activity: 2026-01-23 — Fixed output parsing, CCR log stripping, duplicate
 | 09    | 3     | 8 min | 2.7 min  |
 | 10    | 7     | 73 min | 10.4 min |
 | 11    | 1     | 30 min | 30 min   |
+| 12    | 1     | 10 min | 10 min   |
 
 ---
 
@@ -231,6 +232,13 @@ Recent decisions affecting current work:
 - Fallback to last 80 lines if no GSD marker found (handles non-GSD outputs gracefully)
 - Only explicit [x] checkbox markers matched for completed tasks (prevents false positives from markdown)
 
+**From 12-01 (CCR Command Formatting):**
+- Created ccr-command.js with formatCcrCommand and formatCcrCommandWithOutput helpers
+- Pattern: `/github-actions-testing and now trigger command /gsd:{command}`
+- Single source of truth for CCR command format (easy to change in one place)
+- All workflow modules (phase-planner, phase-executor, milestone-completer) use helper
+- Tests mock helper for isolation (don't test command format in workflow tests)
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -245,14 +253,15 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-23T07:45:00Z
-Stopped at: Completed Phase 11, all output parsing improvements done
+Last session: 2026-01-23T08:15:00Z
+Stopped at: Completed Phase 12, CCR command formatting helper
 Resume file: None
 
 ## Roadmap Evolution
 
 - Phase 10 added: Test for each service, method, feature and flow
 - Phase 11 added: Output parsing improvements (discovered during live testing)
+- Phase 12 added: CCR command formatting helper (refactoring for maintainability)
 
 ## Next Steps
 
@@ -275,6 +284,8 @@ Resume file: None
   - [x] 10-07: CI Integration and Finalization (complete)
 - [x] Phase 11: Output Parsing Improvements (complete)
   - [x] 11-01: Fix duplicate errors, CCR log stripping, GSD block extraction (complete)
+- [x] Phase 12: CCR Command Formatting (complete)
+  - [x] 12-01: CCR command helper function (complete)
 
 **Milestone Ready for Completion:** All requirements satisfied, run `/gsd:complete-milestone` to archive.
 

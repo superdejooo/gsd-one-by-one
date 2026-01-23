@@ -11,7 +11,7 @@
 
 **Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
 
-**Phases:** 7 phases | **Requirements:** 9 mapped
+**Phases:** 8 phases | **Requirements:** 9 mapped
 
 ---
 
@@ -201,6 +201,36 @@ Plans:
 
 ---
 
+### Phase 12: CCR Command Formatting
+
+**Goal:** Extract CCR command formatting into centralized helper for consistent command structure across all workflow modules.
+
+**Depends on:** Phase 11
+
+**Status:** Complete (2026-01-23)
+
+**Plans:** 1 plan | **Waves:** 1
+
+- [x] 12-01-PLAN.md — CCR command helper (formatCcrCommand, formatCcrCommandWithOutput)
+
+**Files Created:**
+- `src/llm/ccr-command.js` — Helper functions for CCR command formatting (2 exports)
+- `src/llm/ccr-command.test.js` — Tests for helper functions (5 tests)
+
+**Files Modified:**
+- `src/milestone/phase-planner.js` — Use helper instead of inline command
+- `src/milestone/phase-executor.js` — Use helper instead of inline command
+- `src/milestone/milestone-completer.js` — Use helper instead of inline command
+- `src/milestone/*.test.js` — Mock helper for test isolation
+
+**Implementation Notes:**
+- Pattern: `/github-actions-testing and now trigger command /gsd:{command}`
+- Single source of truth for command format
+- Easy to change pattern in one place
+- Tests mock helper for isolation
+
+---
+
 ## Phase Summary
 
 | # | Phase | Goal | Requirements | Plans |
@@ -211,6 +241,7 @@ Plans:
 | 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | 3 plans (complete) |
 | 10 | Test for Each Service, Method, Feature and Flow | Comprehensive testing coverage | TEST-01: 80%+ coverage | 7 plans (complete) |
 | 11 | Output Parsing Improvements | Fix comment formatting issues | N/A | 1 plan (complete) |
+| 12 | CCR Command Formatting | Centralized command helper | N/A | 1 plan (complete) |
 
 ---
 
@@ -221,6 +252,7 @@ Plans:
 - Phase 8.1 -> Phase 9: Issue tracking uses labels infrastructure
 - Phase 9 -> Phase 10: Testing covers all modules including Phase 9 additions
 - Phase 10 -> Phase 11: Output improvements discovered during testing/live usage
+- Phase 11 -> Phase 12: CCR command refactoring builds on output parsing
 - All phases -> v1.0 foundation: Built on existing Action infrastructure, command parsing, and CCR integration
 
 ---
