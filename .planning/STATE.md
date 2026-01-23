@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 Milestone: v1.1 (Plan & Execute Commands)
 Phase: 10 of 10 (Test for Each Service, Method, Feature and Flow)
-Plan: 01 of 03 complete
+Plan: 03 of 03 complete
 Status: Phase 10 in progress
-Last activity: 2026-01-23 — Completed 10-01-PLAN.md (Test Infrastructure Setup)
+Last activity: 2026-01-23 — Completed 10-03-PLAN.md (GitHub API Integration Tests)
 
-**Progress:** █░░ 1/3 plans in Phase 10 (33%)
+**Progress:** ██░ 2/3 plans in Phase 10 (67%)
 **Overall v1.1:** ████████░░ 4/5 phases started (80%)
 
 ## v1.0 Performance Summary
@@ -40,9 +40,9 @@ Last activity: 2026-01-23 — Completed 10-01-PLAN.md (Test Infrastructure Setup
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 6 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01)
-- Average duration: 2.8 min
-- Total execution time: 0.28 hours
+- Plans completed: 7 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01, 10-03)
+- Average duration: 3 min
+- Total execution time: 0.31 hours
 
 **By Phase (v1.1):**
 
@@ -51,7 +51,7 @@ Last activity: 2026-01-23 — Completed 10-01-PLAN.md (Test Infrastructure Setup
 | 07    | 1     | 7 min | 7 min    |
 | 08    | 1     | 2 min | 2 min    |
 | 08.1  | 3     | 6 min | 2 min    |
-| 10    | 1     | 2 min | 2 min    |
+| 10    | 2     | 6 min | 3 min    |
 
 ---
 
@@ -174,6 +174,14 @@ Recent decisions affecting current work:
 - Global @actions mocking in test/setup.js prevents import-time failures
 - Individual test files can override global mocks with vi.mocked()
 
+**From 10-03 (GitHub API Integration Tests):**
+- Use vi.mock() factory functions to avoid hoisting issues with mockOctokit
+- Test all permission levels (admin, write, maintain, read, triage) for authorization
+- Test error conditions (404, 403, 422) as first-class scenarios, not edge cases
+- Mock GraphQL with mockResolvedValueOnce chaining for multi-query tests
+- Import modules after vi.mock() to avoid hoisting/initialization errors
+- All GitHub API modules achieve 97-100% coverage with comprehensive mocking
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -189,7 +197,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 10-01-PLAN.md
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None (plan completed)
 
 ## Roadmap Evolution
@@ -209,7 +217,7 @@ Resume file: None (plan completed)
 - [ ] Phase 10: Test for Each Service, Method, Feature and Flow (in progress)
   - [x] 10-01: Test Infrastructure Setup (complete)
   - [ ] 10-02: lib/ Module Tests
-  - [ ] 10-03: milestone/ and auth/ Module Tests
+  - [x] 10-03: GitHub API Integration Tests (complete)
 
 ---
 
