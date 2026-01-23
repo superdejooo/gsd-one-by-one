@@ -1,30 +1,11 @@
 import * as core from "@actions/core";
-import { Octokit } from "@octokit/rest";
-import { throttling } from "@octokit/plugin-throttling";
+import * as github from "@actions/github";
+import { getOctokit } from "@actions/github";
 
-// Create throttled octokit instance
-const ThrottledOctokit = Octokit.plugin(throttling);
+const token = core.getInput("token") || process.env.GITHUB_TOKEN || github.context.token;
 
-export const octokit = new ThrottledOctokit({
-  auth: core.getInput("token") || process.env.GITHUB_TOKEN,
-  throttle: {
-    onRateLimit: (retryAfter, options, octokit, retryCount) => {
-      octokit.log.warn(
-        `Request quota exhausted for request ${options.method} ${options.url}`
-      );
-      if (retryCount < 1) {
-        octokit.log.info(`Retrying after ${retryAfter} seconds!`);
-        return true; // Retry once
-      }
-    },
-    onSecondaryRateLimit: (retryAfter, options, octokit) => {
-      octokit.log.warn(
-        `SecondaryRateLimit detected for request ${options.method} ${options.url}`
-      );
-      // Don't automatically retry secondary limits (user intervention needed)
-    },
-  },
-});
+// Use getOctokit from @actions/github (ESM-compatible)
+export const octokit = getOctokit(token);
 
 /**
  * Post a comment to an issue or PR

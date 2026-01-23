@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "ncc build src/index.js --license licenses.txt",
+    "build": "ncc build src/index.js --license licenses.txt && rm -f dist/package.json",
     "setup:ccr": "node --input-type=module -e \"import {generateCCRConfig} from './src/llm/config-generator.js'; generateCCRConfig()\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -22,8 +22,7 @@
   "description": "Autonomous AI development through GitHub Issues - powered by Claude Code and GSD",
   "dependencies": {
     "@actions/core": "^2.0.2",
-    "@actions/github": "^7.0.0",
-    "@octokit/plugin-throttling": "^11.0.3"
+    "@actions/github": "^7.0.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4"
