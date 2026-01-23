@@ -102,7 +102,7 @@ describe('phase-planner.js', () => {
       await executePhaseWorkflow(mockContext, '7');
 
       expect(mockExecAsync).toHaveBeenCalledWith(
-        expect.stringContaining('echo "/gsd:plan-phase 7"'),
+        expect.stringContaining('ccr code --print "/gsd:plan-phase 7"'),
         expect.objectContaining({ timeout: 600000 })
       );
     });

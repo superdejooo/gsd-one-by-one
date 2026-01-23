@@ -350,7 +350,7 @@ Next steps:
       await executePhaseExecutionWorkflow(mockContext, '9');
 
       expect(mockExecAsync).toHaveBeenCalledWith(
-        expect.stringContaining('echo "/gsd:execute-plan 9"'),
+        expect.stringContaining('ccr code --print "/gsd:execute-phase 9"'),
         expect.any(Object)
       );
     });
