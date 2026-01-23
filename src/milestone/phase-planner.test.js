@@ -156,24 +156,6 @@ describe("phase-planner.js", () => {
       );
     });
 
-    it("cleans up output file on success", async () => {
-      await executePhaseWorkflow(mockContext, "4");
-
-      expect(mockUnlink).toHaveBeenCalledWith(
-        expect.stringMatching(/output-\d+\.txt/),
-      );
-    });
-
-    it("handles cleanup failure gracefully", async () => {
-      mockUnlink.mockRejectedValue(new Error("File not found"));
-
-      await executePhaseWorkflow(mockContext, "1");
-
-      expect(vi.mocked(core.warning)).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to cleanup"),
-      );
-    });
-
     it("returns workflow result on success", async () => {
       const result = await executePhaseWorkflow(mockContext, "6");
 

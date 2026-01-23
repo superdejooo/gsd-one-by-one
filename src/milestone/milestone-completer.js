@@ -161,12 +161,7 @@ export async function executeMilestoneCompletionWorkflow(
 
     await postComment(owner, repo, issueNumber, formattedComment);
 
-    // Cleanup output file
-    try {
-      await fs.unlink(outputPath);
-    } catch (e) {
-      core.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     core.info(`Milestone completion workflow complete`);
 

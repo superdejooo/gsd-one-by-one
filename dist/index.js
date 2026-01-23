@@ -35248,12 +35248,7 @@ async function executeLabelTriggerWorkflow(context) {
       throw new Error(`Label trigger failed: ${output.substring(0, 500)}`);
     }
 
-    // Cleanup output file
-    try {
-      await promises_.unlink(outputPath);
-    } catch (e) {
-      core.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     core.info(`Label trigger workflow complete`);
 
@@ -35526,12 +35521,7 @@ async function executeMilestoneCompletionWorkflow(
 
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
 
-    // Cleanup output file
-    try {
-      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
-    } catch (e) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Milestone completion workflow complete`);
 
@@ -36010,12 +36000,7 @@ async function executePhaseExecutionWorkflow(
 
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
 
-    // Cleanup output file
-    try {
-      await fs_promises__WEBPACK_IMPORTED_MODULE_4__.unlink(outputPath);
-    } catch (e) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Phase ${phaseNumber} execution workflow complete`);
 
@@ -36287,12 +36272,7 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Push failed (changes are committed locally): ${pushError.message}`);
     }
 
-    // Cleanup output file
-    try {
-      await fs_promises__WEBPACK_IMPORTED_MODULE_4__.unlink(outputPath);
-    } catch (e) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Phase ${phaseNumber} planning workflow complete`);
 
@@ -36677,12 +36657,7 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
     // Post success - pass through GSD output
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
 
-    // Cleanup output file
-    try {
-      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
-    } catch (e) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Reply workflow complete`);
 

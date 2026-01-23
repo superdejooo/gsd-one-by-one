@@ -456,14 +456,6 @@ Next steps:
       );
     });
 
-    it("cleans up output file", async () => {
-      await executePhaseExecutionWorkflow(mockContext, "10");
-
-      expect(mockUnlink).toHaveBeenCalledWith(
-        expect.stringMatching(/output-\d+\.txt/),
-      );
-    });
-
     it("throws error on failure (withErrorHandling posts comment)", async () => {
       const error = new Error("Execution failed");
       error.code = 1;

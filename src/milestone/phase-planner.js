@@ -230,12 +230,7 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
       core.warning(`Push failed (changes are committed locally): ${pushError.message}`);
     }
 
-    // Cleanup output file
-    try {
-      await fs.unlink(outputPath);
-    } catch (e) {
-      core.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     core.info(`Phase ${phaseNumber} planning workflow complete`);
 

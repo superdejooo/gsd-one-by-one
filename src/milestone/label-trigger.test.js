@@ -178,24 +178,6 @@ describe("label-trigger.js", () => {
       );
     });
 
-    it("cleans up output file on success", async () => {
-      await executeLabelTriggerWorkflow(mockContext);
-
-      expect(mockUnlink).toHaveBeenCalledWith(
-        expect.stringMatching(/output-\d+\.txt/),
-      );
-    });
-
-    it("handles cleanup failure gracefully", async () => {
-      mockUnlink.mockRejectedValue(new Error("File not found"));
-
-      await executeLabelTriggerWorkflow(mockContext);
-
-      expect(vi.mocked(core.warning)).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to cleanup"),
-      );
-    });
-
     it("logs workflow progress", async () => {
       await executeLabelTriggerWorkflow(mockContext);
 

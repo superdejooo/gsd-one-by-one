@@ -92,12 +92,7 @@ export async function executeReplyWorkflow(context, commandArgs, skill = null) {
     // Post success - pass through GSD output
     await postComment(owner, repo, issueNumber, output);
 
-    // Cleanup output file
-    try {
-      await fs.unlink(outputPath);
-    } catch (e) {
-      core.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     core.info(`Reply workflow complete`);
 

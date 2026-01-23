@@ -86,12 +86,7 @@ export async function executeLabelTriggerWorkflow(context) {
       throw new Error(`Label trigger failed: ${output.substring(0, 500)}`);
     }
 
-    // Cleanup output file
-    try {
-      await fs.unlink(outputPath);
-    } catch (e) {
-      core.warning(`Failed to cleanup output file: ${e.message}`);
-    }
+    // Keep output file for artifact upload (don't delete)
 
     core.info(`Label trigger workflow complete`);
 
