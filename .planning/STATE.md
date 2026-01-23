@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 Milestone: v1.1 (Plan & Execute Commands)
 Phase: 10 of 10 (Test for Each Service, Method, Feature and Flow)
-Plan: 03 of 03 complete
+Plan: 04 of 04 complete
 Status: Phase 10 in progress
-Last activity: 2026-01-23 — Completed 10-03-PLAN.md (GitHub API Integration Tests)
+Last activity: 2026-01-23 — Completed 10-04-PLAN.md (Git Operations & Workflow Tests)
 
-**Progress:** ██░ 2/3 plans in Phase 10 (67%)
+**Progress:** ███ 3/4 plans in Phase 10 (75%)
 **Overall v1.1:** ████████░░ 4/5 phases started (80%)
 
 ## v1.0 Performance Summary
@@ -40,9 +40,9 @@ Last activity: 2026-01-23 — Completed 10-03-PLAN.md (GitHub API Integration Te
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 7 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01, 10-03)
-- Average duration: 3 min
-- Total execution time: 0.31 hours
+- Plans completed: 8 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01, 10-03, 10-04)
+- Average duration: 3.5 min
+- Total execution time: 0.39 hours
 
 **By Phase (v1.1):**
 
@@ -51,7 +51,7 @@ Last activity: 2026-01-23 — Completed 10-03-PLAN.md (GitHub API Integration Te
 | 07    | 1     | 7 min | 7 min    |
 | 08    | 1     | 2 min | 2 min    |
 | 08.1  | 3     | 6 min | 2 min    |
-| 10    | 2     | 6 min | 3 min    |
+| 10    | 3     | 11 min | 3.7 min |
 
 ---
 
@@ -182,6 +182,14 @@ Recent decisions affecting current work:
 - Import modules after vi.mock() to avoid hoisting/initialization errors
 - All GitHub API modules achieve 97-100% coverage with comprehensive mocking
 
+**From 10-04 (Git Operations & Workflow Tests):**
+- Mock promisify + exec by mocking both node:child_process and node:util for async control
+- Test output parsing via integration tests (not unit tests) for parseExecutionOutput
+- Mock git.js functions in branches.test.js instead of child_process directly (cleaner)
+- Verify timeout values: 10 min for planner, 30 min for executor
+- Fixed missing runGitCommand import in branches.js (would cause ReferenceError)
+- git module achieves 100% coverage, milestone module achieves 97.69% coverage
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -197,7 +205,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 10-03-PLAN.md
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None (plan completed)
 
 ## Roadmap Evolution
@@ -218,6 +226,7 @@ Resume file: None (plan completed)
   - [x] 10-01: Test Infrastructure Setup (complete)
   - [ ] 10-02: lib/ Module Tests
   - [x] 10-03: GitHub API Integration Tests (complete)
+  - [x] 10-04: Git Operations & Workflow Tests (complete)
 
 ---
 
