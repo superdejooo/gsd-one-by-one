@@ -185,4 +185,52 @@ describe('sanitizeArguments', () => {
     const result = sanitizeArguments(args);
     expect(result.name).toBe('test123ABC');
   });
+
+  describe('description argument special handling', () => {
+    it('allows description with 500+ characters', () => {
+      const args = { description: 'a'.repeat(600) };
+      expect(() => sanitizeArguments(args)).not.toThrow();
+    });
+
+    it('allows description with 10000 characters', () => {
+      const args = { description: 'a'.repeat(10000) };
+      const result = sanitizeArguments(args);
+      expect(result.description.length).toBe(10000);
+    });
+
+    it('allows description with exactly 50000 characters', () => {
+      const args = { description: 'a'.repeat(50000) };
+      expect(() => sanitizeArguments(args)).not.toThrow();
+    });
+
+    it('throws for description exceeding 50000 characters', () => {
+      const args = { description: 'a'.repeat(50001) };
+      expect(() => sanitizeArguments(args)).toThrow(
+        'Argument description exceeds maximum length (50000 chars)'
+      );
+    });
+
+    it('still removes shell metacharacters from description', () => {
+      const args = { description: 'test;rm -rf /&whoami|cat`cmd`$(exec)' };
+      const result = sanitizeArguments(args);
+      expect(result.description).toBe('testrm -rf /whoamicatcmdexec');
+      expect(result.description).not.toContain(';');
+      expect(result.description).not.toContain('&');
+      expect(result.description).not.toContain('|');
+      expect(result.description).not.toContain('`');
+      expect(result.description).not.toContain('$');
+      expect(result.description).not.toContain('(');
+      expect(result.description).not.toContain(')');
+    });
+
+    it('other arguments still have 500 char limit', () => {
+      const args = {
+        description: 'a'.repeat(1000),
+        name: 'a'.repeat(501)
+      };
+      expect(() => sanitizeArguments(args)).toThrow(
+        'Argument name exceeds maximum length (500 chars)'
+      );
+    });
+  });
 });

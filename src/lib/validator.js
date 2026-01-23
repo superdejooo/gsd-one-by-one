@@ -45,9 +45,12 @@ export function sanitizeArguments(args) {
       throw new Error(`Argument ${key} cannot be empty`);
     }
 
-    // Check for reasonable length limits (500 chars)
-    if (value.length > 500) {
-      throw new Error(`Argument ${key} exceeds maximum length (500 chars)`);
+    // Special handling for description argument (allows larger text)
+    const maxLength = key === 'description' ? 50000 : 500;
+
+    // Check for reasonable length limits
+    if (value.length > maxLength) {
+      throw new Error(`Argument ${key} exceeds maximum length (${maxLength} chars)`);
     }
 
     // Remove shell metacharacters to prevent command injection
