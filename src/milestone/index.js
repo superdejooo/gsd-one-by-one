@@ -223,15 +223,53 @@ export async function executeMilestoneWorkflow(
   if (skill) core.info(`Using skill: ${skill} (not used in new-milestone yet)`);
 
   try {
-    // Step 1: Parse milestone number from arguments
-    const milestoneNumber = parseMilestoneNumber(commandArgs);
-    core.info(`Parsed milestone number: ${milestoneNumber}`);
+    // Step 1: Parse milestone number from arguments (optional)
+    let milestoneNumber;
+    try {
+      milestoneNumber = parseMilestoneNumber(commandArgs);
+      core.info(`Parsed milestone number: ${milestoneNumber}`);
+    } catch (e) {
+      // No milestone number provided - GSD will determine from ROADMAP.md
+      core.info('No milestone number provided, GSD will determine next milestone');
+      milestoneNumber = null;
+    }
 
     // Step 2: Parse milestone description from arguments (REQUIRED)
-    const description = parseMilestoneDescription(commandArgs);
+    // If no milestone number, the entire commandArgs is the description
+    const description = milestoneNumber
+      ? parseMilestoneDescription(commandArgs)
+      : commandArgs.trim();
+
+    if (!description || description.length === 0) {
+      throw new Error(
+        "Milestone description is required. Provide a description of your milestone goals and features.",
+      );
+    }
+
     core.info(
       `Parsed milestone description: ${description.substring(0, 100)}...`,
     );
+
+    // Branch A: GSD-managed flow (no milestone number provided)
+    if (milestoneNumber === null) {
+      core.info("Label trigger flow: GSD will handle all planning operations");
+
+      // GSD reads ROADMAP.md, determines next milestone, creates planning artifacts
+      // We just pass the description as a prompt and let GSD handle everything
+      core.info("Executing GSD new-milestone with description as prompt");
+
+      // TODO: Execute CCR command with description/prompt
+      // For now, return early indicating GSD will handle this
+      return {
+        complete: true,
+        phase: "gsd-managed",
+        message: "GSD will determine milestone number and create planning artifacts",
+        description,
+      };
+    }
+
+    // Branch B: Traditional flow (milestone number provided)
+    core.info(`Traditional flow: milestone number ${milestoneNumber} provided`);
 
     // Step 3: Load existing state or create initial state
     let state = await loadState(owner, repo, milestoneNumber);
