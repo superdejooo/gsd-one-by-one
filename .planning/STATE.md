@@ -329,6 +329,9 @@ Recent decisions affecting current work:
 - Reply timeout: 10 minutes (matches conversational commands, not execution-heavy like execute-phase)
 - Reply workflow follows same orchestration pattern as phase-planner (validate, execute, post, cleanup)
 - 4 comprehensive tests: happy path, empty text validation, skill support, error handling
+- Parser updated to support both @gsd-bot and /gsd: formats (slash format has priority)
+- Slash command format: /gsd:command [args] (introduced for reply, extensible for future commands)
+- 6 new parser tests for slash command format, 469 total tests passing
 
 ### Pending Todos
 
