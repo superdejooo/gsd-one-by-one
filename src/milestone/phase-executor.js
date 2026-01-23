@@ -233,7 +233,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 2: Execute GSD execute-plan via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath}`;
+    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath} 2>&1`;
 
     core.info(`Executing: ${command}`);
 
@@ -249,8 +249,10 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     let output = "";
     try {
       output = await fs.readFile(outputPath, "utf-8");
+      core.info(`CCR output (${output.length} chars): ${output.substring(0, 500)}`);
     } catch (error) {
       output = "(No output captured)";
+      core.warning(`Failed to read output file: ${error.message}`);
     }
 
     // Step 4: Validate for errors

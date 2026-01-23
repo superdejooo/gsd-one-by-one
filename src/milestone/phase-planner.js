@@ -131,7 +131,7 @@ export async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > ${outputPath}`;
+    const command = `echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > ${outputPath} 2>&1`;
 
     core.info(`Executing: ${command}`);
 
