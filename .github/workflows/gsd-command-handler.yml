@@ -15,10 +15,13 @@ concurrency:
 
 jobs:
   handle-gsd-command:
-    # Only run if comment contains @gsd-bot AND is not from a bot
+    # Only run on specific @gsd-bot commands, not from bots
     if: |
-      contains(github.event.comment.body, '@gsd-bot') &&
-      github.event.comment.user.type != 'Bot'
+      github.event.comment.user.type != 'Bot' &&
+      (
+        contains(github.event.comment.body, '@gsd-bot execute-phase') ||
+        contains(github.event.comment.body, '@gsd-bot plan-phase')
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
