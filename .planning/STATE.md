@@ -275,7 +275,7 @@ None yet.
 | 003 | Make new-milestone command require mandatory description parameter | 2026-01-23 | 124f83d | [003-napravi-da-nasa-komanda-gsd-bot-new-mile](./quick/003-napravi-da-nasa-komanda-gsd-bot-new-mile/) |
 | 004 | Add commit and push after agent completes | 2026-01-23 | b311f90 | [004-add-commit-and-push-after-agent-complete](./quick/004-add-commit-and-push-after-agent-complete/) |
 | 005 | Add prompt parameter to formatCcrCommand | 2026-01-23 | d2898b6 | [005-add-prompt-parameter-to-formatccrcommand](./quick/005-add-prompt-parameter-to-formatccrcommand/) |
-| 006 | Add skill parameter to formatCcrCommand | 2026-01-23 | 024a04a | [006-add-skill-parameter-to-formatccrcommand](./quick/006-add-skill-parameter-to-formatccrcommand/) |
+| 006 | Add skill parameter to formatCcrCommand (included in command) | 2026-01-23 | f123230 | [006-add-skill-parameter-to-formatccrcommand](./quick/006-add-skill-parameter-to-formatccrcommand/) |
 
 ## Session Continuity
 

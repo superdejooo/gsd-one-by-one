@@ -8,7 +8,7 @@ completed: 2026-01-23
 duration: 2 min
 
 requires: [quick-005]
-provides: ["Skill parameter threading through CCR command helpers"]
+provides: ["Skill parameter included in CCR command string"]
 affects: [future skill selection features]
 
 tech-stack:
@@ -42,11 +42,11 @@ decisions:
 
 # Quick Task 006: Add skill parameter to formatCcrCommand
 
-**One-liner:** Thread skill parameter through CCR command formatting functions in preparation for future skill selection feature
+**One-liner:** Add skill parameter to CCR command formatting functions, now included in command string
 
 ## Overview
 
-Added skill parameter to `formatCcrCommand` and `formatCcrCommandWithOutput` functions. The parameter is accepted but not yet used in command generation - it's a placeholder for a future feature that will allow command-level skill selection (e.g., switching between github-actions-testing, refactor, livewire-principles, etc.).
+Added skill parameter to `formatCcrCommand` and `formatCcrCommandWithOutput` functions. The skill is now included in the command string pattern: `/gsd:{command} /{skill} /github-actions-testing {prompt?}`
 
 ## What Changed
 
@@ -168,6 +168,7 @@ This enhancement enables future skill selection features. When implementing skil
 
 1. `8976c2e` - feat(quick-006): add skill parameter to ccr-command functions
 2. `024a04a` - test(quick-006): add skill parameter tests and update callers
+3. `f123230` - feat(quick-006): include skill in CCR command string
 
 ## Performance
 
