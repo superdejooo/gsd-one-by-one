@@ -112,13 +112,13 @@
 - ISSUE-02: Issue body contains action details, verification criteria, and phase context
 - EXEC-03: Agent updates issue status as tasks complete (pending -> in-progress -> complete) — moved from Phase 8
 
-**Status:** Planned
+**Status:** Complete (2026-01-23)
 
 **Plans:** 3 plans | **Waves:** 2
 
-- [ ] 09-01-PLAN.md — Issues module (src/lib/issues.js with task parsing and issue CRUD)
-- [ ] 09-02-PLAN.md — Phase planner integration (create issues after planning)
-- [ ] 09-03-PLAN.md — Phase executor integration (update status during execution)
+- [x] 09-01-PLAN.md — Issues module (src/lib/issues.js with task parsing and issue CRUD)
+- [x] 09-02-PLAN.md — Phase planner integration (create issues after planning)
+- [x] 09-03-PLAN.md — Phase executor integration (update status during execution)
 
 **Files Created:**
 - `src/lib/issues.js` — Issue creation and task parsing (4 exports)
@@ -142,18 +142,18 @@
 
 **Depends on:** Phase 9
 
-**Status:** Planned
+**Status:** Complete (2026-01-23)
 
 **Plans:** 7 plans | **Waves:** 4
 
 Plans:
-- [ ] 10-01-PLAN.md — Test infrastructure (vitest.config.js, test/setup.js, fetch mocking)
-- [ ] 10-02-PLAN.md — Pure logic unit tests (parser, validator, formatter, slugify, prompts, auth/errors)
-- [ ] 10-03-PLAN.md — GitHub API tests (auth/validator, labels, projects, github)
-- [ ] 10-04-PLAN.md — Child process tests (git, branches, phase-planner, phase-executor)
-- [ ] 10-05-PLAN.md — Orchestrator tests (milestone/index, requirements, planning-docs, handler, config)
-- [ ] 10-06-PLAN.md — Entry point tests (index.js command dispatch integration)
-- [ ] 10-07-PLAN.md — CI integration (finalize suite, add test workflow)
+- [x] 10-01-PLAN.md — Test infrastructure (vitest.config.js, test/setup.js, fetch mocking)
+- [x] 10-02-PLAN.md — Pure logic unit tests (parser, validator, formatter, slugify, prompts, auth/errors)
+- [x] 10-03-PLAN.md — GitHub API tests (auth/validator, labels, projects, github)
+- [x] 10-04-PLAN.md — Child process tests (git, branches, phase-planner, phase-executor)
+- [x] 10-05-PLAN.md — Orchestrator tests (milestone/index, requirements, planning-docs, handler, config)
+- [x] 10-06-PLAN.md — Entry point tests (index.js command dispatch integration)
+- [x] 10-07-PLAN.md — CI integration (finalize suite, add test workflow)
 
 **Wave Structure:**
 - Wave 1: 10-01 (infrastructure setup - must complete first)
@@ -181,8 +181,8 @@ Plans:
 | 7 | Phase Planning Command | Implement `gsd:plan-phase` command | PLAN-01, PLAN-02, PLAN-03 | 1 plan (complete) |
 | 8 | Phase Execution Command | Implement `gsd:execute-phase` command | EXEC-01, EXEC-02, RETRY-01 | 1 plan (complete) |
 | 8.1 | GitHub Projects & Issue Tracking | Labels + Project iterations infrastructure | N/A | 3 plans (complete) |
-| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | 3 plans |
-| 10 | Test for Each Service, Method, Feature and Flow | Comprehensive testing coverage | TEST-01: 80%+ coverage | 7 plans |
+| 9 | Issue Tracking Integration | Create GitHub issues for actions | ISSUE-01, ISSUE-02, EXEC-03 | 3 plans (complete) |
+| 10 | Test for Each Service, Method, Feature and Flow | Comprehensive testing coverage | TEST-01: 80%+ coverage | 7 plans (complete) |
 
 ---
 
