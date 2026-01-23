@@ -255,11 +255,17 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
       core.warning(`Failed to read output file: ${error.message}`);
     }
 
-    // Step 4: Validate for errors
+    // Step 4: Validate for errors (ignore warnings like ⚠️)
+    // Filter out warning lines before checking for errors
+    const outputWithoutWarnings = output
+      .split('\n')
+      .filter(line => !line.includes('⚠️') && !line.includes('Pre-flight check'))
+      .join('\n');
+
     const isError = exitCode !== 0 ||
-      /Permission Denied|Authorization failed|not authorized/i.test(output) ||
-      /Error:|Something went wrong|failed/i.test(output) ||
-      /Unknown command|invalid arguments|validation failed/i.test(output);
+      /Permission Denied|Authorization failed|not authorized/i.test(outputWithoutWarnings) ||
+      /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
+      /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
 
     // Step 5: Post result to GitHub
     if (isError) {
