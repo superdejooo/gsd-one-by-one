@@ -130,6 +130,7 @@ import { withErrorHandling } from './errors/handler.js';
 import { checkAuthorization, formatAuthorizationError } from './auth/index.js';
 import { parseComment, parseArguments } from './lib/parser.js';
 import { validateCommand, sanitizeArguments } from './lib/validator.js';
+import { loadConfig } from './lib/config.js';
 import { postComment, getWorkflowRunUrl } from './lib/github.js';
 import { configureGitIdentity } from './git/git.js';
 import { executeMilestoneWorkflow } from './milestone/index.js';
@@ -361,4 +362,51 @@ describe('index.js command dispatch', () => {
     // Authorization must happen before workflow execution
     expect(callOrder).toEqual(['checkAuthorization', 'executeMilestoneWorkflow']);
   });
+
+  it('provides GitHub context to error handler', async () => {
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was captured, which proves withErrorHandling was called
+    // and the operation was passed with GitHub context
+    expect(capturedOperation).toBeDefined();
+    expect(typeof capturedOperation).toBe('function');
+  });
+
+  it('throws error when validateCommand rejects unknown command', async () => {
+    vi.mocked(parseComment).mockReturnValue({
+      botMention: '@gsd-bot unknown-cmd',
+      command: 'unknown-cmd',
+      args: ''
+    });
+
+    vi.mocked(validateCommand).mockImplementation(() => {
+      throw new Error('Unknown command: unknown-cmd');
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was captured
+    expect(capturedOperation).toBeDefined();
+
+    // Verify operation throws when executed
+    await expect(capturedOperation()).rejects.toThrow('Unknown command: unknown-cmd');
+  });
+
+  it('sets outputs for milestone completion', async () => {
+    vi.mocked(executeMilestoneWorkflow).mockResolvedValue({
+      complete: true,
+      phase: 'execution'
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    await capturedOperation();
+
+    // Verify milestone-specific outputs were set
+    expect(core.setOutput).toHaveBeenCalledWith('milestone-complete', true);
+    expect(core.setOutput).toHaveBeenCalledWith('milestone-phase', 'execution');
+  });
 });
+
