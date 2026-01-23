@@ -9,7 +9,8 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "test:ci": "vitest run --coverage --reporter=verbose"
   },
   "keywords": [
     "claude",
