@@ -22,6 +22,18 @@ describe('ccr-command', () => {
       expect(result).toContain('github-actions-testing');
       expect(result).toContain('/gsd:complete-milestone');
     });
+
+    it('appends prompt when provided', () => {
+      const result = formatCcrCommand('/gsd:new-milestone', 'Build a login system');
+
+      expect(result).toBe('ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"');
+    });
+
+    it('handles prompt with null value', () => {
+      const result = formatCcrCommand('/gsd:plan-phase 7', null);
+
+      expect(result).toBe('ccr code --print "/gsd:plan-phase 7 /github-actions-testing"');
+    });
   });
 
   describe('formatCcrCommandWithOutput', () => {
@@ -35,6 +47,18 @@ describe('ccr-command', () => {
       const result = formatCcrCommandWithOutput('/gsd:execute-phase 3', 'output-123456.txt');
 
       expect(result).toContain('> output-123456.txt 2>&1');
+    });
+
+    it('passes prompt to formatCcrCommand', () => {
+      const result = formatCcrCommandWithOutput('/gsd:verify-work', 'output.txt', 'Check the API');
+
+      expect(result).toBe('ccr code --print "/gsd:verify-work /github-actions-testing Check the API" > output.txt 2>&1');
+    });
+
+    it('works without prompt parameter', () => {
+      const result = formatCcrCommandWithOutput('/gsd:execute-phase 3', 'output.txt');
+
+      expect(result).toBe('ccr code --print "/gsd:execute-phase 3 /github-actions-testing" > output.txt 2>&1');
     });
   });
 });
