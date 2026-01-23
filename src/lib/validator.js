@@ -26,7 +26,19 @@ export const SKILL_COMMAND_MAP = {
     "complete-milestone",
   ],
   "livewire-principles": ["plan-phase", "execute-phase"],
-  refactor: ["plan-phase", "execute-phase"],
+  "refactor": ["plan-phase", "execute-phase"],
+};
+
+/**
+ * Short aliases for skill names
+ * Users can use these instead of full skill names
+ */
+export const SKILL_ALIASES = {
+  manager: "github-project-management",
+  testing: "github-actions-testing",
+  templates: "github-actions-templates",
+  livewire: "livewire-principles",
+  refactor: "refactor",
 };
 
 /**

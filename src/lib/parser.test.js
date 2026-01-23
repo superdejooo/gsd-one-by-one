@@ -40,6 +40,18 @@ describe("parseComment", () => {
     });
   });
 
+  it('extracts command with skill flag "@gsd-bot plan-phase 7 --manager"', () => {
+    const result = parseComment("@gsd-bot plan-phase 7 --manager");
+    expect(result).toEqual({
+      botMention: "@gsd-bot plan-phase 7 --manager",
+      command: "plan-phase",
+      args: "7 --manager",
+    });
+    // Verify skill is correctly parsed from args
+    const skill = parseSkillArg(result.args);
+    expect(skill).toBe("github-project-management");
+  });
+
   it('normalizes command to lowercase ("@gsd-bot NEW-MILESTONE" -> "new-milestone")', () => {
     const result = parseComment("@gsd-bot NEW-MILESTONE");
     expect(result).not.toBeNull();
@@ -207,44 +219,43 @@ describe("parseSkillArg", () => {
     expect(parseSkillArg(undefined)).toBeNull();
   });
 
-  it("finds github-project-management skill in args", () => {
-    const result = parseSkillArg("7 github-project-management");
+  it("finds github-project-management via --manager flag", () => {
+    const result = parseSkillArg("7 --manager");
     expect(result).toBe("github-project-management");
   });
 
-  it("finds refactor skill in args", () => {
-    const result = parseSkillArg("5 refactor");
+  it("finds refactor via --refactor flag", () => {
+    const result = parseSkillArg("5 --refactor");
     expect(result).toBe("refactor");
   });
 
-  it("finds livewire-principles skill in args", () => {
-    const result = parseSkillArg("livewire-principles 3");
+  it("finds livewire-principles via --livewire flag", () => {
+    const result = parseSkillArg("--livewire 3");
     expect(result).toBe("livewire-principles");
   });
 
-  it("returns null for invalid skill", () => {
-    const result = parseSkillArg("7 invalid-skill");
+  it("returns null for invalid skill flag", () => {
+    const result = parseSkillArg("7 --invalid");
     expect(result).toBeNull();
   });
 
   it("is case insensitive", () => {
-    const result = parseSkillArg("7 GitHub-Project-Management");
+    const result = parseSkillArg("7 --MANAGER");
     expect(result).toBe("github-project-management");
   });
 
-  it("returns first valid skill if multiple present", () => {
-    const result = parseSkillArg("7 github-project-management refactor");
-    // Should return first valid skill found
-    expect(VALID_SKILLS).toContain(result);
+  it("returns first valid skill if multiple flags present", () => {
+    const result = parseSkillArg("7 --manager --refactor");
+    expect(result).toBe("github-project-management");
   });
 });
 
 describe("VALID_SKILLS", () => {
-  it("contains expected skills", () => {
-    expect(VALID_SKILLS).toContain("github-actions-templates");
-    expect(VALID_SKILLS).toContain("github-actions-testing");
-    expect(VALID_SKILLS).toContain("github-project-management");
-    expect(VALID_SKILLS).toContain("livewire-principles");
+  it("contains expected skill aliases", () => {
+    expect(VALID_SKILLS).toContain("manager");
+    expect(VALID_SKILLS).toContain("testing");
+    expect(VALID_SKILLS).toContain("templates");
+    expect(VALID_SKILLS).toContain("livewire");
     expect(VALID_SKILLS).toContain("refactor");
   });
 
