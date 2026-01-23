@@ -2,3 +2,4 @@ node_modules
 !.planning
 .idea
 .env
+coverage/
