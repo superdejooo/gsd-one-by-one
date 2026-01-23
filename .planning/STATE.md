@@ -183,6 +183,10 @@ Last session: 2026-01-22
 New session: 2026-01-22 — Completed Phase 8.1 (all 3 plans)
 Resume file: None (full execution completed)
 
+## Roadmap Evolution
+
+- Phase 10 added: Test for each service, method, feature and flow
+
 ## Next Steps
 
 **v1.1: Plan & Execute Commands**
@@ -193,6 +197,8 @@ Resume file: None (full execution completed)
 - [ ] Phase 9: Issue Tracking Integration
   - Run `/gsd:discuss-phase 9` to gather context
   - Run `/gsd:plan-phase 9` to create execution plans
+- [ ] Phase 10: Test for Each Service, Method, Feature and Flow
+  - Run `/gsd:plan-phase 10` to break down
 
 ---
 
