@@ -32,20 +32,36 @@
 export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
   let command = gsdCommand;
 
-  // Add optional skill before github-actions-testing
-  if (skill) {
-    command = `${command} /${skill}`;
+  // DECISION 18:10 23.1.2026.
+  // DO NOT CHANGE!
+  // Add optional skill before appending custom prompt
+  if (!skill) {
+      skill = 'github-actions-testing';
   }
-
-  // Always add github-actions-testing skill
-  command = `${command} /github-actions-testing`;
+    command = `${command} but first load this skill .claude/skills/${skill}/SKILL.md`;
 
   // Add prompt at the end if provided
   if (prompt) {
-    command = `${command} ${prompt}`;
+    command = `${command} and then: ' ${prompt}'`;
   }
 
-  return `ccr code --print "${command}"`;
+  return `ccr code --print "${command}" 
+---- STRICT RULE ---- 
+This is NON INTERACTIVE env, 
+you can output ONLY ONCE!!!
+If you cannot figure out how 
+to proceed, even with all 
+available agents and tools, 
+you MUST perform an handover 
+to the .planning directory.
+Handover MUST include a detailed 
+plan and justification and all 
+your questions.
+
+User after reviewing, will assign 
+another agent.
+----------------------
+`;
 }
 
 /**

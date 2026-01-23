@@ -3,12 +3,15 @@ import { formatCcrCommand, formatCcrCommandWithOutput } from "./ccr-command.js";
 
 describe("ccr-command", () => {
   describe("formatCcrCommand", () => {
-    it("formats GSD command with github-actions-testing prefix", () => {
+    it("formats GSD command with github-actions-testing skill load", () => {
       const result = formatCcrCommand("/gsd:plan-phase 7");
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"',
+      expect(result).toContain("/gsd:plan-phase 7");
+      expect(result).toContain(
+        "but first load this skill .claude/skills/github-actions-testing/SKILL.md",
       );
+      expect(result).toContain("---- STRICT RULE ----");
+      expect(result).toContain("NON INTERACTIVE env");
     });
 
     it("handles execute-phase command", () => {
@@ -31,17 +34,17 @@ describe("ccr-command", () => {
         "Build a login system",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"',
-      );
+      expect(result).toContain("/gsd:new-milestone");
+      expect(result).toContain("github-actions-testing");
+      expect(result).toContain("and then: ' Build a login system'");
     });
 
     it("handles prompt with null value", () => {
       const result = formatCcrCommand("/gsd:plan-phase 7", null);
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"',
-      );
+      expect(result).toContain("/gsd:plan-phase 7");
+      expect(result).toContain("github-actions-testing");
+      expect(result).not.toContain("and then:");
     });
 
     it("includes skill in command when provided", () => {
@@ -51,8 +54,9 @@ describe("ccr-command", () => {
         "github-project-management",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:plan-phase 7 /github-project-management /github-actions-testing"',
+      expect(result).toContain("/gsd:plan-phase 7");
+      expect(result).toContain(
+        "but first load this skill .claude/skills/github-project-management/SKILL.md",
       );
     });
 
@@ -63,9 +67,11 @@ describe("ccr-command", () => {
         "refactor",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:new-milestone /refactor /github-actions-testing Build login"',
+      expect(result).toContain("/gsd:new-milestone");
+      expect(result).toContain(
+        "but first load this skill .claude/skills/refactor/SKILL.md",
       );
+      expect(result).toContain("and then: ' Build login'");
     });
   });
 
@@ -76,9 +82,9 @@ describe("ccr-command", () => {
         "output.txt",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:plan-phase 5 /github-actions-testing" > output.txt 2>&1',
-      );
+      expect(result).toContain("/gsd:plan-phase 5");
+      expect(result).toContain("github-actions-testing");
+      expect(result).toContain("> output.txt 2>&1");
     });
 
     it("handles dynamic output paths", () => {
@@ -97,9 +103,9 @@ describe("ccr-command", () => {
         "Check the API",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:verify-work /github-actions-testing Check the API" > output.txt 2>&1',
-      );
+      expect(result).toContain("/gsd:verify-work");
+      expect(result).toContain("and then: ' Check the API'");
+      expect(result).toContain("> output.txt 2>&1");
     });
 
     it("works without prompt parameter", () => {
@@ -108,9 +114,10 @@ describe("ccr-command", () => {
         "output.txt",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:execute-phase 3 /github-actions-testing" > output.txt 2>&1',
-      );
+      expect(result).toContain("/gsd:execute-phase 3");
+      expect(result).toContain("github-actions-testing");
+      expect(result).toContain("> output.txt 2>&1");
+      expect(result).not.toContain("and then:");
     });
 
     it("includes skill in command when provided", () => {
@@ -121,9 +128,11 @@ describe("ccr-command", () => {
         "github-project-management",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:plan-phase 5 /github-project-management /github-actions-testing" > output.txt 2>&1',
+      expect(result).toContain("/gsd:plan-phase 5");
+      expect(result).toContain(
+        "but first load this skill .claude/skills/github-project-management/SKILL.md",
       );
+      expect(result).toContain("> output.txt 2>&1");
     });
 
     it("includes skill with prompt in command", () => {
@@ -134,9 +143,12 @@ describe("ccr-command", () => {
         "refactor",
       );
 
-      expect(result).toBe(
-        'ccr code --print "/gsd:new-milestone /refactor /github-actions-testing Build API" > output.txt 2>&1',
+      expect(result).toContain("/gsd:new-milestone");
+      expect(result).toContain(
+        "but first load this skill .claude/skills/refactor/SKILL.md",
       );
+      expect(result).toContain("and then: ' Build API'");
+      expect(result).toContain("> output.txt 2>&1");
     });
   });
 });
