@@ -1,36 +1,36 @@
-name: 'GSD GitHub Action'
-description: 'Processes GSD commands in issue comments'
+name: "GSD GitHub Action"
+description: "Processes GSD commands in issue comments"
 
 inputs:
   issue-number:
-    description: 'The issue or PR number'
+    description: "The issue or PR number"
     required: true
   repo-owner:
-    description: 'The repository owner'
+    description: "The repository owner"
     required: true
   repo-name:
-    description: 'The repository name'
+    description: "The repository name"
     required: true
   comment-body:
-    description: 'The comment body text'
+    description: "The comment body text"
     required: true
   token:
-    description: 'GitHub token for API access'
+    description: "GitHub token for API access"
     required: false
     default: ${{ github.token }}
 
 outputs:
   response-posted:
-    description: 'Whether the response was successfully posted'
+    description: "Whether the response was successfully posted"
   command-found:
-    description: 'Whether an @gsd-bot command was found'
+    description: "Whether an @gsd-bot command was found"
   command:
-    description: 'The extracted command name'
+    description: "The extracted command name"
   config-loaded:
-    description: 'Whether the configuration was loaded'
+    description: "Whether the configuration was loaded"
   arguments:
-    description: 'Parsed and sanitized arguments (JSON string)'
+    description: "Parsed and sanitized arguments (JSON string)"
 
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: "node20"
+  main: "dist/index.js"
