@@ -10,8 +10,10 @@ import * as github from "@actions/github";
 import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
+import path from "path";
 import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 import { formatErrorComment } from "../errors/formatter.js";
+import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
 
 const execAsync = promisify(exec);
 
@@ -52,6 +54,50 @@ export function parsePhaseNumber(commandArgs) {
   }
 
   throw new Error("Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.");
+}
+
+/**
+ * Find all PLAN.md files for a phase
+ * @param {number} phaseNumber - Phase number
+ * @returns {Promise<Array<{path: string, filename: string, phaseDir: string}>>}
+ */
+async function findPlanFiles(phaseNumber) {
+  const paddedPhase = String(phaseNumber).padStart(2, '0');
+  const phasesDir = '.planning/phases';
+
+  // Find phase directory (handles 01-name and 1-name patterns)
+  const dirs = await fs.readdir(phasesDir);
+  const phaseDir = dirs.find(d =>
+    d.startsWith(`${paddedPhase}-`) || d.startsWith(`${phaseNumber}-`)
+  );
+
+  if (!phaseDir) {
+    core.warning(`Phase directory not found for phase ${phaseNumber}`);
+    return [];
+  }
+
+  // Find all PLAN.md files
+  const files = await fs.readdir(path.join(phasesDir, phaseDir));
+  const planFiles = files.filter(f => f.endsWith('-PLAN.md'));
+
+  return planFiles.map(filename => ({
+    path: path.join(phasesDir, phaseDir, filename),
+    filename,
+    phaseDir
+  }));
+}
+
+/**
+ * Extract human-readable phase name from directory
+ * @param {string} phaseDir - e.g., "09-issue-tracking-integration"
+ * @returns {string} - e.g., "Issue Tracking Integration"
+ */
+function extractPhaseName(phaseDir) {
+  const parts = phaseDir.split('-');
+  parts.shift(); // Remove number prefix
+  return parts
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 /**

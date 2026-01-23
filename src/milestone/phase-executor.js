@@ -18,8 +18,65 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 import { formatErrorComment } from "../errors/formatter.js";
+import { getPhaseIssues } from "../lib/issues.js";
+import { updateIssueStatus } from "../lib/labels.js";
 
 const execAsync = promisify(exec);
+
+/**
+ * Find issue that matches a task name
+ * @param {string} taskName - Task name from execution output
+ * @param {Array<{number: number, title: string}>} issues - Phase issues
+ * @returns {object|null} Matching issue or null
+ */
+function matchTaskToIssue(taskName, issues) {
+  // Normalize for comparison: lowercase, remove "Task N:" prefix
+  const normalizedTask = taskName
+    .toLowerCase()
+    .replace(/^task\s*\d+:\s*/i, '')
+    .trim();
+
+  return issues.find(issue => {
+    // Issue title format: "09: Task Name"
+    const issueTaskName = issue.title
+      .replace(/^\d+:\s*/, '')  // Remove "09: " prefix
+      .toLowerCase()
+      .replace(/^task\s*\d+:\s*/i, '')  // Remove any "Task N:" in title
+      .trim();
+
+    // Check for substring match (task name contained in issue title or vice versa)
+    return issueTaskName.includes(normalizedTask) ||
+           normalizedTask.includes(issueTaskName);
+  });
+}
+
+/**
+ * Update issues to complete status for completed tasks
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {string[]} completedActions - List of completed task names
+ * @param {Array<{number: number, title: string, status: string}>} issues - Phase issues
+ * @returns {Promise<number>} Number of issues updated
+ */
+async function updateIssuesForCompletedTasks(owner, repo, completedActions, issues) {
+  let updatedCount = 0;
+
+  for (const taskName of completedActions) {
+    const matchingIssue = matchTaskToIssue(taskName, issues);
+
+    if (matchingIssue && matchingIssue.status !== 'status:complete') {
+      try {
+        await updateIssueStatus(owner, repo, matchingIssue.number, 'complete');
+        updatedCount++;
+        core.info(`Marked issue #${matchingIssue.number} as complete`);
+      } catch (error) {
+        core.warning(`Failed to update issue #${matchingIssue.number}: ${error.message}`);
+      }
+    }
+  }
+
+  return updatedCount;
+}
 
 /**
  * Parse phase number from command arguments
