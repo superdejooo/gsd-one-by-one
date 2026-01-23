@@ -32512,7 +32512,7 @@ const _gitModule = { runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .
 const _branchModule = { createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createMilestoneBranch */ .HT, createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createPhaseBranch */ .sT, slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .slugify */ .Yv, branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .branchExists */ .TV };
 const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U };
 const _planningModule = { createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .createPlanningDocs */ .Hm, generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateProjectMarkdown */ .MU, generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateStateMarkdown */ .qL, generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateRoadmapMarkdown */ .ru };
-const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .B, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .parseMilestoneNumber */ .f };
+const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .BT, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .parseMilestoneNumber */ .fM };
 const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q };
 const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__/* .executeMilestoneCompletionWorkflow */ .L };
@@ -32539,7 +32539,7 @@ try {
   // Execute with error handling
   const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U)(async () => {
     // Parse comment to extract command
-    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseComment */ .v)(commentBody);
+    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseComment */ .vj)(commentBody);
 
     if (!parsed) {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
@@ -32568,7 +32568,7 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || '(none)'}`);
 
     // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseArguments */ .W)(parsed.args) : {};
+    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseArguments */ .We)(parsed.args) : {};
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
 
     // Validate command
@@ -32580,9 +32580,10 @@ try {
     // Command dispatch for milestone workflow
     if (parsed.command === "new-milestone") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone workflow");
-      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .B)(
+      // Pass raw args string - parseMilestoneDescription expects the full text
+      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .BT)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        sanitizedArgs
+        parsed.args || ""
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Milestone workflow result: ${JSON.stringify(result)}`);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-complete", result.complete);
@@ -33115,9 +33116,10 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   W: () => (/* binding */ parseArguments),
-/* harmony export */   v: () => (/* binding */ parseComment)
+/* harmony export */   We: () => (/* binding */ parseArguments),
+/* harmony export */   vj: () => (/* binding */ parseComment)
 /* harmony export */ });
+/* unused harmony export parseDescriptionArg */
 /**
  * Comment parsing for @gsd-bot commands
  *
@@ -33187,6 +33189,20 @@ function parseArguments(argsString) {
   return args;
 }
 
+/**
+ * Parse description argument from command args string
+ * For new-milestone command, the description is everything after the command
+ * @param {string} argsString - Raw arguments string
+ * @returns {string|null} - Description text or null if empty
+ */
+function parseDescriptionArg(argsString) {
+  if (!argsString || argsString.trim().length === 0) {
+    return null;
+  }
+
+  return argsString.trim();
+}
+
 
 /***/ }),
 
@@ -33245,9 +33261,12 @@ function sanitizeArguments(args) {
       throw new Error(`Argument ${key} cannot be empty`);
     }
 
-    // Check for reasonable length limits (500 chars)
-    if (value.length > 500) {
-      throw new Error(`Argument ${key} exceeds maximum length (500 chars)`);
+    // Special handling for description argument (allows larger text)
+    const maxLength = key === 'description' ? 50000 : 500;
+
+    // Check for reasonable length limits
+    if (value.length > maxLength) {
+      throw new Error(`Argument ${key} exceeds maximum length (${maxLength} chars)`);
     }
 
     // Remove shell metacharacters to prevent command injection
@@ -33313,16 +33332,18 @@ function formatCcrCommandWithOutput(gsdCommand, outputPath) {
 
 // EXPORTS
 __nccwpck_require__.d(__webpack_exports__, {
-  B: () => (/* binding */ executeMilestoneWorkflow),
-  f: () => (/* binding */ parseMilestoneNumber)
+  BT: () => (/* binding */ executeMilestoneWorkflow),
+  fM: () => (/* binding */ parseMilestoneNumber)
 });
 
+// UNUSED EXPORTS: parseMilestoneDescription
+
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(7484);
+var lib_core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(3228);
+var lib_github = __nccwpck_require__(3228);
 // EXTERNAL MODULE: ./src/lib/github.js
-var lib_github = __nccwpck_require__(739);
+var src_lib_github = __nccwpck_require__(739);
 // EXTERNAL MODULE: ./src/errors/formatter.js
 var formatter = __nccwpck_require__(5878);
 // EXTERNAL MODULE: ./src/git/branches.js
@@ -33516,8 +33537,8 @@ function createInitialState(milestoneNumber) {
  * @returns {Promise<object>} State object
  */
 async function loadState(owner, repo, milestoneNumber) {
-  const token = core.getInput("token") || process.env.GITHUB_TOKEN;
-  const octokit = github.getOctokit(token);
+  const token = lib_core.getInput("token") || process.env.GITHUB_TOKEN;
+  const octokit = lib_github.getOctokit(token);
   const path = STATE_FILE.replace("{n}", milestoneNumber);
 
   try {
@@ -33530,11 +33551,11 @@ async function loadState(owner, repo, milestoneNumber) {
     const content = Buffer.from(response.data.content, "base64").toString("utf-8");
     const state = parseStateMarkdown(content);
 
-    core.info(`Loaded state for milestone ${milestoneNumber} from ${path}`);
+    lib_core.info(`Loaded state for milestone ${milestoneNumber} from ${path}`);
     return state;
   } catch (error) {
     if (error.status === 404) {
-      core.info(`State file not found for milestone ${milestoneNumber}, creating initial state`);
+      lib_core.info(`State file not found for milestone ${milestoneNumber}, creating initial state`);
       return createInitialState(milestoneNumber);
     }
     throw error;
@@ -33551,8 +33572,8 @@ async function loadState(owner, repo, milestoneNumber) {
  * @returns {Promise<void>}
  */
 async function saveState(owner, repo, milestoneNumber, state, phases = []) {
-  const token = core.getInput("token") || process.env.GITHUB_TOKEN;
-  const octokit = github.getOctokit(token);
+  const token = lib_core.getInput("token") || process.env.GITHUB_TOKEN;
+  const octokit = lib_github.getOctokit(token);
   const path = STATE_FILE.replace("{n}", milestoneNumber);
   const content = generateStateMarkdown(state, phases);
   const encodedContent = Buffer.from(content).toString("base64");
@@ -33580,7 +33601,7 @@ async function saveState(owner, repo, milestoneNumber, state, phases = []) {
     sha: sha // Omit for create, include for update
   });
 
-  core.info(`State saved to ${path}`);
+  lib_core.info(`State saved to ${path}`);
 }
 
 /**
@@ -34086,7 +34107,7 @@ async function getProject(owner, projectNumber, isOrg = true) {
         }
       `;
 
-    const result = await lib_github/* octokit */.A8.graphql(query, {
+    const result = await src_lib_github/* octokit */.A8.graphql(query, {
       owner,
       number: projectNumber,
     });
@@ -34094,20 +34115,20 @@ async function getProject(owner, projectNumber, isOrg = true) {
     const project = isOrg ? result.organization?.projectV2 : result.user?.projectV2;
 
     if (!project) {
-      core.warning(`Project #${projectNumber} not found for ${owner}`);
+      lib_core.warning(`Project #${projectNumber} not found for ${owner}`);
       return null;
     }
 
-    core.info(`Found project: ${project.title} (${project.url})`);
+    lib_core.info(`Found project: ${project.title} (${project.url})`);
     return project;
   } catch (error) {
     if (error.status === 404 || error.status === 403) {
-      core.warning(
+      lib_core.warning(
         `Project #${projectNumber} not found or no permission. Error: ${error.message}`
       );
       return null;
     }
-    core.error(`GraphQL error fetching project: ${error.message}`);
+    lib_core.error(`GraphQL error fetching project: ${error.message}`);
     return null;
   }
 }
@@ -34144,22 +34165,22 @@ async function getIterations(projectId) {
       }
     `;
 
-    const result = await lib_github/* octokit */.A8.graphql(query, { projectId });
+    const result = await src_lib_github/* octokit */.A8.graphql(query, { projectId });
 
     const fields = result.node?.fields?.nodes || [];
     const iterationField = fields.find((f) => f.configuration?.iterations);
 
     if (!iterationField) {
-      core.warning("No iteration field found in project");
+      lib_core.warning("No iteration field found in project");
       return [];
     }
 
     const iterations = iterationField.configuration.iterations || [];
-    core.info(`Found ${iterations.length} iterations in project`);
+    lib_core.info(`Found ${iterations.length} iterations in project`);
 
     return iterations;
   } catch (error) {
-    core.error(`GraphQL error fetching iterations: ${error.message}`);
+    lib_core.error(`GraphQL error fetching iterations: ${error.message}`);
     return [];
   }
 }
@@ -34192,9 +34213,9 @@ async function findIteration(owner, projectNumber, iterationTitle, isOrg = true)
   );
 
   if (iteration) {
-    core.info(`Found iteration: ${iteration.title}`);
+    lib_core.info(`Found iteration: ${iteration.title}`);
   } else {
-    core.warning(`Iteration "${iterationTitle}" not found in project #${projectNumber}`);
+    lib_core.warning(`Iteration "${iterationTitle}" not found in project #${projectNumber}`);
   }
 
   return iteration || null;
@@ -34256,13 +34277,40 @@ function parseMilestoneNumber(commandArgs) {
     return parseInt(mFlagMatch[1], 10);
   }
 
-  // Try to extract standalone number at the end
-  const standaloneMatch = commandArgs.match(/(\d+)$/);
+  // Try to extract standalone number at the beginning
+  const standaloneMatch = commandArgs.match(/^(\d+)/);
   if (standaloneMatch) {
     return parseInt(standaloneMatch[1], 10);
   }
 
   throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+}
+
+/**
+ * Parse milestone description from command arguments
+ * The description is everything that's not a --milestone or -m flag
+ *
+ * @param {string} commandArgs - Command arguments string
+ * @returns {string} Parsed description
+ * @throws {Error} If description is missing or empty
+ */
+function parseMilestoneDescription(commandArgs) {
+  if (!commandArgs || commandArgs.trim().length === 0) {
+    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+  }
+
+  // Remove --milestone or -m flags from the description
+  let description = commandArgs;
+  description = description.replace(/--milestone[=\s]+\d+/g, '').trim();
+  description = description.replace(/-m[=\s]+\d+/g, '').trim();
+  // Remove standalone number at the beginning (must be followed by space or end of string)
+  description = description.replace(/^\d+(\s+|$)/, '').trim();
+
+  if (description.length === 0) {
+    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+  }
+
+  return description;
 }
 
 /**
@@ -34277,7 +34325,7 @@ async function validateProjectIteration(owner, milestoneNumber, config) {
   // Check if project config exists
   const projectNumber = config?.project?.number;
   if (!projectNumber) {
-    core.info('No project configured, skipping iteration validation');
+    lib_core.info('No project configured, skipping iteration validation');
     return { validated: false, reason: 'no-project-configured' };
   }
 
@@ -34287,10 +34335,10 @@ async function validateProjectIteration(owner, milestoneNumber, config) {
   const iteration = await findIteration(owner, projectNumber, iterationTitle, isOrg);
 
   if (iteration) {
-    core.info(`Found project iteration: ${iteration.title}`);
+    lib_core.info(`Found project iteration: ${iteration.title}`);
     return { validated: true, iteration };
   } else {
-    core.warning(`Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`);
+    lib_core.warning(`Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`);
     return {
       validated: false,
       reason: 'iteration-not-found',
@@ -34323,13 +34371,13 @@ async function commitPlanningDocs(milestoneNumber, files) {
   } else {
     // Switch to existing branch
     await (0,git/* runGitCommand */.tD)(`git switch ${branchName}`);
-    core.info(`Switched to existing branch: ${branchName}`);
+    lib_core.info(`Switched to existing branch: ${branchName}`);
   }
 
   // Stage all planning files
   for (const file of files) {
     await (0,git/* runGitCommand */.tD)(`git add "${file.path}"`);
-    core.info(`Staged ${file.path}`);
+    lib_core.info(`Staged ${file.path}`);
   }
 
   // Create commit with planning docs
@@ -34340,7 +34388,7 @@ async function commitPlanningDocs(milestoneNumber, files) {
 
 Generated by GSD Bot"`);
 
-  core.info(`Committed ${files.length} planning files to ${branchName}`);
+  lib_core.info(`Committed ${files.length} planning files to ${branchName}`);
 }
 
 /**
@@ -34363,80 +34411,39 @@ Generated by GSD Bot"`);
  */
 async function executeMilestoneWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = (0,lib_github/* getWorkflowRunUrl */.gx)();
+  const workflowUrl = (0,src_lib_github/* getWorkflowRunUrl */.gx)();
 
-  core.info(`Starting milestone workflow for ${owner}/${repo}#${issueNumber}`);
+  lib_core.info(`Starting milestone workflow for ${owner}/${repo}#${issueNumber}`);
 
   try {
     // Step 1: Parse milestone number from arguments
     const milestoneNumber = parseMilestoneNumber(commandArgs);
-    core.info(`Parsed milestone number: ${milestoneNumber}`);
+    lib_core.info(`Parsed milestone number: ${milestoneNumber}`);
 
-    // Step 2: Load existing state or create initial state
+    // Step 2: Parse milestone description from arguments (REQUIRED)
+    const description = parseMilestoneDescription(commandArgs);
+    lib_core.info(`Parsed milestone description: ${description.substring(0, 100)}...`);
+
+    // Step 3: Load existing state or create initial state
     let state = await loadState(owner, repo, milestoneNumber);
 
-    // Step 3: Update workflow metadata (run count, last run time)
+    // Step 4: Update workflow metadata (run count, last run time)
     updateWorkflowRun(state);
 
-    // Step 4: Get new comments since last processed
-    const lastProcessedId = state.workflow?.lastCommentId || 0;
-    const newComments = await getNewComments(owner, repo, issueNumber, lastProcessedId);
+    // Step 5: Skip Q&A gathering - use description directly
+    lib_core.info("Using provided description, skipping requirements gathering Q&A");
 
-    // Step 5: Parse user answers from new comments
-    const userAnswers = parseUserAnswers(newComments);
+    // Populate requirements with description
+    state.requirements.answered = {
+      scope: description,
+      features: description
+    };
 
-    // Step 6: Merge new answers into state
-    if (userAnswers.length > 0) {
-      for (const answer of userAnswers) {
-        const parsedAnswers = parseAnswersFromResponse(answer.body, DEFAULT_QUESTIONS, state.requirements.answered);
-
-        // Update state with each parsed answer
-        for (const [questionId, answerText] of Object.entries(parsedAnswers)) {
-          updateRequirementsAnswer(state, questionId, answerText, answer.commentId);
-        }
-      }
-    }
-
-    // Initialize pending questions if not already done
-    if (!state.requirements.pending || state.requirements.pending.length === 0) {
-      initializePendingQuestions(state, DEFAULT_QUESTIONS);
-    }
-
-    // Step 7: Check if requirements gathering is complete
-    const requirementsComplete = isRequirementsComplete(state, DEFAULT_QUESTIONS);
-
-    if (!requirementsComplete) {
-      // Requirements not yet complete - post pending questions
-      core.info("Requirements not complete, posting pending questions");
-
-      const questionsMarkdown = formatRequirementsQuestions(
-        DEFAULT_QUESTIONS,
-        state.requirements.answered
-      );
-
-      await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, questionsMarkdown);
-
-      // Save state for next run
-      await saveState(owner, repo, milestoneNumber, state);
-
-      return {
-        complete: false,
-        phase: "requirements-gathering",
-        milestone: milestoneNumber,
-        answered: Object.keys(state.requirements.answered),
-        pending: state.requirements.pending,
-        message: "Waiting for user answers to complete requirements gathering"
-      };
-    }
-
-    // Step 8: Requirements complete - transition to planning phase
-    core.info("All required questions answered, creating planning documents");
-
-    // Mark requirements as complete
+    // Mark requirements as complete immediately
     markRequirementsComplete(state);
     state.status = "planning";
 
-    // Build milestone data for planning documents
+    // Step 6: Build milestone data for planning documents
     const milestoneData = {
       owner,
       repo,
@@ -34458,24 +34465,24 @@ async function executeMilestoneWorkflow(context, commandArgs) {
       runCount: state.workflow?.runCount || 1
     };
 
-    // Step 9: Create planning documents
+    // Step 7: Create planning documents
     const files = await (0,planning_docs/* createPlanningDocs */.Hm)(milestoneData);
     const fileList = Object.values(files);
 
-    // Step 10: Commit all files to milestone branch
+    // Step 8: Commit all files to milestone branch
     await commitPlanningDocs(milestoneNumber, fileList);
 
-    // Step 11: Save final state
+    // Step 9: Save final state
     await saveState(owner, repo, milestoneNumber, state, milestoneData.phases);
 
-    // Step 12: Generate and post summary comment
+    // Step 10: Generate and post summary comment
     const nextSteps = [
       "Review the planning documents in `.github/planning/milestones/`",
       "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
       "Use `@gsd-bot execute-phase` to execute planned work"
     ];
 
-    // Step 13: Validate project iteration
+    // Step 11: Validate project iteration
     const config = await (0,lib_config/* loadConfig */.Z)(owner, repo);
     const validationResult = await validateProjectIteration(owner, milestoneNumber, config);
 
@@ -34496,9 +34503,9 @@ async function executeMilestoneWorkflow(context, commandArgs) {
       nextSteps
     });
 
-    await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, summary);
+    await (0,src_lib_github/* postComment */.Gy)(owner, repo, issueNumber, summary);
 
-    core.info(`Milestone ${milestoneNumber} workflow complete`);
+    lib_core.info(`Milestone ${milestoneNumber} workflow complete`);
 
     return {
       complete: true,
@@ -34511,11 +34518,11 @@ async function executeMilestoneWorkflow(context, commandArgs) {
     };
 
   } catch (error) {
-    core.error(`Milestone workflow error: ${error.message}`);
+    lib_core.error(`Milestone workflow error: ${error.message}`);
 
     // Post error comment
     const errorComment = (0,formatter/* formatErrorComment */.l)(error, "milestone creation");
-    await (0,lib_github/* postComment */.Gy)(owner, repo, issueNumber, errorComment);
+    await (0,src_lib_github/* postComment */.Gy)(owner, repo, issueNumber, errorComment);
 
     throw error;
   }
