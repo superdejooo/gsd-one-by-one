@@ -32506,7 +32506,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(4241);
 /* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(9992);
 /* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(339);
-/* harmony import */ var _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__ = __nccwpck_require__(1200);
+/* harmony import */ var _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__ = __nccwpck_require__(3244);
 
 
 
@@ -32890,6 +32890,7 @@ function getDefaultConfig() {
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
 /* harmony export */   A8: () => (/* binding */ octokit),
 /* harmony export */   Gy: () => (/* binding */ postComment),
+/* harmony export */   Jh: () => (/* binding */ updateIssueBody),
 /* harmony export */   gx: () => (/* binding */ getWorkflowRunUrl)
 /* harmony export */ });
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
@@ -32919,6 +32920,23 @@ async function postComment(owner, repo, issueNumber, body) {
     body,
   });
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Comment posted to issue #${issueNumber}`);
+}
+
+/**
+ * Update issue body with new content
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {string} body - New body content
+ * @returns {Promise<void>}
+ */
+async function updateIssueBody(owner, repo, issueNumber, body) {
+  await octokit.rest.issues.update({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    body,
+  });
 }
 
 /**
@@ -34970,17 +34988,133 @@ function generatePhasesFromRequirements(answers) {
 
 /***/ }),
 
-/***/ 1200:
+/***/ 3244:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   b: () => (/* binding */ executeLabelTriggerWorkflow)
-/* harmony export */ });
-/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
-/* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5317);
-/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
-/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
-/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(8330);
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  b: () => (/* binding */ executeLabelTriggerWorkflow)
+});
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(7484);
+// EXTERNAL MODULE: external "child_process"
+var external_child_process_ = __nccwpck_require__(5317);
+// EXTERNAL MODULE: external "util"
+var external_util_ = __nccwpck_require__(9023);
+// EXTERNAL MODULE: external "fs/promises"
+var promises_ = __nccwpck_require__(1943);
+// EXTERNAL MODULE: ./src/llm/ccr-command.js
+var ccr_command = __nccwpck_require__(8330);
+;// CONCATENATED MODULE: ./src/lib/planning-parser.js
+/**
+ * Parsers for GSD planning artifact files (REQUIREMENTS.md, ROADMAP.md)
+ * Used to extract milestone metadata after new-milestone workflow completes
+ */
+
+
+
+/**
+ * Parse REQUIREMENTS.md to extract milestone metadata
+ * @returns {Promise<{title: string, version: string, coreValue: string} | null>}
+ */
+async function parseRequirements() {
+  try {
+    const content = await promises_.readFile(".planning/REQUIREMENTS.md", "utf-8");
+
+    // Extract title from first H1: # Requirements: GSD for GitHub v1.1
+    // Pattern: # Requirements: {title} v{version}
+    const titleMatch = content.match(
+      /^#\s+Requirements:\s+(.+?)\s+v(\d+\.\d+)/m,
+    );
+
+    // Extract Core Value paragraph
+    const coreValueMatch = content.match(
+      /\*\*Core Value:\*\*\s+(.+?)(?:\n\n|\n##)/s,
+    );
+
+    if (!titleMatch) {
+      core.warning("Could not parse title from REQUIREMENTS.md");
+      return null;
+    }
+
+    return {
+      title: titleMatch[1].trim(),
+      version: `v${titleMatch[2]}`,
+      coreValue: coreValueMatch ? coreValueMatch[1].trim() : null,
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info("REQUIREMENTS.md not found (no active milestone)");
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Parse ROADMAP.md to extract phase information
+ * @returns {Promise<{phases: Array<{number: string, name: string, status: string}>}>}
+ */
+async function parseRoadmap() {
+  try {
+    const content = await promises_.readFile(".planning/ROADMAP.md", "utf-8");
+
+    const phases = [];
+
+    // Match phase headers: ### Phase N: Phase Name
+    // Also match status: **Status:** Complete or **Status:** Not started
+    const phasePattern = /###\s+Phase\s+(\d+(?:\.\d+)?):?\s+(.+?)(?:\n|$)/g;
+    let match;
+
+    while ((match = phasePattern.exec(content)) !== null) {
+      const phaseNumber = match[1];
+      const phaseName = match[2].trim();
+
+      // Find status for this phase (appears after the header)
+      const afterPhase = content.slice(match.index);
+      const statusMatch = afterPhase.match(
+        /\*\*Status:\*\*\s+(Complete|Not started|In progress)/i,
+      );
+      const status = statusMatch ? statusMatch[1].toLowerCase() : "not started";
+
+      phases.push({
+        number: phaseNumber,
+        name: phaseName,
+        status: status.replace(" ", "-"), // "not started" -> "not-started"
+      });
+    }
+
+    return { phases };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info("ROADMAP.md not found");
+      return { phases: [] };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Parse both files and return combined milestone metadata
+ * @returns {Promise<{title: string, version: string, coreValue: string, phases: Array}>}
+ */
+async function parseMilestoneMetadata() {
+  const [requirements, roadmap] = await Promise.all([
+    parseRequirements(),
+    parseRoadmap(),
+  ]);
+
+  return {
+    ...requirements,
+    phases: roadmap.phases,
+  };
+}
+
+// EXTERNAL MODULE: ./src/lib/github.js
+var github = __nccwpck_require__(739);
+;// CONCATENATED MODULE: ./src/milestone/label-trigger.js
 /**
  * Label Trigger Workflow Module
  *
@@ -34994,7 +35128,9 @@ function generatePhasesFromRequirements(answers) {
 
 
 
-const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
+
+
+const execAsync = (0,external_util_.promisify)(external_child_process_.exec);
 
 /**
  * Execute the label trigger workflow
@@ -35018,26 +35154,26 @@ const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(child_process_
 async function executeLabelTriggerWorkflow(context) {
   const { owner, repo, issueNumber, issueTitle, issueBody } = context;
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
+  core.info(
     `Starting label trigger workflow for ${owner}/${repo}#${issueNumber}`,
   );
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Issue title: ${issueTitle}`);
+  core.info(`Issue title: ${issueTitle}`);
 
   try {
     // Step 1: Join title and body with --- separator
     const prompt = `${issueTitle}\n---\n${issueBody || ""}`;
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Formatted prompt (${prompt.length} chars)`);
+    core.info(`Formatted prompt (${prompt.length} chars)`);
 
     // Step 2: Execute GSD new-milestone via CCR with prompt
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_4__/* .formatCcrCommandWithOutput */ .e)(
+    const command = (0,ccr_command/* formatCcrCommandWithOutput */.e)(
       "/gsd:new-milestone",
       outputPath,
       prompt, // Pass issue content as prompt
       null, // No skill override
     );
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+    core.info(`Executing: ${command}`);
 
     // Step 3: Execute command with 10 minute timeout (same as phase planner)
     let exitCode = 0;
@@ -35045,13 +35181,13 @@ async function executeLabelTriggerWorkflow(context) {
       await execAsync(command, { timeout: 600000 });
     } catch (error) {
       exitCode = error.code || 1;
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+      core.warning(`Command exited with code ${exitCode}`);
     }
 
     // Step 4: Read captured output
     let output = "";
     try {
-      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+      output = await promises_.readFile(outputPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }
@@ -35069,20 +35205,99 @@ async function executeLabelTriggerWorkflow(context) {
 
     // Cleanup output file
     try {
-      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
+      await promises_.unlink(outputPath);
     } catch (e) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+      core.warning(`Failed to cleanup output file: ${e.message}`);
     }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Label trigger workflow complete`);
+    core.info(`Label trigger workflow complete`);
+
+    // Step 4: Parse milestone metadata from generated files
+    let metadata;
+    try {
+      metadata = await parseMilestoneMetadata();
+    } catch (parseError) {
+      core.warning(
+        `Failed to parse milestone metadata: ${parseError.message}`,
+      );
+      return { complete: true, phase: "gsd-complete-no-metadata" };
+    }
+
+    if (!metadata || !metadata.title) {
+      core.warning(
+        "Could not parse milestone metadata, skipping issue update",
+      );
+      return { complete: true, phase: "gsd-complete-no-metadata" };
+    }
+
+    // Step 5: Format milestone info section
+    const phaseList =
+      metadata.phases.length > 0
+        ? metadata.phases
+            .map((p) => `- [ ] Phase ${p.number}: ${p.name} (${p.status})`)
+            .join("\n")
+        : "- No phases defined yet";
+
+    const milestoneSection = `
+
+---
+
+## Milestone Created: ${metadata.title} ${metadata.version}
+
+${metadata.coreValue ? `**Core Value:** ${metadata.coreValue}` : ""}
+
+### Phases
+
+${phaseList}
+
+---
+*Created by GSD Bot via "good first issue" label*
+`;
+
+    // Step 6: Update issue body (append milestone info to original)
+    const originalBody = issueBody || "";
+    const updatedBody = originalBody + milestoneSection;
+
+    try {
+      await (0,github/* updateIssueBody */.Jh)(owner, repo, issueNumber, updatedBody);
+      core.info(`Updated issue #${issueNumber} with milestone info`);
+    } catch (updateError) {
+      core.error(`Failed to update issue body: ${updateError.message}`);
+      // Don't fail workflow - core work (GSD) is done
+    }
+
+    // Step 7: Post success comment
+    try {
+      await (0,github/* postComment */.Gy)(
+        owner,
+        repo,
+        issueNumber,
+        `## Milestone Created
+
+**${metadata.title}** (${metadata.version}) has been created from this issue.
+
+${metadata.phases.length} phase(s) defined. See the updated issue body for details.
+
+Next steps:
+- Review planning docs in \`.planning/\`
+- Use \`@gsd-bot plan-phase N\` to plan each phase
+- Use \`@gsd-bot execute-phase N\` to implement`,
+      );
+      core.info("Success comment posted");
+    } catch (commentError) {
+      core.error(`Failed to post success comment: ${commentError.message}`);
+      // Don't fail workflow - core work is done
+    }
 
     return {
       complete: true,
-      output,
-      message: "Label trigger completed successfully",
+      phase: "milestone-created",
+      title: metadata.title,
+      version: metadata.version,
+      phaseCount: metadata.phases.length,
     };
   } catch (error) {
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Label trigger workflow error: ${error.message}`);
+    core.error(`Label trigger workflow error: ${error.message}`);
     throw error;
   }
 }
