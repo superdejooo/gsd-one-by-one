@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-01-22)
 
 Milestone: v1.1 (Plan & Execute Commands)
 Phase: 10 of 10 (Test for Each Service, Method, Feature and Flow)
-Plan: 05 of 05 complete
-Status: Phase 10 complete
-Last activity: 2026-01-23 — Completed 10-05-PLAN.md (Workflow Orchestrator & Config Tests)
+Plan: 06 of 07 complete
+Status: Phase 10 in progress
+Last activity: 2026-01-23 — Completed 10-06-PLAN.md (Entry Point Integration Tests)
 
-**Progress:** ████ 5/5 plans in Phase 10 (100%)
-**Overall v1.1:** ██████████ 5/5 phases complete (100%)
+**Progress:** █████░ 6/7 plans in Phase 10 (86%)
+**Overall v1.1:** ██████████ 5/5 phases in progress (100%)
 
 ## v1.0 Performance Summary
 
@@ -40,9 +40,9 @@ Last activity: 2026-01-23 — Completed 10-05-PLAN.md (Workflow Orchestrator & C
 ## v1.1 Performance Summary (Plan & Execute Commands)
 
 **Velocity:**
-- Plans completed: 10 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01, 10-02, 10-03, 10-04, 10-05)
-- Average duration: 3.6 min
-- Total execution time: 0.6 hours
+- Plans completed: 11 (07-01, 08-01, 08.1-01, 08.1-02, 08.1-03, 10-01, 10-02, 10-03, 10-04, 10-05, 10-06)
+- Average duration: 3.7 min
+- Total execution time: 0.68 hours
 
 **By Phase (v1.1):**
 
@@ -51,7 +51,7 @@ Last activity: 2026-01-23 — Completed 10-05-PLAN.md (Workflow Orchestrator & C
 | 07    | 1     | 7 min | 7 min    |
 | 08    | 1     | 2 min | 2 min    |
 | 08.1  | 3     | 6 min | 2 min    |
-| 10    | 5     | 21 min | 4.2 min |
+| 10    | 6     | 28 min | 4.7 min |
 
 ---
 
@@ -198,6 +198,14 @@ Recent decisions affecting current work:
 - Overall project coverage at 94.15% (exceeds 80% threshold)
 - All 347 tests passing across 20 test files
 
+**From 10-06 (Entry Point Integration Tests):**
+- Use dynamic imports with query parameters to test module with different mock configurations
+- Capture operation callback from withErrorHandling to test command dispatch logic
+- Test all three command dispatch paths (new-milestone, plan-phase, execute-phase)
+- Verify authorization check happens before command execution via call order tracking
+- Accept 84% statement coverage (fallback path difficult to test due to module execution pattern)
+- All 12 integration tests passing, 254 total tests in suite
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -213,8 +221,8 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-23
-Stopped at: Completed 10-05-PLAN.md
-Resume file: None (Phase 10 complete)
+Stopped at: Completed 10-06-PLAN.md
+Resume file: None
 
 ## Roadmap Evolution
 
@@ -232,9 +240,12 @@ Resume file: None (Phase 10 complete)
   - Run `/gsd:plan-phase 9` to create execution plans
 - [ ] Phase 10: Test for Each Service, Method, Feature and Flow (in progress)
   - [x] 10-01: Test Infrastructure Setup (complete)
-  - [ ] 10-02: lib/ Module Tests
+  - [x] 10-02: lib/ Module Tests (complete)
   - [x] 10-03: GitHub API Integration Tests (complete)
   - [x] 10-04: Git Operations & Workflow Tests (complete)
+  - [x] 10-05: Workflow Orchestrator & Config Tests (complete)
+  - [x] 10-06: Entry Point Integration Tests (complete)
+  - [ ] 10-07: Final wave (remaining)
 
 ---
 
