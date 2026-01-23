@@ -33299,10 +33299,13 @@ function sanitizeArguments(args) {
 /**
  * Format a GSD command for CCR execution
  *
- * Pattern: /gsd:{command} /github-actions-testing {prompt?}
+ * Pattern: /gsd:{command} /{skill} /github-actions-testing {prompt?}
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
- * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
+ * @param {string|null} prompt - Optional prompt to append at end of command
+ * @param {string|null} skill - Optional skill name to load before github-actions-testing
+ *                               Valid values: github-actions-templates, github-actions-testing,
+ *                               github-project-management, livewire-principles, refactor
  * @returns {string} Full CCR command string
  *
  * @example
@@ -33312,11 +33315,28 @@ function sanitizeArguments(args) {
  * @example
  * formatCcrCommand("/gsd:new-milestone", "Build a login system")
  * // Returns: 'ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"'
+ *
+ * @example
+ * formatCcrCommand("/gsd:plan-phase 7", null, "github-project-management")
+ * // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-project-management /github-actions-testing"'
  */
-function formatCcrCommand(gsdCommand, prompt = null) {
-  const baseCommand = `${gsdCommand} /github-actions-testing`;
-  const fullCommand = prompt ? `${baseCommand} ${prompt}` : baseCommand;
-  return `ccr code --print "${fullCommand}"`;
+function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
+  let command = gsdCommand;
+
+  // Add skill if provided (before github-actions-testing)
+  if (skill) {
+    command = `${command} /${skill}`;
+  }
+
+  // Always add github-actions-testing
+  command = `${command} /github-actions-testing`;
+
+  // Add prompt at the end if provided
+  if (prompt) {
+    command = `${command} ${prompt}`;
+  }
+
+  return `ccr code --print "${command}"`;
 }
 
 /**
@@ -33324,11 +33344,14 @@ function formatCcrCommand(gsdCommand, prompt = null) {
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
  * @param {string} outputPath - Path to redirect output to
- * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
+ * @param {string|null} prompt - Optional prompt to append at end of command
+ * @param {string|null} skill - Optional skill name to load before github-actions-testing
+ *                               Valid values: github-actions-templates, github-actions-testing,
+ *                               github-project-management, livewire-principles, refactor
  * @returns {string} Full CCR command string with output redirect
  */
-function formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null) {
-  return `${formatCcrCommand(gsdCommand, prompt)} > ${outputPath} 2>&1`;
+function formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null, skill = null) {
+  return `${formatCcrCommand(gsdCommand, prompt, skill)} > ${outputPath} 2>&1`;
 }
 
 
@@ -34655,7 +34678,7 @@ async function executeMilestoneCompletionWorkflow(context) {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)('/gsd:complete-milestone', outputPath);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)('/gsd:complete-milestone', outputPath, null, null);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -35053,7 +35076,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(gsdCommand, outputPath);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(gsdCommand, outputPath, null, null);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -35303,7 +35326,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(`/gsd:plan-phase ${phaseNumber}`, outputPath);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, null);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 

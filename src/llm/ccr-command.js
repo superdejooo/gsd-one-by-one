@@ -8,11 +8,11 @@
 /**
  * Format a GSD command for CCR execution
  *
- * Pattern: /gsd:{command} /github-actions-testing {prompt?}
+ * Pattern: /gsd:{command} /{skill} /github-actions-testing {prompt?}
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
- * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
- * @param {string|null} skill - Optional skill name (placeholder for future use, not included in command yet)
+ * @param {string|null} prompt - Optional prompt to append at end of command
+ * @param {string|null} skill - Optional skill name to load before github-actions-testing
  *                               Valid values: github-actions-templates, github-actions-testing,
  *                               github-project-management, livewire-principles, refactor
  * @returns {string} Full CCR command string
@@ -26,15 +26,26 @@
  * // Returns: 'ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"'
  *
  * @example
- * formatCcrCommand("/gsd:plan-phase 7", null, "github-actions-testing")
- * // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"'
- * // Note: skill parameter is accepted but not used yet (placeholder for future)
+ * formatCcrCommand("/gsd:plan-phase 7", null, "github-project-management")
+ * // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-project-management /github-actions-testing"'
  */
 export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
-  // Note: skill parameter is accepted but not used yet (placeholder for future)
-  const baseCommand = `${gsdCommand} /github-actions-testing`;
-  const fullCommand = prompt ? `${baseCommand} ${prompt}` : baseCommand;
-  return `ccr code --print "${fullCommand}"`;
+  let command = gsdCommand;
+
+  // Add skill if provided (before github-actions-testing)
+  if (skill) {
+    command = `${command} /${skill}`;
+  }
+
+  // Always add github-actions-testing
+  command = `${command} /github-actions-testing`;
+
+  // Add prompt at the end if provided
+  if (prompt) {
+    command = `${command} ${prompt}`;
+  }
+
+  return `ccr code --print "${command}"`;
 }
 
 /**
@@ -42,8 +53,8 @@ export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
  * @param {string} outputPath - Path to redirect output to
- * @param {string|null} prompt - Optional prompt to append after /github-actions-testing
- * @param {string|null} skill - Optional skill name (placeholder for future use, not included in command yet)
+ * @param {string|null} prompt - Optional prompt to append at end of command
+ * @param {string|null} skill - Optional skill name to load before github-actions-testing
  *                               Valid values: github-actions-templates, github-actions-testing,
  *                               github-project-management, livewire-principles, refactor
  * @returns {string} Full CCR command string with output redirect

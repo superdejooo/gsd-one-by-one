@@ -35,17 +35,16 @@ describe('ccr-command', () => {
       expect(result).toBe('ccr code --print "/gsd:plan-phase 7 /github-actions-testing"');
     });
 
-    it('accepts skill parameter without changing output', () => {
-      const result = formatCcrCommand('/gsd:plan-phase 7', null, 'github-actions-testing');
+    it('includes skill in command when provided', () => {
+      const result = formatCcrCommand('/gsd:plan-phase 7', null, 'github-project-management');
 
-      expect(result).toBe('ccr code --print "/gsd:plan-phase 7 /github-actions-testing"');
+      expect(result).toBe('ccr code --print "/gsd:plan-phase 7 /github-project-management /github-actions-testing"');
     });
 
-    it('accepts skill with prompt parameter', () => {
+    it('includes skill with prompt parameter', () => {
       const result = formatCcrCommand('/gsd:new-milestone', 'Build login', 'refactor');
 
-      // skill is accepted but not used yet - output unchanged
-      expect(result).toBe('ccr code --print "/gsd:new-milestone /github-actions-testing Build login"');
+      expect(result).toBe('ccr code --print "/gsd:new-milestone /refactor /github-actions-testing Build login"');
     });
   });
 
@@ -74,18 +73,16 @@ describe('ccr-command', () => {
       expect(result).toBe('ccr code --print "/gsd:execute-phase 3 /github-actions-testing" > output.txt 2>&1');
     });
 
-    it('passes skill through to formatCcrCommand', () => {
-      const result = formatCcrCommandWithOutput('/gsd:plan-phase 5', 'output.txt', null, 'github-actions-testing');
+    it('includes skill in command when provided', () => {
+      const result = formatCcrCommandWithOutput('/gsd:plan-phase 5', 'output.txt', null, 'github-project-management');
 
-      // skill is accepted but not used yet - output unchanged
-      expect(result).toBe('ccr code --print "/gsd:plan-phase 5 /github-actions-testing" > output.txt 2>&1');
+      expect(result).toBe('ccr code --print "/gsd:plan-phase 5 /github-project-management /github-actions-testing" > output.txt 2>&1');
     });
 
-    it('accepts all parameters including skill', () => {
+    it('includes skill with prompt in command', () => {
       const result = formatCcrCommandWithOutput('/gsd:new-milestone', 'output.txt', 'Build API', 'refactor');
 
-      // skill is accepted but not used yet - output unchanged
-      expect(result).toBe('ccr code --print "/gsd:new-milestone /github-actions-testing Build API" > output.txt 2>&1');
+      expect(result).toBe('ccr code --print "/gsd:new-milestone /refactor /github-actions-testing Build API" > output.txt 2>&1');
     });
   });
 });
