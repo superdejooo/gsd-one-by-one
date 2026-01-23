@@ -6,7 +6,10 @@
   "scripts": {
     "build": "ncc build src/index.js --license licenses.txt && rm -f dist/package.json",
     "setup:ccr": "node --input-type=module -e \"import {generateCCRConfig} from './src/llm/config-generator.js'; generateCCRConfig()\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
   },
   "keywords": [
     "claude",
@@ -26,6 +29,8 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.4",
-    "vitest": "^4.0.18"
+    "@vitest/coverage-v8": "^4.0.18",
+    "vitest": "^4.0.18",
+    "vitest-fetch-mock": "^0.4.5"
   }
 }
