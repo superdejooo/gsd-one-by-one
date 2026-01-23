@@ -16,9 +16,7 @@ concurrency:
 jobs:
   handle-gsd-command:
     # Only run on @gsd-bot execute-phase command, not from bots
-    if: |
-      github.event.comment.user.type != 'Bot' &&
-      contains(github.event.comment.body, '@gsd-bot execute-phase')
+    if: github.event.comment.user.type != 'Bot' && contains(github.event.comment.body, '@gsd-bot execute-phase')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
