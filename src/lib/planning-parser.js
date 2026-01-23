@@ -1,3 +1,7 @@
+/**
+ * Parsers for GSD planning artifact files (REQUIREMENTS.md, ROADMAP.md)
+ * Used to extract milestone metadata after new-milestone workflow completes
+ */
 import fs from "fs/promises";
 import * as core from "@actions/core";
 
@@ -41,7 +45,7 @@ export async function parseRequirements() {
 
 /**
  * Parse ROADMAP.md to extract phase information
- * @returns {Promise<{phases: Array<{number: number, name: string, status: string}>}>}
+ * @returns {Promise<{phases: Array<{number: string, name: string, status: string}>}>}
  */
 export async function parseRoadmap() {
   try {
