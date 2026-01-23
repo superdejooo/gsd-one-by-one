@@ -167,6 +167,45 @@ export async function executePhaseWorkflow(context, commandArgs) {
     // Post success - pass through GSD output
     await postComment(owner, repo, issueNumber, output);
 
+    // Step 6: Create GitHub issues for tasks
+    let createdIssues = [];
+    try {
+      const planFiles = await findPlanFiles(phaseNumber);
+
+      if (planFiles.length === 0) {
+        core.warning('No PLAN.md files found, skipping issue creation');
+      } else {
+        const phaseName = extractPhaseName(planFiles[0].phaseDir);
+
+        for (const planFile of planFiles) {
+          core.info(`Processing ${planFile.filename}`);
+          const planContent = await fs.readFile(planFile.path, 'utf-8');
+          const tasks = extractTasksFromPlan(planContent);
+
+          if (tasks.length > 0) {
+            const issues = await createIssuesForTasks(
+              owner, repo, tasks, phaseNumber, phaseName
+            );
+            createdIssues.push(...issues);
+          }
+        }
+
+        // Post follow-up comment with issue links
+        if (createdIssues.length > 0) {
+          const issueList = createdIssues
+            .map(i => `- [ ] #${i.number} - ${i.taskName}`)
+            .join('\n');
+
+          await postComment(owner, repo, issueNumber,
+            `## Issues Created\n\n${issueList}\n\n*Track progress by checking off completed issues.*`
+          );
+        }
+      }
+    } catch (issueError) {
+      core.warning(`Issue creation failed: ${issueError.message}`);
+      // Don't fail the workflow - planning succeeded, issues are supplementary
+    }
+
     // Cleanup output file
     try {
       await fs.unlink(outputPath);
@@ -179,6 +218,7 @@ export async function executePhaseWorkflow(context, commandArgs) {
     return {
       complete: true,
       phaseNumber,
+      issuesCreated: createdIssues.length,
       message: "Phase planning completed successfully"
     };
 
