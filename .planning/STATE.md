@@ -322,6 +322,14 @@ Recent decisions affecting current work:
 - Phase checklist format: '- [ ] Phase N: Name (status)'
 - All 19 tests passing with comprehensive coverage of issue update flow
 
+**From quick-008 (Reply Command):**
+
+- Empty gsdCommand pattern: Pass empty string to formatCcrCommandWithOutput for direct prompts
+- formatCcrCommandWithOutput('', outputPath, text, skill) produces clean prompt execution
+- Reply timeout: 10 minutes (matches conversational commands, not execution-heavy like execute-phase)
+- Reply workflow follows same orchestration pattern as phase-planner (validate, execute, post, cleanup)
+- 4 comprehensive tests: happy path, empty text validation, skill support, error handling
+
 ### Pending Todos
 
 [From .planning/todos/pending/ — ideas captured during sessions]
@@ -345,14 +353,15 @@ None yet.
 | 005 | Add prompt parameter to formatCcrCommand                              | 2026-01-23 | d2898b6 | [005-add-prompt-parameter-to-formatccrcommand](./quick/005-add-prompt-parameter-to-formatccrcommand/) |
 | 006 | Add skill parameter with SKILL_COMMAND_MAP validation                 | 2026-01-23 | f642b38 | [006-add-skill-parameter-to-formatccrcommand](./quick/006-add-skill-parameter-to-formatccrcommand/)   |
 | 007 | Add skill system documentation                                        | 2026-01-23 | 5a243d8 | [007-skill-system-documentation](./quick/007-skill-system-documentation/)                             |
+| 008 | Add new gsd reply command with text parameter                         | 2026-01-23 | 01ef0cc | [008-add-new-gsd-reply-command-with-text-para](./quick/008-add-new-gsd-reply-command-with-text-para/) |
 
 ## Session Continuity
 
-Last session: 2026-01-23T13:26:19+01:00
-Stopped at: Completed 13-04-PLAN.md
+Last session: 2026-01-23T17:25:36+01:00
+Stopped at: Completed quick-008
 Resume file: None
 
-Last activity: 2026-01-23 — Completed 13-04-PLAN.md: Complete label trigger with issue update
+Last activity: 2026-01-23 — Completed quick-008: Add new gsd reply command with text parameter
 
 ## Roadmap Evolution
 
