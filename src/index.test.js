@@ -194,4 +194,171 @@ describe('index.js command dispatch', () => {
     expect(core.getInput).toHaveBeenCalledWith('repo-name');
     expect(core.getInput).toHaveBeenCalledWith('comment-body');
   });
+
+  it('returns commandFound: false when bot not mentioned', async () => {
+    vi.mocked(parseComment).mockReturnValue(null);
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    const result = await capturedOperation();
+
+    expect(result.commandFound).toBe(false);
+    expect(core.setOutput).toHaveBeenCalledWith('command-found', 'false');
+    expect(core.setOutput).toHaveBeenCalledWith('response-posted', 'false');
+  });
+
+  it('returns authorized: false when user lacks permission', async () => {
+    vi.mocked(checkAuthorization).mockResolvedValue({
+      authorized: false,
+      username: 'test-user',
+      reason: 'read only'
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    const result = await capturedOperation();
+
+    expect(result.commandFound).toBe(true);
+    expect(result.authorized).toBe(false);
+    expect(result.reason).toBe('read only');
+    expect(formatAuthorizationError).toHaveBeenCalled();
+    expect(postComment).toHaveBeenCalled();
+    expect(core.setOutput).toHaveBeenCalledWith('command-found', 'true');
+    expect(core.setOutput).toHaveBeenCalledWith('authorized', 'false');
+  });
+
+  it('dispatches to executeMilestoneWorkflow for new-milestone', async () => {
+    vi.mocked(parseComment).mockReturnValue({
+      botMention: '@gsd-bot new-milestone',
+      command: 'new-milestone',
+      args: ''
+    });
+
+    vi.mocked(executeMilestoneWorkflow).mockResolvedValue({
+      complete: true,
+      phase: 'requirements'
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    const result = await capturedOperation();
+
+    expect(executeMilestoneWorkflow).toHaveBeenCalledWith(
+      { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
+      {}
+    );
+    expect(result.commandFound).toBe(true);
+    expect(result.command).toBe('new-milestone');
+    expect(result.complete).toBe(true);
+    expect(core.setOutput).toHaveBeenCalledWith('milestone-complete', true);
+    expect(core.setOutput).toHaveBeenCalledWith('milestone-phase', 'requirements');
+  });
+
+  it('dispatches to executePhaseWorkflow for plan-phase', async () => {
+    vi.mocked(parseComment).mockReturnValue({
+      botMention: '@gsd-bot plan-phase 7',
+      command: 'plan-phase',
+      args: '7'
+    });
+
+    vi.mocked(executePhaseWorkflow).mockResolvedValue({
+      complete: true,
+      phaseNumber: 7
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    const result = await capturedOperation();
+
+    expect(executePhaseWorkflow).toHaveBeenCalledWith(
+      { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
+      '7'
+    );
+    expect(result.commandFound).toBe(true);
+    expect(result.command).toBe('plan-phase');
+    expect(core.setOutput).toHaveBeenCalledWith('phase-planned', true);
+    expect(core.setOutput).toHaveBeenCalledWith('phase-number', 7);
+  });
+
+  it('dispatches to executePhaseExecutionWorkflow for execute-phase', async () => {
+    vi.mocked(parseComment).mockReturnValue({
+      botMention: '@gsd-bot execute-phase 7',
+      command: 'execute-phase',
+      args: '7'
+    });
+
+    vi.mocked(executePhaseExecutionWorkflow).mockResolvedValue({
+      complete: true,
+      phaseNumber: 7,
+      hasQuestions: false
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    const result = await capturedOperation();
+
+    expect(executePhaseExecutionWorkflow).toHaveBeenCalledWith(
+      { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
+      '7'
+    );
+    expect(result.commandFound).toBe(true);
+    expect(result.command).toBe('execute-phase');
+    expect(core.setOutput).toHaveBeenCalledWith('phase-executed', true);
+    expect(core.setOutput).toHaveBeenCalledWith('phase-number', 7);
+    expect(core.setOutput).toHaveBeenCalledWith('has-questions', false);
+  });
+
+  it('validates command before execution', async () => {
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    await capturedOperation();
+
+    expect(validateCommand).toHaveBeenCalledWith('new-milestone');
+  });
+
+  it('sanitizes arguments before passing to workflow', async () => {
+    vi.mocked(parseArguments).mockReturnValue({ name: 'test;name' });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    await capturedOperation();
+
+    expect(sanitizeArguments).toHaveBeenCalled();
+  });
+
+  it('authorization check happens before command execution', async () => {
+    // Track call order
+    const callOrder = [];
+    vi.mocked(checkAuthorization).mockImplementation(async () => {
+      callOrder.push('checkAuthorization');
+      return { authorized: true, username: 'test-user', permission: 'write' };
+    });
+    vi.mocked(executeMilestoneWorkflow).mockImplementation(async () => {
+      callOrder.push('executeMilestoneWorkflow');
+      return { complete: true, phase: 'requirements' };
+    });
+
+    await import('./index.js?t=' + Date.now());
+
+    // Verify operation was executed
+    expect(capturedOperation).toBeDefined();
+    await capturedOperation();
+
+    // Authorization must happen before workflow execution
+    expect(callOrder).toEqual(['checkAuthorization', 'executeMilestoneWorkflow']);
+  });
 });
