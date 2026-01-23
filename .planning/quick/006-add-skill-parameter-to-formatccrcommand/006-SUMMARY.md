@@ -2,51 +2,58 @@
 phase: quick
 plan: 006
 type: enhancement
-subsystem: llm
-tags: [ccr, command-formatting, parameters, backward-compatibility]
+subsystem: llm, lib, milestone
+tags: [ccr, command-formatting, skill-selection, validation]
 completed: 2026-01-23
-duration: 2 min
+duration: 15 min
 
 requires: [quick-005]
-provides: ["Skill parameter included in CCR command string"]
-affects: [future skill selection features]
+provides: ["Full skill parameter flow from command parsing to CCR execution"]
+affects: [all @gsd-bot commands]
 
 tech-stack:
   added: []
-  patterns: ["Parameter threading pattern for future features"]
+  patterns: ["SKILL_COMMAND_MAP for skill-to-command validation"]
 
 key-files:
   created: []
   modified:
-    - src/llm/ccr-command.js
-    - src/llm/ccr-command.test.js
-    - src/milestone/phase-planner.js
-    - src/milestone/phase-executor.js
-    - src/milestone/milestone-completer.js
+    - src/lib/validator.js (SKILL_COMMAND_MAP, isValidSkillForCommand, getValidSkillsForCommand)
+    - src/lib/parser.js (parseSkillArg, VALID_SKILLS)
+    - src/index.js (skill parsing and validation)
+    - src/llm/ccr-command.js (skill in command string)
+    - src/milestone/phase-planner.js (skill parameter)
+    - src/milestone/phase-executor.js (skill parameter)
+    - src/milestone/milestone-completer.js (skill parameter)
+    - src/milestone/index.js (skill parameter)
 
 decisions:
-  - id: skill-parameter-placeholder
-    context: "Preparing for future skill selection feature"
-    decision: "Add skill parameter to formatCcrCommand functions now but don't use it yet"
-    rationale: "Thread parameter through call chain early to avoid breaking changes later when skill selection is implemented"
-    alternatives: ["Wait until skill selection is needed"]
-    impact: "All callers can pass skill parameter; no behavior change until feature activated"
+  - id: skill-command-map
+    context: "Need to control which skills can be used with which commands"
+    decision: "Create SKILL_COMMAND_MAP in validator.js with skill -> commands mapping"
+    rationale: "Central config for skill permissions, easy to extend"
+    alternatives: ["Hardcode in each module"]
+    impact: "Skills are validated before execution"
 
-  - id: explicit-null-passing
-    context: "Callers need to be aware of new parameter"
-    decision: "Update all callers to explicitly pass skill=null"
-    rationale: "Makes it clear that skill parameter exists and is intentionally unused (not forgotten)"
-    alternatives: ["Rely on default parameter values"]
-    impact: "Code is more explicit and easier to understand when reviewing call sites"
+  - id: skill-in-args
+    context: "How users specify skill in command"
+    decision: "Skill name directly in args without prefix (e.g., 'github-project-management')"
+    rationale: "Simpler syntax than --skill=value"
+    alternatives: ["--skill=value format"]
+    impact: "User-friendly command syntax"
 ---
 
 # Quick Task 006: Add skill parameter to formatCcrCommand
 
-**One-liner:** Add skill parameter to CCR command formatting functions, now included in command string
+**One-liner:** Complete skill parameter flow from parsing through validation to CCR command execution
 
 ## Overview
 
-Added skill parameter to `formatCcrCommand` and `formatCcrCommandWithOutput` functions. The skill is now included in the command string pattern: `/gsd:{command} /{skill} /github-actions-testing {prompt?}`
+Full implementation of skill parameter support for @gsd-bot commands. Skills are parsed from command args, validated against SKILL_COMMAND_MAP, and included in CCR command string.
+
+**Usage:** `@gsd-bot plan-phase 7 github-project-management`
+
+**Pattern:** `/gsd:{command} /{skill} /github-actions-testing {prompt?}`
 
 ## What Changed
 
