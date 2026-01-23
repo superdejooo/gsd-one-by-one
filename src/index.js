@@ -272,21 +272,6 @@ try {
             "41898282+github-actions[bot]@users.noreply.github.com",
         );
 
-        // Execute GSD command via Claude Code Router stdin pipe
-        // CCR wraps Claude Code CLI for non-interactive CI/CD execution
-        // TODO: Execute command logic in later phases (Phase 5+)
-        // Example execution:
-        // exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
-        //   if (error) {
-        //     console.error(`Error: ${error.message}`);
-        //     return;
-        //   }
-        //   if (stderr) {
-        //     console.error(`stderr: ${stderr}`);
-        //   }
-        //   console.log(`stdout: ${stdout}`);
-        // });
-
         return {commandFound: true, command: parsed.command};
     }, githubContext);
 
