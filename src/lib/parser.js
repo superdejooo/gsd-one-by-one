@@ -66,3 +66,17 @@ export function parseArguments(argsString) {
 
   return args;
 }
+
+/**
+ * Parse description argument from command args string
+ * For new-milestone command, the description is everything after the command
+ * @param {string} argsString - Raw arguments string
+ * @returns {string|null} - Description text or null if empty
+ */
+export function parseDescriptionArg(argsString) {
+  if (!argsString || argsString.trim().length === 0) {
+    return null;
+  }
+
+  return argsString.trim();
+}

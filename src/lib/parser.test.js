@@ -1,9 +1,9 @@
 /**
  * Comprehensive tests for parser.js
- * Tests parseComment and parseArguments functions with edge cases
+ * Tests parseComment, parseArguments, and parseDescriptionArg functions with edge cases
  */
 import { describe, it, expect } from 'vitest';
-import { parseComment, parseArguments } from './parser.js';
+import { parseComment, parseArguments, parseDescriptionArg } from './parser.js';
 
 describe('parseComment', () => {
   it('returns null when bot not mentioned', () => {
@@ -133,5 +133,57 @@ describe('parseArguments', () => {
   it('handles values with spaces without quotes (takes first word)', () => {
     const result = parseArguments('--name=My Milestone');
     expect(result).toEqual({ name: 'My' });
+  });
+});
+
+describe('parseDescriptionArg', () => {
+  it('returns description from simple text', () => {
+    const result = parseDescriptionArg('This is my milestone description');
+    expect(result).toBe('This is my milestone description');
+  });
+
+  it('returns null for empty string', () => {
+    const result = parseDescriptionArg('');
+    expect(result).toBeNull();
+  });
+
+  it('returns null for whitespace-only string', () => {
+    const result = parseDescriptionArg('   ');
+    expect(result).toBeNull();
+  });
+
+  it('trims whitespace from description', () => {
+    const result = parseDescriptionArg('  Build auth system with login and signup  ');
+    expect(result).toBe('Build auth system with login and signup');
+  });
+
+  it('captures long descriptions (5000+ chars)', () => {
+    const longText = 'a'.repeat(5000);
+    const result = parseDescriptionArg(longText);
+    expect(result).toBe(longText);
+    expect(result.length).toBe(5000);
+  });
+
+  it('captures very long descriptions (10000+ chars)', () => {
+    const veryLongText = 'This is a detailed milestone description. '.repeat(250);
+    const result = parseDescriptionArg(veryLongText);
+    expect(result).toBe(veryLongText.trim());
+    expect(result.length).toBeGreaterThan(10000);
+  });
+
+  it('preserves internal newlines and formatting', () => {
+    const multiline = 'Line 1\nLine 2\nLine 3';
+    const result = parseDescriptionArg(multiline);
+    expect(result).toBe('Line 1\nLine 2\nLine 3');
+  });
+
+  it('returns null for null input', () => {
+    const result = parseDescriptionArg(null);
+    expect(result).toBeNull();
+  });
+
+  it('returns null for undefined input', () => {
+    const result = parseDescriptionArg(undefined);
+    expect(result).toBeNull();
   });
 });
