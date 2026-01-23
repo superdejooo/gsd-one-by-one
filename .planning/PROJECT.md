@@ -53,7 +53,26 @@ The GSD workflow follows a structured sequence. This Action exposes these comman
 - `phases/{N}/RESEARCH.md`, `PLAN.md`, `SUMMARY.md` — Per-phase docs
 - `milestones/{N}/` — Milestone-specific docs
 
-## Current State (v1.0 MVP Shipped)
+## Current State (v1.1 Plan & Execute Commands Shipped)
+
+**Shipped:** 2026-01-23
+**LOC:** ~11,190 JavaScript
+**Phases:** 8 phases (7-13), 21 plans
+**Tests:** 469 tests, 94.15% coverage
+
+The v1.1 release delivers full GitHub-native GSD experience:
+
+- `gsd:plan-phase` command — Triggers GSD research and planning via CCR
+- `gsd:execute-phase` command — Executes planned actions with 30-min timeout, structured output parsing, and resume capability
+- GitHub issues for each action — PLAN.md task parser, automatic issue creation, status updates during execution
+- Status label tracking — Pending → in-progress → complete workflow with labels.js
+- Comprehensive testing — 94.15% coverage with Vitest, CI/CD pipeline, automated testing on push/PR
+- Label-triggered milestone creation — Automatic milestone creation when "good first issue" label added
+- CCR command formatting helper — Centralized helper for consistent command structure
+- Output parsing improvements — Fixed duplicate errors, CCR log stripping, GSD block extraction
+
+<details>
+<summary>v1.0 MVP Details (archived)</summary>
 
 **Shipped:** 2026-01-22
 **LOC:** ~2,400 JavaScript
@@ -69,16 +88,18 @@ The v1.0 MVP delivers:
 - Permission validation before execution
 - CCR integration for CI-safe LLM execution
 
-## Current Milestone: v1.1 — Plan & Execute Commands
+</details>
 
-**Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
+## Current Milestone: Planning Next Milestone
 
-**Target features:**
+**Goal:** TBD — Define next feature set based on user feedback and project needs.
 
-- `gsd:plan-phase` command — Plan execution for a phase
-- `gsd:execute-phase` command — Execute planned actions
-- GitHub issues for each action (not just phases)
-- Bidirectional status sync (agent reads ticket status)
+**Potential focus areas:**
+
+- v1.2: Issue tracking enhancements (if needed)
+- v2.0: Major new features or breaking changes
+- Performance improvements
+- Documentation enhancements
 
 ---
 
@@ -99,17 +120,29 @@ These requirements were shipped and validated in v1.0:
 - ✓ Agent uses GitHub CLI (gh) or Octokit for API interactions — v1.0
 - ✓ Workflow exits after posting comment (no polling for responses) — v1.0
 
-### Active (v1.1)
+### Validated (v1.1)
 
-- [ ] **PLAN-01**: `gsd:plan-phase` command parses phase number and triggers phase planning workflow
-- [ ] **PLAN-02**: Phase planner creates detailed execution plans with tasks, dependencies, and verification
-- [ ] **PLAN-03**: Plans are committed to `.planning/phases/{n}/` directory
-- [ ] **EXEC-01**: `gsd:execute-phase` command executes planned actions with wave-based parallelization
-- [ ] **EXEC-02**: Agent can read GitHub issue status to determine resume point
-- [ ] **EXEC-03**: Agent updates issue status as tasks complete (pending → in-progress → complete)
-- [ ] **ISSUE-01**: Each action in a plan creates a corresponding GitHub issue
-- [ ] **ISSUE-02**: Issue body contains action details, verification criteria, and phase context
-- [ ] **RETRY-01**: Workflow can resume from last incomplete action on retry
+These requirements were shipped and validated in v1.1:
+
+- ✓ PLAN-01: `gsd:plan-phase` command parses phase number and triggers phase planning workflow — v1.1
+- ✓ PLAN-02: Phase planner creates detailed execution plans with tasks, dependencies, and verification — v1.1
+- ✓ PLAN-03: Plans are committed to `.planning/phases/{n}/` directory — v1.1
+- ✓ EXEC-01: `gsd:execute-phase` command executes planned actions with wave-based parallelization — v1.1
+- ✓ EXEC-02: Agent can read state from `.planning/` folder to determine resume point — v1.1
+- ✓ RETRY-01: Workflow can resume from last incomplete action on retry — v1.1
+- ✓ EXEC-03: Agent updates issue status as tasks complete (pending → in-progress → complete) — v1.1
+- ✓ ISSUE-01: Each action in a plan creates a corresponding GitHub issue — v1.1
+- ✓ ISSUE-02: Issue body contains action details, verification criteria, and phase context — v1.1
+- ✓ TRIGGER-01: Workflow triggers on `issues.labeled` event when label is "good first issue" — v1.1
+- ✓ TRIGGER-02: Read issue title + body, join with `---`, pass as prompt to `formatCcrCommandWithOutput` — v1.1
+- ✓ TRIGGER-03: Remove `parseMilestoneNumber` from new-milestone flow (GSD determines number) — v1.1
+- ✓ PARSE-01: After GSD completes, parse `.planning/REQUIREMENTS.md` for milestone title and version — v1.1
+- ✓ PARSE-02: Parse `.planning/ROADMAP.md` for phase numbers and titles — v1.1
+- ✓ UPDATE-01: Update original GitHub issue with milestone info and phase links — v1.1
+
+### Active
+
+*TBD — Requirements for next milestone will be defined via `/gsd:new-milestone`*
 
 ### Out of Scope
 
@@ -154,4 +187,4 @@ These requirements were shipped and validated in v1.0:
 
 ---
 
-_Last updated: 2026-01-22 after v1.0 milestone, v1.1 started_
+_Last updated: 2026-01-23 after v1.1 milestone_
