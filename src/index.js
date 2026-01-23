@@ -14,6 +14,7 @@ import { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, gen
 import { executeMilestoneWorkflow, parseMilestoneNumber } from "./milestone/index.js";
 import { executePhaseWorkflow } from "./milestone/phase-planner.js";
 import { executePhaseExecutionWorkflow } from "./milestone/phase-executor.js";
+import { executeMilestoneCompletionWorkflow } from "./milestone/milestone-completer.js";
 
 // Trigger bundling of modules
 const _githubModule = { postComment, getWorkflowRunUrl };
@@ -25,8 +26,9 @@ const _planningModule = { createPlanningDocs, generateProjectMarkdown, generateS
 const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
 const _phasePlannerModule = { executePhaseWorkflow };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow };
+const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow };
 const _authModule = { checkAuthorization, formatAuthorizationError };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_authModule);
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_milestoneCompleterModule, !!_authModule);
 
 try {
   // Get inputs from action.yml
@@ -123,6 +125,16 @@ try {
       core.setOutput("phase-executed", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
       core.setOutput("has-questions", result.hasQuestions);
+      return { commandFound: true, command: parsed.command, ...result };
+    }
+
+    // Command dispatch for milestone completion workflow
+    if (parsed.command === "complete-milestone") {
+      core.info("Dispatching to milestone completion workflow");
+      const result = await executeMilestoneCompletionWorkflow(
+        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number }
+      );
+      core.setOutput("milestone-completed", result.complete);
       return { commandFound: true, command: parsed.command, ...result };
     }
 

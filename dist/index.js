@@ -32475,7 +32475,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(739);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7484);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(3228);
-/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(4287);
+/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(4287);
 /* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3942);
 /* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4320);
 /* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
@@ -32486,6 +32486,8 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(9711);
 /* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__ = __nccwpck_require__(4241);
 /* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(9992);
+/* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(339);
+
 
 
 
@@ -32513,8 +32515,9 @@ const _planningModule = { createPlanningDocs: _milestone_planning_docs_js__WEBPA
 const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .B, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .parseMilestoneNumber */ .f };
 const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q };
+const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__/* .executeMilestoneCompletionWorkflow */ .L };
 const _authModule = { checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_authModule);
+console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_milestoneCompleterModule, !!_authModule);
 
 try {
   // Get inputs from action.yml
@@ -32536,7 +32539,7 @@ try {
   // Execute with error handling
   const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U)(async () => {
     // Parse comment to extract command
-    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_14__/* .parseComment */ .v)(commentBody);
+    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseComment */ .v)(commentBody);
 
     if (!parsed) {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
@@ -32565,7 +32568,7 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || '(none)'}`);
 
     // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_14__/* .parseArguments */ .W)(parsed.args) : {};
+    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseArguments */ .W)(parsed.args) : {};
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
 
     // Validate command
@@ -32611,6 +32614,16 @@ try {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("has-questions", result.hasQuestions);
+      return { commandFound: true, command: parsed.command, ...result };
+    }
+
+    // Command dispatch for milestone completion workflow
+    if (parsed.command === "complete-milestone") {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone completion workflow");
+      const result = await (0,_milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__/* .executeMilestoneCompletionWorkflow */ .L)(
+        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number }
+      );
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-completed", result.complete);
       return { commandFound: true, command: parsed.command, ...result };
     }
 
@@ -33191,7 +33204,7 @@ function parseArguments(argsString) {
  * Allowlist of valid commands
  * For v1, only new-milestone is implemented
  */
-const ALLOWED_COMMANDS = ["new-milestone", "plan-phase", "execute-phase"];
+const ALLOWED_COMMANDS = ["new-milestone", "plan-phase", "execute-phase", "complete-milestone"];
 
 /**
  * Validate command against allowlist
@@ -34478,6 +34491,171 @@ function generatePhasesFromRequirements(answers) {
     { name: "Integration", goal: "Connect components and verify functionality", status: "pending", dependencies: "Phase 2" },
     { name: "Testing & Verification", goal: "Testing, bug fixes, and final verification", status: "pending", dependencies: "Phase 3" }
   ];
+}
+
+
+/***/ }),
+
+/***/ 339:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   L: () => (/* binding */ executeMilestoneCompletionWorkflow)
+/* harmony export */ });
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var node_child_process__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(1421);
+/* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
+/* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
+/**
+ * Milestone Completion Workflow Module
+ *
+ * Executes GSD's built-in complete-milestone command via CCR (Claude Code Router)
+ * to archive a completed milestone and prepare for the next version.
+ */
+
+
+
+
+
+
+
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
+
+/**
+ * Strip CCR debug logging from output
+ * @param {string} output - Raw output with CCR logs
+ * @returns {string} Clean output without CCR logs
+ */
+function stripCcrLogs(output) {
+  const lines = output.split('\n');
+  const cleanLines = lines.filter(line => {
+    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
+    if (/^response \d+ http:/.test(line)) return false;
+    if (/ReadableStream \{/.test(line)) return false;
+    if (/durationMs:/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line)) return false;
+    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
+    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
+    if (/^\s*[}\]],?\s*$/.test(line)) return false;
+    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false;
+    return true;
+  });
+  return cleanLines.join('\n').trim();
+}
+
+/**
+ * Extract GSD formatted block from output
+ * @param {string} output - Raw output (already stripped of CCR logs)
+ * @returns {string} GSD block or last 80 lines
+ */
+function extractGsdBlock(output) {
+  const lines = output.split('\n');
+
+  let gsdLineIndex = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes('GSD ►')) {
+      gsdLineIndex = i;
+      break;
+    }
+  }
+
+  if (gsdLineIndex !== -1) {
+    const startIndex = Math.max(0, gsdLineIndex - 1);
+    return lines.slice(startIndex).join('\n');
+  }
+
+  const tail = lines.slice(-80);
+  return tail.join('\n');
+}
+
+/**
+ * Execute the complete milestone workflow
+ *
+ * This orchestrator handles:
+ * 1. Execute GSD complete-milestone command via CCR
+ * 2. Capture output from command execution
+ * 3. Validate output for errors
+ * 4. Post formatted result to GitHub issue
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+async function executeMilestoneCompletionWorkflow(context) {
+  const { owner, repo, issueNumber } = context;
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`);
+
+  try {
+    // Execute GSD complete-milestone via CCR
+    // 10 minute timeout - completion is mostly archiving work
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = `ccr code --print "/gsd:complete-milestone" > ${outputPath} 2>&1`;
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 600000 }); // 10 min timeout
+    } catch (error) {
+      exitCode = error.code || 1;
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Read captured output
+    let output = "";
+    try {
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`CCR output (${output.length} chars): ${output.substring(0, 500)}`);
+    } catch (error) {
+      output = "(No output captured)";
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to read output file: ${error.message}`);
+    }
+
+    // Validate for errors
+    const outputWithoutWarnings = output
+      .split('\n')
+      .filter(line => !line.includes('⚠️') && !line.includes('Pre-flight check'))
+      .join('\n');
+
+    const isError = exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(outputWithoutWarnings) ||
+      /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
+      /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
+
+    if (isError) {
+      throw new Error(`Milestone completion failed: ${output.substring(0, 500)}`);
+    }
+
+    // Format output for comment
+    const cleanOutput = stripCcrLogs(output);
+    const gsdBlock = extractGsdBlock(cleanOutput);
+    const formattedComment = `## Milestone Completion\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
+
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
+
+    // Cleanup output file
+    try {
+      await fs_promises__WEBPACK_IMPORTED_MODULE_3__.unlink(outputPath);
+    } catch (e) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Milestone completion workflow complete`);
+
+    return {
+      complete: true,
+      message: "Milestone archived and completion workflow finished"
+    };
+
+  } catch (error) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Milestone completion workflow error: ${error.message}`);
+    throw error;
+  }
 }
 
 

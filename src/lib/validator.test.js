@@ -23,6 +23,11 @@ describe('validateCommand', () => {
     expect(vi.mocked(core.info)).toHaveBeenCalledWith('Command validated: execute-phase');
   });
 
+  it('accepts "complete-milestone" (in allowlist)', () => {
+    expect(() => validateCommand('complete-milestone')).not.toThrow();
+    expect(vi.mocked(core.info)).toHaveBeenCalledWith('Command validated: complete-milestone');
+  });
+
   it('throws for unknown command "invalid-command"', () => {
     expect(() => validateCommand('invalid-command')).toThrow(
       'Unknown command: invalid-command'
@@ -37,7 +42,7 @@ describe('validateCommand', () => {
 
   it('error message includes valid commands list', () => {
     expect(() => validateCommand('unknown')).toThrow(
-      'Valid commands: new-milestone, plan-phase, execute-phase'
+      'Valid commands: new-milestone, plan-phase, execute-phase, complete-milestone'
     );
   });
 

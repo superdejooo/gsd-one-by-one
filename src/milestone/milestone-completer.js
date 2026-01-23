@@ -1,0 +1,150 @@
+/**
+ * Milestone Completion Workflow Module
+ *
+ * Executes GSD's built-in complete-milestone command via CCR (Claude Code Router)
+ * to archive a completed milestone and prepare for the next version.
+ */
+
+import * as core from "@actions/core";
+import { exec } from "node:child_process";
+import { promisify } from "util";
+import fs from "fs/promises";
+import { postComment } from "../lib/github.js";
+
+const execAsync = promisify(exec);
+
+/**
+ * Strip CCR debug logging from output
+ * @param {string} output - Raw output with CCR logs
+ * @returns {string} Clean output without CCR logs
+ */
+function stripCcrLogs(output) {
+  const lines = output.split('\n');
+  const cleanLines = lines.filter(line => {
+    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
+    if (/^response \d+ http:/.test(line)) return false;
+    if (/ReadableStream \{/.test(line)) return false;
+    if (/durationMs:/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line)) return false;
+    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
+    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
+    if (/^\s*[}\]],?\s*$/.test(line)) return false;
+    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false;
+    return true;
+  });
+  return cleanLines.join('\n').trim();
+}
+
+/**
+ * Extract GSD formatted block from output
+ * @param {string} output - Raw output (already stripped of CCR logs)
+ * @returns {string} GSD block or last 80 lines
+ */
+function extractGsdBlock(output) {
+  const lines = output.split('\n');
+
+  let gsdLineIndex = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes('GSD ►')) {
+      gsdLineIndex = i;
+      break;
+    }
+  }
+
+  if (gsdLineIndex !== -1) {
+    const startIndex = Math.max(0, gsdLineIndex - 1);
+    return lines.slice(startIndex).join('\n');
+  }
+
+  const tail = lines.slice(-80);
+  return tail.join('\n');
+}
+
+/**
+ * Execute the complete milestone workflow
+ *
+ * This orchestrator handles:
+ * 1. Execute GSD complete-milestone command via CCR
+ * 2. Capture output from command execution
+ * 3. Validate output for errors
+ * 4. Post formatted result to GitHub issue
+ *
+ * @param {object} context - GitHub action context
+ * @param {string} context.owner - Repository owner
+ * @param {string} context.repo - Repository name
+ * @param {number} context.issueNumber - Issue number for comments
+ * @returns {Promise<object>} Workflow result
+ * @throws {Error} If workflow cannot complete
+ */
+export async function executeMilestoneCompletionWorkflow(context) {
+  const { owner, repo, issueNumber } = context;
+
+  core.info(`Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`);
+
+  try {
+    // Execute GSD complete-milestone via CCR
+    // 10 minute timeout - completion is mostly archiving work
+    const outputPath = `output-${Date.now()}.txt`;
+    const command = `ccr code --print "/gsd:complete-milestone" > ${outputPath} 2>&1`;
+
+    core.info(`Executing: ${command}`);
+
+    let exitCode = 0;
+    try {
+      await execAsync(command, { timeout: 600000 }); // 10 min timeout
+    } catch (error) {
+      exitCode = error.code || 1;
+      core.warning(`Command exited with code ${exitCode}`);
+    }
+
+    // Read captured output
+    let output = "";
+    try {
+      output = await fs.readFile(outputPath, "utf-8");
+      core.info(`CCR output (${output.length} chars): ${output.substring(0, 500)}`);
+    } catch (error) {
+      output = "(No output captured)";
+      core.warning(`Failed to read output file: ${error.message}`);
+    }
+
+    // Validate for errors
+    const outputWithoutWarnings = output
+      .split('\n')
+      .filter(line => !line.includes('⚠️') && !line.includes('Pre-flight check'))
+      .join('\n');
+
+    const isError = exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(outputWithoutWarnings) ||
+      /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
+      /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
+
+    if (isError) {
+      throw new Error(`Milestone completion failed: ${output.substring(0, 500)}`);
+    }
+
+    // Format output for comment
+    const cleanOutput = stripCcrLogs(output);
+    const gsdBlock = extractGsdBlock(cleanOutput);
+    const formattedComment = `## Milestone Completion\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
+
+    await postComment(owner, repo, issueNumber, formattedComment);
+
+    // Cleanup output file
+    try {
+      await fs.unlink(outputPath);
+    } catch (e) {
+      core.warning(`Failed to cleanup output file: ${e.message}`);
+    }
+
+    core.info(`Milestone completion workflow complete`);
+
+    return {
+      complete: true,
+      message: "Milestone archived and completion workflow finished"
+    };
+
+  } catch (error) {
+    core.error(`Milestone completion workflow error: ${error.message}`);
+    throw error;
+  }
+}
