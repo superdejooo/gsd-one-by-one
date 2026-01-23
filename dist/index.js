@@ -32415,6 +32415,7 @@ async function branchExists(branchName) {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
 /* harmony export */   Df: () => (/* binding */ switchBranch),
+/* harmony export */   NT: () => (/* binding */ pushBranchAndTags),
 /* harmony export */   Zd: () => (/* binding */ configureGitIdentity),
 /* harmony export */   mj: () => (/* binding */ createAndSwitchBranch),
 /* harmony export */   tD: () => (/* binding */ runGitCommand)
@@ -32481,6 +32482,18 @@ async function createAndSwitchBranch(branchName, startPoint = null) {
 async function switchBranch(branchName) {
   await runGitCommand(`git switch ${branchName}`);
   _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Switched to branch: ${branchName}`);
+}
+
+/**
+ * Push current branch and all tags to remote
+ * @param {string} [remote='origin'] - Remote name
+ */
+async function pushBranchAndTags(remote = "origin") {
+  const branch = await runGitCommand("git branch --show-current");
+  await runGitCommand(`git push ${remote} ${branch}`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Pushed branch ${branch} to ${remote}`);
+  await runGitCommand(`git push ${remote} --tags`);
+  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Pushed tags to ${remote}`);
 }
 
 
@@ -34949,6 +34962,14 @@ async function executeMilestoneWorkflow(
       nextSteps,
     });
 
+    // Push milestone branch to remote
+    lib_core.info("Pushing milestone branch to remote...");
+    try {
+      await (0,git/* pushBranchAndTags */.NT)();
+    } catch (pushError) {
+      lib_core.warning(`Push failed (changes are committed locally): ${pushError.message}`);
+    }
+
     await (0,src_lib_github/* postComment */.Gy)(owner, repo, issueNumber, summary);
 
     lib_core.info(`Milestone ${milestoneNumber} workflow complete`);
@@ -35340,13 +35361,15 @@ Next steps:
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9023);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
-/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(8330);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(8330);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(5141);
 /**
  * Milestone Completion Workflow Module
  *
  * Executes GSD's built-in complete-milestone command via CCR (Claude Code Router)
  * to archive a completed milestone and prepare for the next version.
  */
+
 
 
 
@@ -35436,7 +35459,7 @@ async function executeMilestoneCompletionWorkflow(
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)(
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_6__/* .formatCcrCommandWithOutput */ .e)(
       "/gsd:complete-milestone",
       outputPath,
       null,
@@ -35494,6 +35517,11 @@ async function executeMilestoneCompletionWorkflow(
     // Format output for comment
     const cleanOutput = stripCcrLogs(output);
     const gsdBlock = extractGsdBlock(cleanOutput);
+
+    // Push commit and tags to remote
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Pushing milestone commit and tags to remote...");
+    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_5__/* .pushBranchAndTags */ .NT)();
+
     const formattedComment = `## Milestone Completion\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
 
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
@@ -35535,7 +35563,8 @@ async function executeMilestoneCompletionWorkflow(
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(6764);
 /* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(3715);
-/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(8330);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(8330);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(5141);
 /**
  * Phase Execution Workflow Module
  *
@@ -35548,6 +35577,7 @@ async function executeMilestoneCompletionWorkflow(
  * - Posts structured comment instead of raw pass-through
  * - Returns hasQuestions flag for conversational continuation
  */
+
 
 
 
@@ -35878,7 +35908,7 @@ async function executePhaseExecutionWorkflow(
     const gsdCommand = phaseNumber
       ? `/gsd:execute-phase ${phaseNumber}`
       : "/gsd:execute-phase";
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
       gsdCommand,
       outputPath,
       null,
@@ -35970,6 +36000,14 @@ async function executePhaseExecutionWorkflow(
       // Don't fail the workflow - execution succeeded, status updates are supplementary
     }
 
+    // Push changes to remote
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Pushing execution changes to remote...");
+    try {
+      await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .pushBranchAndTags */ .NT)();
+    } catch (pushError) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Push failed (changes are committed locally): ${pushError.message}`);
+    }
+
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
 
     // Cleanup output file
@@ -36015,13 +36053,15 @@ async function executePhaseExecutionWorkflow(
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(6928);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(739);
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
-/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(8330);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(8330);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(5141);
 /**
  * Phase Planning Workflow Module
  *
  * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
+
 
 
 
@@ -36153,7 +36193,7 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
       `/gsd:plan-phase ${phaseNumber}`,
       outputPath,
       null,
@@ -36237,6 +36277,14 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
     } catch (issueError) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Issue creation failed: ${issueError.message}`);
       // Don't fail the workflow - planning succeeded, issues are supplementary
+    }
+
+    // Push changes to remote
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info("Pushing planning changes to remote...");
+    try {
+      await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .pushBranchAndTags */ .NT)();
+    } catch (pushError) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Push failed (changes are committed locally): ${pushError.message}`);
     }
 
     // Cleanup output file

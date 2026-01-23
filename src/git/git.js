@@ -58,3 +58,15 @@ export async function switchBranch(branchName) {
   await runGitCommand(`git switch ${branchName}`);
   core.info(`Switched to branch: ${branchName}`);
 }
+
+/**
+ * Push current branch and all tags to remote
+ * @param {string} [remote='origin'] - Remote name
+ */
+export async function pushBranchAndTags(remote = "origin") {
+  const branch = await runGitCommand("git branch --show-current");
+  await runGitCommand(`git push ${remote} ${branch}`);
+  core.info(`Pushed branch ${branch} to ${remote}`);
+  await runGitCommand(`git push ${remote} --tags`);
+  core.info(`Pushed tags to ${remote}`);
+}

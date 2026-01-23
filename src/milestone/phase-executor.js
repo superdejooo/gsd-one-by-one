@@ -20,6 +20,7 @@ import { postComment } from "../lib/github.js";
 import { getPhaseIssues } from "../lib/issues.js";
 import { updateIssueStatus } from "../lib/labels.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
+import { pushBranchAndTags } from "../git/git.js";
 
 const execAsync = promisify(exec);
 
@@ -430,6 +431,14 @@ export async function executePhaseExecutionWorkflow(
     } catch (issueError) {
       core.warning(`Issue status update failed: ${issueError.message}`);
       // Don't fail the workflow - execution succeeded, status updates are supplementary
+    }
+
+    // Push changes to remote
+    core.info("Pushing execution changes to remote...");
+    try {
+      await pushBranchAndTags();
+    } catch (pushError) {
+      core.warning(`Push failed (changes are committed locally): ${pushError.message}`);
     }
 
     await postComment(owner, repo, issueNumber, formattedComment);

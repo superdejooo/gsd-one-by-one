@@ -15,7 +15,7 @@ import * as github from "@actions/github";
 import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 import { formatErrorComment } from "../errors/formatter.js";
 import { createMilestoneBranch, branchExists } from "../git/branches.js";
-import { runGitCommand, configureGitIdentity } from "../git/git.js";
+import { runGitCommand, configureGitIdentity, pushBranchAndTags } from "../git/git.js";
 import {
   loadState,
   saveState,
@@ -366,6 +366,14 @@ export async function executeMilestoneWorkflow(
       },
       nextSteps,
     });
+
+    // Push milestone branch to remote
+    core.info("Pushing milestone branch to remote...");
+    try {
+      await pushBranchAndTags();
+    } catch (pushError) {
+      core.warning(`Push failed (changes are committed locally): ${pushError.message}`);
+    }
 
     await postComment(owner, repo, issueNumber, summary);
 

@@ -5,6 +5,11 @@ vi.mock("@actions/core", () => ({
   info: vi.fn(),
   warning: vi.fn(),
   error: vi.fn(),
+  debug: vi.fn(),
+}));
+
+vi.mock("../git/git.js", () => ({
+  pushBranchAndTags: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("node:child_process", () => ({

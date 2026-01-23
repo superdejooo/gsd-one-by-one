@@ -11,6 +11,7 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
+import { pushBranchAndTags } from "../git/git.js";
 
 const execAsync = promisify(exec);
 
@@ -151,6 +152,11 @@ export async function executeMilestoneCompletionWorkflow(
     // Format output for comment
     const cleanOutput = stripCcrLogs(output);
     const gsdBlock = extractGsdBlock(cleanOutput);
+
+    // Push commit and tags to remote
+    core.info("Pushing milestone commit and tags to remote...");
+    await pushBranchAndTags();
+
     const formattedComment = `## Milestone Completion\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
 
     await postComment(owner, repo, issueNumber, formattedComment);

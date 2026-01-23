@@ -14,6 +14,7 @@ import path from "path";
 import { postComment } from "../lib/github.js";
 import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
+import { pushBranchAndTags } from "../git/git.js";
 
 const execAsync = promisify(exec);
 
@@ -219,6 +220,14 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
     } catch (issueError) {
       core.warning(`Issue creation failed: ${issueError.message}`);
       // Don't fail the workflow - planning succeeded, issues are supplementary
+    }
+
+    // Push changes to remote
+    core.info("Pushing planning changes to remote...");
+    try {
+      await pushBranchAndTags();
+    } catch (pushError) {
+      core.warning(`Push failed (changes are committed locally): ${pushError.message}`);
     }
 
     // Cleanup output file
