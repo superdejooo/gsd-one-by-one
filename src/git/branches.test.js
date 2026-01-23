@@ -1,135 +1,112 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+/**
+ * Comprehensive tests for branches.js slugify function
+ * Tests only the pure slugify function - git operations tested in Plan 04
+ */
+import { describe, it, expect } from 'vitest';
+import { slugify } from './branches.js';
 
-// Mock git.js functions
-const mockCreateAndSwitchBranch = vi.fn();
-const mockSwitchBranch = vi.fn();
-const mockRunGitCommand = vi.fn();
-
-vi.mock('./git.js', () => ({
-  createAndSwitchBranch: mockCreateAndSwitchBranch,
-  switchBranch: mockSwitchBranch,
-  runGitCommand: mockRunGitCommand
-}));
-
-// Mock @actions/core
-vi.mock('@actions/core', () => ({
-  info: vi.fn()
-}));
-
-// Import module under test after mocks
-const { slugify, createMilestoneBranch, createPhaseBranch, branchExists } = await import('./branches.js');
-import * as core from '@actions/core';
-
-describe('branches.js', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+describe('slugify', () => {
+  it('converts to lowercase', () => {
+    const result = slugify('TEST PHASE');
+    expect(result).toBe('test-phase');
   });
 
-  describe('slugify', () => {
-    it('converts to lowercase', () => {
-      expect(slugify('Test Branch')).toBe('test-branch');
-    });
-
-    it('replaces spaces with hyphens', () => {
-      expect(slugify('my test branch')).toBe('my-test-branch');
-    });
-
-    it('removes special characters', () => {
-      expect(slugify('test@#$branch')).toBe('test-branch');
-    });
-
-    it('removes leading and trailing hyphens', () => {
-      expect(slugify('---test-branch---')).toBe('test-branch');
-    });
-
-    it('limits length to 50 characters', () => {
-      const longString = 'a'.repeat(100);
-      expect(slugify(longString)).toHaveLength(50);
-    });
-
-    it('handles empty string', () => {
-      expect(slugify('')).toBe('');
-    });
-
-    it('handles null/undefined', () => {
-      expect(slugify(null)).toBe('');
-      expect(slugify(undefined)).toBe('');
-    });
-
-    it('collapses multiple hyphens', () => {
-      expect(slugify('test   branch')).toBe('test-branch');
-    });
+  it('replaces spaces with hyphens', () => {
+    const result = slugify('my test phase');
+    expect(result).toBe('my-test-phase');
   });
 
-  describe('createMilestoneBranch', () => {
-    it('creates branch named gsd/{milestoneNumber}', async () => {
-      await createMilestoneBranch(3);
-
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledWith('gsd/3');
-    });
-
-    it('calls createAndSwitchBranch with correct name', async () => {
-      await createMilestoneBranch(10);
-
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledTimes(1);
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledWith('gsd/10');
-    });
-
-    it('logs milestone branch creation', async () => {
-      await createMilestoneBranch(5);
-
-      expect(vi.mocked(core.info)).toHaveBeenCalledWith('Created milestone branch: gsd/5');
-    });
+  it('replaces special characters with hyphens', () => {
+    const result = slugify('test@phase#name');
+    expect(result).toBe('test-phase-name');
   });
 
-  describe('createPhaseBranch', () => {
-    it('creates branch named gsd/{milestone}-{phase}-{slug}', async () => {
-      await createPhaseBranch(2, 3, 'Setup Database');
-
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledWith('gsd/2-3-setup-database', null);
-    });
-
-    it('uses slugify for phase name', async () => {
-      await createPhaseBranch(1, 1, 'API Integration & Setup');
-
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledWith('gsd/1-1-api-integration-setup', null);
-    });
-
-    it('includes startPoint when provided', async () => {
-      await createPhaseBranch(2, 4, 'Feature Work', 'main');
-
-      expect(mockCreateAndSwitchBranch).toHaveBeenCalledWith('gsd/2-4-feature-work', 'main');
-    });
-
-    it('logs phase branch creation', async () => {
-      await createPhaseBranch(1, 2, 'Test Phase');
-
-      expect(vi.mocked(core.info)).toHaveBeenCalledWith('Created phase branch: gsd/1-2-test-phase (from "Test Phase")');
-    });
+  it('removes leading/trailing hyphens', () => {
+    const result = slugify('--test-phase--');
+    expect(result).toBe('test-phase');
   });
 
-  describe('branchExists', () => {
-    it('returns true when git rev-parse succeeds', async () => {
-      mockRunGitCommand.mockResolvedValue('abc123');
+  it('limits length to 50 characters', () => {
+    const longName = 'a'.repeat(100);
+    const result = slugify(longName);
+    expect(result.length).toBe(50);
+  });
 
-      const result = await branchExists('feature-branch');
+  it('returns empty string for null', () => {
+    const result = slugify(null);
+    expect(result).toBe('');
+  });
 
-      expect(result).toBe(true);
-      expect(mockRunGitCommand).toHaveBeenCalledWith('git rev-parse --verify feature-branch');
-    });
+  it('returns empty string for undefined', () => {
+    const result = slugify(undefined);
+    expect(result).toBe('');
+  });
 
-    it('returns false when git rev-parse throws (branch not found)', async () => {
-      mockRunGitCommand.mockRejectedValue(new Error('fatal: not a valid ref'));
+  it('handles consecutive special characters (no double hyphens)', () => {
+    const result = slugify('test@@@@phase');
+    expect(result).toBe('test-phase');
+    expect(result).not.toContain('--');
+  });
 
-      const result = await branchExists('nonexistent-branch');
+  it('handles mixed case with numbers', () => {
+    const result = slugify('Phase 7 Testing');
+    expect(result).toBe('phase-7-testing');
+  });
 
-      expect(result).toBe(false);
-    });
+  it('handles strings with only special characters', () => {
+    const result = slugify('@@##$$');
+    expect(result).toBe('');
+  });
 
-    it('does not throw on missing branch', async () => {
-      mockRunGitCommand.mockRejectedValue(new Error('branch not found'));
+  it('preserves hyphens from original text', () => {
+    const result = slugify('already-kebab-case');
+    expect(result).toBe('already-kebab-case');
+  });
 
-      await expect(branchExists('missing')).resolves.toBe(false);
-    });
+  it('handles empty string', () => {
+    const result = slugify('');
+    expect(result).toBe('');
+  });
+
+  it('handles string with tabs and newlines', () => {
+    const result = slugify('test\tphase\nname');
+    expect(result).toBe('test-phase-name');
+  });
+
+  it('handles unicode characters', () => {
+    const result = slugify('tëst phåse');
+    expect(result).toBe('t-st-ph-se');
+  });
+
+  it('handles leading special characters', () => {
+    const result = slugify('###test');
+    expect(result).toBe('test');
+  });
+
+  it('handles trailing special characters', () => {
+    const result = slugify('test###');
+    expect(result).toBe('test');
+  });
+
+  it('handles string at exactly 50 characters', () => {
+    const name = 'a'.repeat(50);
+    const result = slugify(name);
+    expect(result.length).toBe(50);
+  });
+
+  it('handles string just over 50 characters', () => {
+    const name = 'a'.repeat(51);
+    const result = slugify(name);
+    expect(result.length).toBe(50);
+  });
+
+  it('combines all transformations correctly', () => {
+    const result = slugify('  My Test@Phase#123!!  ');
+    expect(result).toBe('my-test-phase-123');
+  });
+
+  it('handles multiple consecutive spaces', () => {
+    const result = slugify('test    phase');
+    expect(result).toBe('test-phase');
   });
 });
