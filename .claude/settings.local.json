@@ -16,7 +16,10 @@
       "Skill(gsd:quick)",
       "Skill(gsd:new-milestone)",
       "Skill(gsd:complete-milestone)",
-      "Skill(gsd:verify-work)"
+      "Skill(gsd:verify-work)",
+      "Skill(github-actions-testing)",
+      "Skill(github-actions-templates)",
+      "Skill(github-project-management)"
     ]
   }
 }

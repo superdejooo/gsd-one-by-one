@@ -25,43 +25,86 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: gsd-${{ github.event.issue.number }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
   cancel-in-progress: true
 
 jobs:
-  gsd:
-    if: contains(github.event.comment.body, '@gsd-bot')
+  handle-gsd-command:
+    # Only run on @gsd-bot execute-phase command, not from bots
+    if: github.event.comment.user.type != 'Bot' && contains(github.event.comment.body, '@gsd-bot execute-phase')
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '20.x'
 
-      - name: Install Claude Code Router & GSD
-        run: |
-          npm install -g @anthropic-ai/claude-code
-          npm install -g get-shit-done-cc
-          npm install -g @musistudio/claude-code-router
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Start Claude Code Router
+      - name: Install Bun
         run: |
-          ccr start &
-          sleep 3
+          curl -fsSL https://bun.sh/install | bash
+          echo "$HOME/.bun/bin" >> $GITHUB_PATH
+      - name: Install Claude Code, CCR and GSD Skill
+        run: |
+          ~/.bun/bin/bun install -g @anthropic-ai/claude-code @musistudio/claude-code-router get-shit-done-cc
+          # Add bun global bin to PATH for subsequent steps
+          echo "$HOME/.bun/install/global/node_modules/.bin" >> $GITHUB_PATH
+      - name: Verify Installations
+        run: |
+          echo "CCR location: $(which ccr)"
+          echo "Claude location: $(which claude)"
+          ccr -v || echo "CCR installed (version check optional)"
+          claude --version || echo "Claude installed (version check optional)"
+      - name: Generate CCR Configuration
         env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: npm run setup:ccr
 
-      - uses: superdejooo/gsd-one-by-one@v1
+      - name: Start CCR Service
+        run: |
+          nohup ccr start > ccr.log 2>&1 &
+          # Retry health check up to 10 times (30 seconds total)
+          for i in {1..10}; do
+            sleep 3
+            if curl -sf http://127.0.0.1:3456/health > /dev/null 2>&1; then
+              echo "CCR service started successfully"
+              exit 0
+            fi
+            echo "Health check attempt $i failed, retrying..."
+          done
+          echo "CCR service failed to start after 30 seconds"
+          cat ccr.log
+          exit 1
+      - name: Run Action
+        uses: ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_LOG: debug
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.issue.number }}
           repo-owner: ${{ github.repository_owner }}
           repo-name: ${{ github.event.repository.name }}
           comment-body: ${{ github.event.comment.body }}
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload CCR logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccr-logs-${{ github.run_id }}
+          path: |
+            ccr.log
+            output-*.txt
+            ~/.claude-code-router/logs/
+            ~/.claude-code-router/claude-code-router.log
+          retention-days: 7
 ```
 
 ### 2. Add Your API Key
