@@ -33639,23 +33639,24 @@ function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
     command = `${command} and then: ' ${prompt}'`;
   }
 
-  return `ccr code --print "${command}" 
----- STRICT RULE ---- 
-This is NON INTERACTIVE env, 
+  // IMPORTANT: The entire message including STRICT RULE must be inside quotes
+  // so the output redirect applies to the ccr command, not as a separate shell command
+  return `ccr code --print "${command}
+---- STRICT RULE ----
+This is NON INTERACTIVE env,
 you can output ONLY ONCE!!!
-If you cannot figure out how 
-to proceed, even with all 
-available agents and tools, 
-you MUST perform an handover 
+If you cannot figure out how
+to proceed, even with all
+available agents and tools,
+you MUST perform an handover
 to the .planning directory.
-Handover MUST include a detailed 
-plan and justification and all 
+Handover MUST include a detailed
+plan and justification and all
 your questions.
 
-User after reviewing, will assign 
+User after reviewing, will assign
 another agent.
-----------------------
-`;
+----------------------"`;
 }
 
 /**

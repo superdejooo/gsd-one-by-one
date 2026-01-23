@@ -357,14 +357,15 @@ None yet.
 | 006 | Add skill parameter with SKILL_COMMAND_MAP validation                 | 2026-01-23 | f642b38 | [006-add-skill-parameter-to-formatccrcommand](./quick/006-add-skill-parameter-to-formatccrcommand/)   |
 | 007 | Add skill system documentation                                        | 2026-01-23 | 5a243d8 | [007-skill-system-documentation](./quick/007-skill-system-documentation/)                             |
 | 008 | Add new gsd reply command with text parameter                         | 2026-01-23 | 01ef0cc | [008-add-new-gsd-reply-command-with-text-para](./quick/008-add-new-gsd-reply-command-with-text-para/) |
+| 009 | Fix CCR multiline command string breaking output redirect             | 2026-01-23 | 6d3494a | [009-fix-ccr-multiline-command-string](./quick/009-fix-ccr-multiline-command-string/)                 |
 
 ## Session Continuity
 
-Last session: 2026-01-23T17:25:36+01:00
-Stopped at: Completed quick-008
+Last session: 2026-01-23T19:48:00+01:00
+Stopped at: Completed quick-009
 Resume file: None
 
-Last activity: 2026-01-23 — Completed quick-008: Add new gsd reply command with text parameter
+Last activity: 2026-01-23 — Completed quick-009: Fix CCR multiline command string breaking output redirect
 
 ## Roadmap Evolution
 
