@@ -34594,7 +34594,7 @@ async function updateIssuesForCompletedTasks(owner, repo, completedActions, issu
  */
 function parsePhaseNumber(commandArgs) {
   if (!commandArgs) {
-    throw new Error("Phase number is required");
+    return null; // No args = let GSD skill determine next phase
   }
 
   // Try to extract from --phase flag
@@ -34615,7 +34615,7 @@ function parsePhaseNumber(commandArgs) {
     return parseInt(standaloneMatch[1], 10);
   }
 
-  throw new Error("Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.");
+  return null; // No number found = let GSD skill determine next phase
 }
 
 /**
@@ -34727,14 +34727,15 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
 
   try {
-    // Step 1: Parse phase number
+    // Step 1: Parse phase number (optional - GSD skill can determine next phase)
     const phaseNumber = parsePhaseNumber(commandArgs);
-    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed phase number: ${phaseNumber}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed phase number: ${phaseNumber ?? '(auto - next phase)'}`);
 
-    // Step 2: Execute GSD execute-plan via CCR
+    // Step 2: Execute GSD execute-phase via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `ccr code --print "/gsd:execute-phase ${phaseNumber}" > ${outputPath} 2>&1`;
+    const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
+    const command = `ccr code --print "${gsdCommand}" > ${outputPath} 2>&1`;
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 

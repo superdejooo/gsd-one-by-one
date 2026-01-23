@@ -75,12 +75,20 @@ describe('phase-executor.js', () => {
       expect(parsePhaseNumber('some text 7')).toBe(7);
     });
 
-    it('throws for empty string', () => {
-      expect(() => parsePhaseNumber('')).toThrow('Phase number is required');
+    it('returns null for empty string (auto-detect next phase)', () => {
+      expect(parsePhaseNumber('')).toBeNull();
     });
 
-    it('throws for non-numeric input', () => {
-      expect(() => parsePhaseNumber('invalid')).toThrow('Could not parse');
+    it('returns null for non-numeric input (auto-detect next phase)', () => {
+      expect(parsePhaseNumber('invalid')).toBeNull();
+    });
+
+    it('returns null for null input (auto-detect next phase)', () => {
+      expect(parsePhaseNumber(null)).toBeNull();
+    });
+
+    it('returns null for undefined input (auto-detect next phase)', () => {
+      expect(parsePhaseNumber(undefined)).toBeNull();
     });
   });
 
@@ -346,11 +354,25 @@ Next steps:
       );
     });
 
-    it('executes correct GSD command', async () => {
+    it('executes correct GSD command with phase number', async () => {
       await executePhaseExecutionWorkflow(mockContext, '9');
 
       expect(mockExecAsync).toHaveBeenCalledWith(
         expect.stringContaining('ccr code --print "/gsd:execute-phase 9"'),
+        expect.any(Object)
+      );
+    });
+
+    it('executes GSD command without phase number (auto-detect)', async () => {
+      await executePhaseExecutionWorkflow(mockContext, '');
+
+      expect(mockExecAsync).toHaveBeenCalledWith(
+        expect.stringContaining('ccr code --print "/gsd:execute-phase"'),
+        expect.any(Object)
+      );
+      // Should NOT contain a number
+      expect(mockExecAsync).not.toHaveBeenCalledWith(
+        expect.stringMatching(/execute-phase \d/),
         expect.any(Object)
       );
     });
