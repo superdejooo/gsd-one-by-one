@@ -411,3 +411,120 @@ describe("executeMilestoneWorkflow", () => {
     });
   });
 });
+
+describe("executeMilestoneWorkflow with optional milestone number", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    // Default mock implementations
+    mockState.loadState.mockResolvedValue({
+      requirements: {
+        answered: {},
+        pending: [],
+      },
+      workflow: {
+        lastCommentId: 0,
+        runCount: 0,
+      },
+      createdAt: "2025-01-01T00:00:00Z",
+    });
+    mockConfig.loadConfig.mockResolvedValue({});
+  });
+
+  it("should work without milestone number (description only)", async () => {
+    const context = { owner: "test", repo: "repo", issueNumber: 1 };
+
+    // Call with just description (no number)
+    const result = await executeMilestoneWorkflow(
+      context,
+      "Build a login system with JWT authentication",
+    );
+
+    // Verify it returns GSD-managed flow result
+    expect(result).toEqual({
+      complete: true,
+      phase: "gsd-managed",
+      message: "GSD will determine milestone number and create planning artifacts",
+      description: "Build a login system with JWT authentication",
+    });
+
+    // Verify no state loading or branch creation attempted
+    expect(mockState.loadState).not.toHaveBeenCalled();
+    expect(mockBranches.createMilestoneBranch).not.toHaveBeenCalled();
+    expect(mockPlanningDocs.createPlanningDocs).not.toHaveBeenCalled();
+  });
+
+  it("should still work with milestone number (backward compatible)", async () => {
+    const context = { owner: "test", repo: "repo", issueNumber: 1 };
+    mockState.loadState.mockResolvedValue({
+      requirements: {
+        answered: {},
+        pending: [],
+      },
+      workflow: { lastCommentId: 0 },
+      createdAt: "2025-01-01T00:00:00Z",
+    });
+    mockPlanningDocs.createPlanningDocs.mockResolvedValue({
+      project: {
+        path: ".github/planning/milestones/2/PROJECT.md",
+        purpose: "Context",
+      },
+    });
+    mockBranches.branchExists.mockResolvedValue(false);
+    mockSummarizer.generateMilestoneSummary.mockReturnValue("## Summary");
+    mockProjects.findIteration.mockResolvedValue(null);
+
+    // Call with milestone number
+    const result = await executeMilestoneWorkflow(
+      context,
+      "2 Build a login system",
+    );
+
+    // Verify traditional flow was used
+    expect(mockState.loadState).toHaveBeenCalledWith("test", "repo", 2);
+    expect(mockBranches.createMilestoneBranch).toHaveBeenCalledWith(2);
+    expect(mockPlanningDocs.createPlanningDocs).toHaveBeenCalled();
+    expect(result.phase).toBe("milestone-created");
+    expect(result.milestone).toBe(2);
+  });
+
+  it("should pass full description as prompt when no number", async () => {
+    const context = { owner: "test", repo: "repo", issueNumber: 1 };
+    const fullDescription = "Build authentication with OAuth2 and refresh tokens";
+
+    const result = await executeMilestoneWorkflow(context, fullDescription);
+
+    // Verify the entire commandArgs becomes the description
+    // No stripping of milestone number
+    expect(result.description).toBe(fullDescription);
+    expect(result.phase).toBe("gsd-managed");
+  });
+
+  it("should reject empty description when no number", async () => {
+    const context = { owner: "test", repo: "repo", issueNumber: 1 };
+
+    // Empty description should throw
+    await expect(executeMilestoneWorkflow(context, "")).rejects.toThrow(
+      "Milestone description is required",
+    );
+
+    // Whitespace-only should throw
+    await expect(executeMilestoneWorkflow(context, "   ")).rejects.toThrow(
+      "Milestone description is required",
+    );
+  });
+
+  it("should handle description with numbers in text (not milestone number)", async () => {
+    const context = { owner: "test", repo: "repo", issueNumber: 1 };
+
+    // Description that starts with text, not a milestone number
+    const result = await executeMilestoneWorkflow(
+      context,
+      "Build v2 API with 3 endpoints",
+    );
+
+    // Should treat as GSD-managed (no parseable milestone number)
+    expect(result.phase).toBe("gsd-managed");
+    expect(result.description).toBe("Build v2 API with 3 endpoints");
+  });
+});
