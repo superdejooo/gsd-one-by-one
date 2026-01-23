@@ -69,12 +69,15 @@ vi.mock('./lib/github.js', () => ({
 
 vi.mock('./lib/parser.js', () => ({
   parseComment: vi.fn(),
-  parseArguments: vi.fn()
+  parseArguments: vi.fn(),
+  parseSkillArg: vi.fn(() => null)
 }));
 
 vi.mock('./lib/validator.js', () => ({
   validateCommand: vi.fn(),
-  sanitizeArguments: vi.fn()
+  sanitizeArguments: vi.fn(),
+  isValidSkillForCommand: vi.fn(() => true),
+  getValidSkillsForCommand: vi.fn(() => ['github-actions-testing', 'github-project-management'])
 }));
 
 vi.mock('./lib/config.js', () => ({
@@ -252,7 +255,8 @@ describe('index.js command dispatch', () => {
 
     expect(executeMilestoneWorkflow).toHaveBeenCalledWith(
       { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
-      ""
+      "",
+      null
     );
     expect(result.commandFound).toBe(true);
     expect(result.command).toBe('new-milestone');
@@ -281,7 +285,8 @@ describe('index.js command dispatch', () => {
 
     expect(executePhaseWorkflow).toHaveBeenCalledWith(
       { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
-      '7'
+      '7',
+      null
     );
     expect(result.commandFound).toBe(true);
     expect(result.command).toBe('plan-phase');
@@ -310,7 +315,8 @@ describe('index.js command dispatch', () => {
 
     expect(executePhaseExecutionWorkflow).toHaveBeenCalledWith(
       { owner: 'test-owner', repo: 'test-repo', issueNumber: 123 },
-      '7'
+      '7',
+      null
     );
     expect(result.commandFound).toBe(true);
     expect(result.command).toBe('execute-phase');

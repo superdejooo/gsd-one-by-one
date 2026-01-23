@@ -77,16 +77,17 @@ function extractGsdBlock(output) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executeMilestoneCompletionWorkflow(context) {
+export async function executeMilestoneCompletionWorkflow(context, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   core.info(`Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) core.info(`Using skill: ${skill}`);
 
   try {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath, null, null);
+    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath, null, skill);
 
     core.info(`Executing: ${command}`);
 

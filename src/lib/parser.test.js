@@ -3,7 +3,7 @@
  * Tests parseComment, parseArguments, and parseDescriptionArg functions with edge cases
  */
 import { describe, it, expect } from 'vitest';
-import { parseComment, parseArguments, parseDescriptionArg } from './parser.js';
+import { parseComment, parseArguments, parseDescriptionArg, parseSkillArg, VALID_SKILLS } from './parser.js';
 
 describe('parseComment', () => {
   it('returns null when bot not mentioned', () => {
@@ -185,5 +185,58 @@ describe('parseDescriptionArg', () => {
   it('returns null for undefined input', () => {
     const result = parseDescriptionArg(undefined);
     expect(result).toBeNull();
+  });
+});
+
+describe('parseSkillArg', () => {
+  it('returns null for empty args', () => {
+    expect(parseSkillArg('')).toBeNull();
+    expect(parseSkillArg(null)).toBeNull();
+    expect(parseSkillArg(undefined)).toBeNull();
+  });
+
+  it('finds github-project-management skill in args', () => {
+    const result = parseSkillArg('7 github-project-management');
+    expect(result).toBe('github-project-management');
+  });
+
+  it('finds refactor skill in args', () => {
+    const result = parseSkillArg('5 refactor');
+    expect(result).toBe('refactor');
+  });
+
+  it('finds livewire-principles skill in args', () => {
+    const result = parseSkillArg('livewire-principles 3');
+    expect(result).toBe('livewire-principles');
+  });
+
+  it('returns null for invalid skill', () => {
+    const result = parseSkillArg('7 invalid-skill');
+    expect(result).toBeNull();
+  });
+
+  it('is case insensitive', () => {
+    const result = parseSkillArg('7 GitHub-Project-Management');
+    expect(result).toBe('github-project-management');
+  });
+
+  it('returns first valid skill if multiple present', () => {
+    const result = parseSkillArg('7 github-project-management refactor');
+    // Should return first valid skill found
+    expect(VALID_SKILLS).toContain(result);
+  });
+});
+
+describe('VALID_SKILLS', () => {
+  it('contains expected skills', () => {
+    expect(VALID_SKILLS).toContain('github-actions-templates');
+    expect(VALID_SKILLS).toContain('github-actions-testing');
+    expect(VALID_SKILLS).toContain('github-project-management');
+    expect(VALID_SKILLS).toContain('livewire-principles');
+    expect(VALID_SKILLS).toContain('refactor');
+  });
+
+  it('has at least 5 skills', () => {
+    expect(VALID_SKILLS.length).toBeGreaterThanOrEqual(5);
   });
 });

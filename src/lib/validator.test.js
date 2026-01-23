@@ -3,7 +3,7 @@
  * Tests validateCommand and sanitizeArguments with edge cases
  */
 import { describe, it, expect } from 'vitest';
-import { validateCommand, sanitizeArguments } from './validator.js';
+import { validateCommand, sanitizeArguments, SKILL_COMMAND_MAP, isValidSkillForCommand, getValidSkillsForCommand } from './validator.js';
 import * as core from '@actions/core';
 import { vi } from 'vitest';
 
@@ -232,5 +232,77 @@ describe('sanitizeArguments', () => {
         'Argument name exceeds maximum length (500 chars)'
       );
     });
+  });
+});
+
+describe('SKILL_COMMAND_MAP', () => {
+  it('contains expected skills', () => {
+    expect(SKILL_COMMAND_MAP).toHaveProperty('github-actions-templates');
+    expect(SKILL_COMMAND_MAP).toHaveProperty('github-actions-testing');
+    expect(SKILL_COMMAND_MAP).toHaveProperty('github-project-management');
+    expect(SKILL_COMMAND_MAP).toHaveProperty('livewire-principles');
+    expect(SKILL_COMMAND_MAP).toHaveProperty('refactor');
+  });
+
+  it('github-actions-testing is valid for all commands (null)', () => {
+    expect(SKILL_COMMAND_MAP['github-actions-testing']).toBeNull();
+  });
+
+  it('github-project-management is valid for all commands', () => {
+    expect(SKILL_COMMAND_MAP['github-project-management']).toContain('new-milestone');
+    expect(SKILL_COMMAND_MAP['github-project-management']).toContain('plan-phase');
+    expect(SKILL_COMMAND_MAP['github-project-management']).toContain('execute-phase');
+    expect(SKILL_COMMAND_MAP['github-project-management']).toContain('complete-milestone');
+  });
+
+  it('refactor is valid for plan-phase and execute-phase', () => {
+    expect(SKILL_COMMAND_MAP['refactor']).toContain('plan-phase');
+    expect(SKILL_COMMAND_MAP['refactor']).toContain('execute-phase');
+    expect(SKILL_COMMAND_MAP['refactor']).not.toContain('new-milestone');
+  });
+});
+
+describe('isValidSkillForCommand', () => {
+  it('returns true for null skill', () => {
+    expect(isValidSkillForCommand(null, 'plan-phase')).toBe(true);
+    expect(isValidSkillForCommand(undefined, 'execute-phase')).toBe(true);
+  });
+
+  it('returns true for github-actions-testing with any command', () => {
+    expect(isValidSkillForCommand('github-actions-testing', 'new-milestone')).toBe(true);
+    expect(isValidSkillForCommand('github-actions-testing', 'plan-phase')).toBe(true);
+    expect(isValidSkillForCommand('github-actions-testing', 'execute-phase')).toBe(true);
+    expect(isValidSkillForCommand('github-actions-testing', 'complete-milestone')).toBe(true);
+  });
+
+  it('returns true for refactor with plan-phase', () => {
+    expect(isValidSkillForCommand('refactor', 'plan-phase')).toBe(true);
+  });
+
+  it('returns false for refactor with new-milestone', () => {
+    expect(isValidSkillForCommand('refactor', 'new-milestone')).toBe(false);
+  });
+
+  it('returns false for unknown skill', () => {
+    expect(isValidSkillForCommand('unknown-skill', 'plan-phase')).toBe(false);
+  });
+});
+
+describe('getValidSkillsForCommand', () => {
+  it('returns all skills for plan-phase', () => {
+    const skills = getValidSkillsForCommand('plan-phase');
+    expect(skills).toContain('github-actions-templates');
+    expect(skills).toContain('github-actions-testing');
+    expect(skills).toContain('github-project-management');
+    expect(skills).toContain('livewire-principles');
+    expect(skills).toContain('refactor');
+  });
+
+  it('returns only allowed skills for new-milestone', () => {
+    const skills = getValidSkillsForCommand('new-milestone');
+    expect(skills).toContain('github-actions-testing');
+    expect(skills).toContain('github-project-management');
+    expect(skills).not.toContain('refactor');
+    expect(skills).not.toContain('livewire-principles');
   });
 });

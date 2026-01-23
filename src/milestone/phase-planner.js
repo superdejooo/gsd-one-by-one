@@ -118,10 +118,11 @@ function extractPhaseName(phaseDir) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executePhaseWorkflow(context, commandArgs) {
+export async function executePhaseWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   core.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) core.info(`Using skill: ${skill}`);
 
   try {
     // Step 1: Parse phase number from arguments
@@ -130,7 +131,7 @@ export async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, null);
+    const command = formatCcrCommandWithOutput(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, skill);
 
     core.info(`Executing: ${command}`);
 

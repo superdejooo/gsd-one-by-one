@@ -299,10 +299,11 @@ function formatExecutionComment(parsed, rawOutput) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executePhaseExecutionWorkflow(context, commandArgs) {
+export async function executePhaseExecutionWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   core.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) core.info(`Using skill: ${skill}`);
 
   try {
     // Step 1: Parse phase number (optional - GSD skill can determine next phase)
@@ -313,7 +314,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = formatCcrCommandWithOutput(gsdCommand, outputPath, null, null);
+    const command = formatCcrCommandWithOutput(gsdCommand, outputPath, null, skill);
 
     core.info(`Executing: ${command}`);
 

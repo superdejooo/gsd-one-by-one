@@ -2,9 +2,9 @@ import { checkAuthorization, formatAuthorizationError } from "./auth/index.js";
 import { octokit } from "./lib/github.js";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
-import { parseComment, parseArguments } from "./lib/parser.js";
+import { parseComment, parseArguments, parseSkillArg } from "./lib/parser.js";
 import { loadConfig } from "./lib/config.js";
-import { validateCommand, sanitizeArguments } from "./lib/validator.js";
+import { validateCommand, sanitizeArguments, isValidSkillForCommand, getValidSkillsForCommand } from "./lib/validator.js";
 import { postComment, getWorkflowRunUrl } from "./lib/github.js";
 import { formatErrorComment, formatSuccessComment } from "./errors/formatter.js";
 import { runGitCommand, createAndSwitchBranch, switchBranch, configureGitIdentity } from "./git/git.js";
@@ -88,13 +88,25 @@ try {
     // Sanitize arguments
     const sanitizedArgs = args ? sanitizeArguments(args) : {};
 
+    // Parse skill from args (if provided)
+    const skill = parseSkillArg(parsed.args || "");
+    if (skill) {
+      core.info(`Skill detected: ${skill}`);
+      // Validate skill is allowed for this command
+      if (!isValidSkillForCommand(skill, parsed.command)) {
+        const validSkills = getValidSkillsForCommand(parsed.command);
+        throw new Error(`Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(', ')}`);
+      }
+    }
+
     // Command dispatch for milestone workflow
     if (parsed.command === "new-milestone") {
       core.info("Dispatching to milestone workflow");
       // Pass raw args string - parseMilestoneDescription expects the full text
       const result = await executeMilestoneWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       core.info(`Milestone workflow result: ${JSON.stringify(result)}`);
       core.setOutput("milestone-complete", result.complete);
@@ -108,7 +120,8 @@ try {
       // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       core.setOutput("phase-planned", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
@@ -121,7 +134,8 @@ try {
       // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseExecutionWorkflow(
         { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       core.setOutput("phase-executed", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
@@ -133,7 +147,8 @@ try {
     if (parsed.command === "complete-milestone") {
       core.info("Dispatching to milestone completion workflow");
       const result = await executeMilestoneCompletionWorkflow(
-        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number }
+        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        skill
       );
       core.setOutput("milestone-completed", result.complete);
       return { commandFound: true, command: parsed.command, ...result };

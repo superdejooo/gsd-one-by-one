@@ -80,3 +80,34 @@ export function parseDescriptionArg(argsString) {
 
   return argsString.trim();
 }
+
+import { SKILL_COMMAND_MAP } from './validator.js';
+
+/**
+ * Valid skill names from SKILL_COMMAND_MAP
+ */
+export const VALID_SKILLS = Object.keys(SKILL_COMMAND_MAP);
+
+/**
+ * Parse skill from command args string
+ * Looks for valid skill name anywhere in args (no --skill prefix needed)
+ * Example: "@gsd-bot plan-phase 7 github-project-management"
+ * @param {string} argsString - Raw arguments string
+ * @returns {string|null} - Skill name or null if not found
+ */
+export function parseSkillArg(argsString) {
+  if (!argsString || argsString.trim().length === 0) {
+    return null;
+  }
+
+  const lowerArgs = argsString.toLowerCase();
+
+  // Find first valid skill in args
+  for (const skill of VALID_SKILLS) {
+    if (lowerArgs.includes(skill)) {
+      return skill;
+    }
+  }
+
+  return null;
+}

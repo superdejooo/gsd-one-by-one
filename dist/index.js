@@ -32475,18 +32475,18 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(739);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(7484);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(3228);
-/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(4287);
-/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3942);
-/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4320);
-/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
-/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(5141);
-/* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(2629);
-/* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(7032);
-/* harmony import */ var _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(4887);
-/* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(9711);
-/* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__ = __nccwpck_require__(4241);
-/* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(9992);
-/* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(339);
+/* harmony import */ var _lib_parser_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(4287);
+/* harmony import */ var _lib_config_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(3942);
+/* harmony import */ var _lib_validator_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(4320);
+/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(5878);
+/* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(5141);
+/* harmony import */ var _git_branches_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(2629);
+/* harmony import */ var _errors_handler_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(7032);
+/* harmony import */ var _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__ = __nccwpck_require__(4887);
+/* harmony import */ var _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__ = __nccwpck_require__(9711);
+/* harmony import */ var _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__ = __nccwpck_require__(4241);
+/* harmony import */ var _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__ = __nccwpck_require__(9992);
+/* harmony import */ var _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__ = __nccwpck_require__(339);
 
 
 
@@ -32507,15 +32507,15 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 // Trigger bundling of modules
 const _githubModule = { postComment: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy, getWorkflowRunUrl: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx };
-const _formatterModule = { formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatSuccessComment */ .m };
-const _gitModule = { runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .runGitCommand */ .tD, createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .createAndSwitchBranch */ .mj, switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .switchBranch */ .Df, configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .configureGitIdentity */ .Zd };
-const _branchModule = { createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createMilestoneBranch */ .HT, createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .createPhaseBranch */ .sT, slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .slugify */ .Yv, branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_8__/* .branchExists */ .TV };
-const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U };
-const _planningModule = { createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .createPlanningDocs */ .Hm, generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateProjectMarkdown */ .MU, generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateStateMarkdown */ .qL, generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_10__/* .generateRoadmapMarkdown */ .ru };
-const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .BT, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .parseMilestoneNumber */ .fM };
-const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A };
-const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q };
-const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__/* .executeMilestoneCompletionWorkflow */ .L };
+const _formatterModule = { formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatSuccessComment */ .m };
+const _gitModule = { runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .runGitCommand */ .tD, createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .createAndSwitchBranch */ .mj, switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .switchBranch */ .Df, configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd };
+const _branchModule = { createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createMilestoneBranch */ .HT, createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createPhaseBranch */ .sT, slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .slugify */ .Yv, branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .branchExists */ .TV };
+const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U };
+const _planningModule = { createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .createPlanningDocs */ .Hm, generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateProjectMarkdown */ .MU, generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateStateMarkdown */ .qL, generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateRoadmapMarkdown */ .ru };
+const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .parseMilestoneNumber */ .fM };
+const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A };
+const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q };
+const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L };
 const _authModule = { checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI };
 console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_milestoneCompleterModule, !!_authModule);
 
@@ -32537,9 +32537,9 @@ try {
   };
 
   // Execute with error handling
-  const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_9__/* .withErrorHandling */ .U)(async () => {
+  const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U)(async () => {
     // Parse comment to extract command
-    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseComment */ .vj)(commentBody);
+    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseComment */ .vj)(commentBody);
 
     if (!parsed) {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
@@ -32568,22 +32568,34 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || '(none)'}`);
 
     // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_15__/* .parseArguments */ .We)(parsed.args) : {};
+    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseArguments */ .We)(parsed.args) : {};
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
 
     // Validate command
-    (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_5__/* .validateCommand */ .M)(parsed.command);
+    (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .validateCommand */ .Md)(parsed.command);
 
     // Sanitize arguments
-    const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_5__/* .sanitizeArguments */ .m)(args) : {};
+    const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .sanitizeArguments */ .ml)(args) : {};
+
+    // Parse skill from args (if provided)
+    const skill = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseSkillArg */ .vE)(parsed.args || "");
+    if (skill) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Skill detected: ${skill}`);
+      // Validate skill is allowed for this command
+      if (!(0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .isValidSkillForCommand */ .E2)(skill, parsed.command)) {
+        const validSkills = (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .getValidSkillsForCommand */ .Pz)(parsed.command);
+        throw new Error(`Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(', ')}`);
+      }
+    }
 
     // Command dispatch for milestone workflow
     if (parsed.command === "new-milestone") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone workflow");
       // Pass raw args string - parseMilestoneDescription expects the full text
-      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_11__/* .executeMilestoneWorkflow */ .BT)(
+      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Milestone workflow result: ${JSON.stringify(result)}`);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-complete", result.complete);
@@ -32595,9 +32607,10 @@ try {
     if (parsed.command === "plan-phase") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase planning workflow");
       // Pass raw args string - parsePhaseNumber expects string for .match()
-      const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_12__/* .executePhaseWorkflow */ .A)(
+      const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-planned", result.complete);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
@@ -32608,9 +32621,10 @@ try {
     if (parsed.command === "execute-phase") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase execution workflow");
       // Pass raw args string - parsePhaseNumber expects string for .match()
-      const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseExecutionWorkflow */ .q)(
+      const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q)(
         { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
-        parsed.args || ""
+        parsed.args || "",
+        skill
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
@@ -32621,15 +32635,16 @@ try {
     // Command dispatch for milestone completion workflow
     if (parsed.command === "complete-milestone") {
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone completion workflow");
-      const result = await (0,_milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_14__/* .executeMilestoneCompletionWorkflow */ .L)(
-        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number }
+      const result = await (0,_milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L)(
+        { owner: repoOwner, repo: repoName, issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number },
+        skill
       );
       _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-completed", result.complete);
       return { commandFound: true, command: parsed.command, ...result };
     }
 
     // Load configuration
-    const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_4__/* .loadConfig */ .Z)(repoOwner, repoName);
+    const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_5__/* .loadConfig */ .Z)(repoOwner, repoName);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Configuration loaded and validated");
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Config paths: ${JSON.stringify(config.paths)}`);
@@ -32642,7 +32657,7 @@ try {
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("arguments", JSON.stringify(sanitizedArgs));
 
     // Configure git identity for commits
-    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_7__/* .configureGitIdentity */ .Zd)(
+    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd)(
       "github-actions[bot]",
       "41898282+github-actions[bot]@users.noreply.github.com"
     );
@@ -33117,9 +33132,11 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
 /* harmony export */   We: () => (/* binding */ parseArguments),
+/* harmony export */   vE: () => (/* binding */ parseSkillArg),
 /* harmony export */   vj: () => (/* binding */ parseComment)
 /* harmony export */ });
-/* unused harmony export parseDescriptionArg */
+/* unused harmony exports parseDescriptionArg, VALID_SKILLS */
+/* harmony import */ var _validator_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(4320);
 /**
  * Comment parsing for @gsd-bot commands
  *
@@ -33204,14 +33221,48 @@ function parseDescriptionArg(argsString) {
 }
 
 
+
+/**
+ * Valid skill names from SKILL_COMMAND_MAP
+ */
+const VALID_SKILLS = Object.keys(_validator_js__WEBPACK_IMPORTED_MODULE_0__/* .SKILL_COMMAND_MAP */ .NA);
+
+/**
+ * Parse skill from command args string
+ * Looks for valid skill name anywhere in args (no --skill prefix needed)
+ * Example: "@gsd-bot plan-phase 7 github-project-management"
+ * @param {string} argsString - Raw arguments string
+ * @returns {string|null} - Skill name or null if not found
+ */
+function parseSkillArg(argsString) {
+  if (!argsString || argsString.trim().length === 0) {
+    return null;
+  }
+
+  const lowerArgs = argsString.toLowerCase();
+
+  // Find first valid skill in args
+  for (const skill of VALID_SKILLS) {
+    if (lowerArgs.includes(skill)) {
+      return skill;
+    }
+  }
+
+  return null;
+}
+
+
 /***/ }),
 
 /***/ 4320:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   M: () => (/* binding */ validateCommand),
-/* harmony export */   m: () => (/* binding */ sanitizeArguments)
+/* harmony export */   E2: () => (/* binding */ isValidSkillForCommand),
+/* harmony export */   Md: () => (/* binding */ validateCommand),
+/* harmony export */   NA: () => (/* binding */ SKILL_COMMAND_MAP),
+/* harmony export */   Pz: () => (/* binding */ getValidSkillsForCommand),
+/* harmony export */   ml: () => (/* binding */ sanitizeArguments)
 /* harmony export */ });
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
 
@@ -33221,6 +33272,44 @@ function parseDescriptionArg(argsString) {
  * For v1, only new-milestone is implemented
  */
 const ALLOWED_COMMANDS = ["new-milestone", "plan-phase", "execute-phase", "complete-milestone"];
+
+/**
+ * Map of skills to commands they can be used with
+ * Skills are loaded from .claude/skills/ folder
+ * null means skill can be used with any command
+ */
+const SKILL_COMMAND_MAP = {
+  'github-actions-templates': ['plan-phase', 'execute-phase'],
+  'github-actions-testing': null, // All commands (default, always loaded)
+  'github-project-management': ['new-milestone', 'plan-phase', 'execute-phase', 'complete-milestone'],
+  'livewire-principles': ['plan-phase', 'execute-phase'],
+  'refactor': ['plan-phase', 'execute-phase']
+};
+
+/**
+ * Get valid skills for a command
+ * @param {string} command - Command name
+ * @returns {string[]} List of valid skill names for this command
+ */
+function getValidSkillsForCommand(command) {
+  return Object.entries(SKILL_COMMAND_MAP)
+    .filter(([, commands]) => commands === null || commands.includes(command))
+    .map(([skill]) => skill);
+}
+
+/**
+ * Validate skill for a command
+ * @param {string} skill - Skill name
+ * @param {string} command - Command name
+ * @returns {boolean} True if skill is valid for command
+ */
+function isValidSkillForCommand(skill, command) {
+  if (!skill) return true; // No skill is always valid
+  if (!(skill in SKILL_COMMAND_MAP)) return false; // Unknown skill
+  const allowedCommands = SKILL_COMMAND_MAP[skill];
+  if (allowedCommands === null) return true; // Skill valid for all commands
+  return allowedCommands.includes(command);
+}
 
 /**
  * Validate command against allowlist
@@ -34440,11 +34529,12 @@ Generated by GSD Bot"`);
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-async function executeMilestoneWorkflow(context, commandArgs) {
+async function executeMilestoneWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
   const workflowUrl = (0,src_lib_github/* getWorkflowRunUrl */.gx)();
 
   lib_core.info(`Starting milestone workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) lib_core.info(`Using skill: ${skill} (not used in new-milestone yet)`);
 
   try {
     // Step 1: Parse milestone number from arguments
@@ -34669,16 +34759,17 @@ function extractGsdBlock(output) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-async function executeMilestoneCompletionWorkflow(context) {
+async function executeMilestoneCompletionWorkflow(context, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using skill: ${skill}`);
 
   try {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)('/gsd:complete-milestone', outputPath, null, null);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)('/gsd:complete-milestone', outputPath, null, skill);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -35062,10 +35153,11 @@ function formatExecutionComment(parsed, rawOutput) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-async function executePhaseExecutionWorkflow(context, commandArgs) {
+async function executePhaseExecutionWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using skill: ${skill}`);
 
   try {
     // Step 1: Parse phase number (optional - GSD skill can determine next phase)
@@ -35076,7 +35168,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
     const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(gsdCommand, outputPath, null, null);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(gsdCommand, outputPath, null, skill);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -35314,10 +35406,11 @@ function extractPhaseName(phaseDir) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-async function executePhaseWorkflow(context, commandArgs) {
+async function executePhaseWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
+  if (skill) _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Using skill: ${skill}`);
 
   try {
     // Step 1: Parse phase number from arguments
@@ -35326,7 +35419,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, null);
+    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_8__/* .formatCcrCommandWithOutput */ .e)(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, skill);
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
