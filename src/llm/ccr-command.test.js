@@ -6,7 +6,7 @@ describe('ccr-command', () => {
     it('formats GSD command with github-actions-testing prefix', () => {
       const result = formatCcrCommand('/gsd:plan-phase 7');
 
-      expect(result).toBe('ccr code --print "/github-actions-testing and now trigger command /gsd:plan-phase 7"');
+      expect(result).toBe('ccr code --print "/gsd:plan-phase 7 /github-actions-testing"');
     });
 
     it('handles execute-phase command', () => {
@@ -28,7 +28,7 @@ describe('ccr-command', () => {
     it('adds output redirect', () => {
       const result = formatCcrCommandWithOutput('/gsd:plan-phase 5', 'output.txt');
 
-      expect(result).toBe('ccr code --print "/github-actions-testing and now trigger command /gsd:plan-phase 5" > output.txt 2>&1');
+      expect(result).toBe('ccr code --print "/gsd:plan-phase 5 /github-actions-testing" > output.txt 2>&1');
     });
 
     it('handles dynamic output paths', () => {

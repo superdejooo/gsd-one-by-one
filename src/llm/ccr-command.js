@@ -8,17 +8,17 @@
 /**
  * Format a GSD command for CCR execution
  *
- * Pattern: /github-actions-testing and now trigger command /gsd:{command}
+ * Pattern: /gsd:{command} /github-actions-testing
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
  * @returns {string} Full CCR command string
  *
  * @example
  * formatCcrCommand("/gsd:plan-phase 7")
- * // Returns: 'ccr code --print "/github-actions-testing and now trigger command /gsd:plan-phase 7"'
+ * // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"'
  */
 export function formatCcrCommand(gsdCommand) {
-  return `ccr code --print "/github-actions-testing and now trigger command ${gsdCommand}"`;
+  return `ccr code --print "${gsdCommand} /github-actions-testing"`;
 }
 
 /**
