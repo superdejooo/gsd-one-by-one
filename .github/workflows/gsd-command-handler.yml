@@ -15,8 +15,8 @@ concurrency:
 
 jobs:
   handle-gsd-command:
-    # Only run on @gsd-bot execute-phase or complete-milestone commands, not from bots
-    if: github.event.comment.user.type != 'Bot' && (contains(github.event.comment.body, '@gsd-bot execute-phase') || contains(github.event.comment.body, '@gsd-bot complete-milestone'))
+    # Only run on @gsd-bot execute-phase, complete-milestone commands or /gsd:reply, not from bots
+    if: github.event.comment.user.type != 'Bot' && (contains(github.event.comment.body, '@gsd-bot execute-phase') || contains(github.event.comment.body, '@gsd-bot complete-milestone') || contains(github.event.comment.body, '/gsd:reply'))
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
