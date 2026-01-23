@@ -32525,279 +32525,263 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
 
-
 // Trigger bundling of modules
-const _githubModule = { postComment: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy, getWorkflowRunUrl: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx };
-const _formatterModule = { formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatSuccessComment */ .m };
+const _githubModule = {postComment: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy, getWorkflowRunUrl: _lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx};
+const _formatterModule = {formatErrorComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l, formatSuccessComment: _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatSuccessComment */ .m};
 const _gitModule = {
-  runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .runGitCommand */ .tD,
-  createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .createAndSwitchBranch */ .mj,
-  switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .switchBranch */ .Df,
-  configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd,
+    runGitCommand: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .runGitCommand */ .tD,
+    createAndSwitchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .createAndSwitchBranch */ .mj,
+    switchBranch: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .switchBranch */ .Df,
+    configureGitIdentity: _git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd,
 };
 const _branchModule = {
-  createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createMilestoneBranch */ .HT,
-  createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createPhaseBranch */ .sT,
-  slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .slugify */ .Yv,
-  branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .branchExists */ .TV,
+    createMilestoneBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createMilestoneBranch */ .HT,
+    createPhaseBranch: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .createPhaseBranch */ .sT,
+    slugify: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .slugify */ .Yv,
+    branchExists: _git_branches_js__WEBPACK_IMPORTED_MODULE_9__/* .branchExists */ .TV,
 };
-const _errorModule = { withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U };
+const _errorModule = {withErrorHandling: _errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U};
 const _planningModule = {
-  createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .createPlanningDocs */ .Hm,
-  generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateProjectMarkdown */ .MU,
-  generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateStateMarkdown */ .qL,
-  generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateRoadmapMarkdown */ .ru,
+    createPlanningDocs: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .createPlanningDocs */ .Hm,
+    generateProjectMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateProjectMarkdown */ .MU,
+    generateStateMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateStateMarkdown */ .qL,
+    generateRoadmapMarkdown: _milestone_planning_docs_js__WEBPACK_IMPORTED_MODULE_11__/* .generateRoadmapMarkdown */ .ru,
 };
-const _milestoneModule = { executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .parseMilestoneNumber */ .fM };
-const _phasePlannerModule = { executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A };
-const _phaseExecutorModule = { executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q };
-const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L };
-const _labelTriggerModule = { executeLabelTriggerWorkflow: _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b };
-const _authModule = { checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI };
+const _milestoneModule = {executeMilestoneWorkflow: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT, parseMilestoneNumber: _milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .parseMilestoneNumber */ .fM};
+const _phasePlannerModule = {executePhaseWorkflow: _milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A};
+const _phaseExecutorModule = {executePhaseExecutionWorkflow: _milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q};
+const _milestoneCompleterModule = {executeMilestoneCompletionWorkflow: _milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L};
+const _labelTriggerModule = {executeLabelTriggerWorkflow: _milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b};
+const _authModule = {checkAuthorization: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6, formatAuthorizationError: _auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI};
 console.log(
-  "Modules loaded:",
-  !!_githubModule,
-  !!_formatterModule,
-  !!_gitModule,
-  !!_branchModule,
-  !!_errorModule,
-  !!_planningModule,
-  !!_milestoneModule,
-  !!_phasePlannerModule,
-  !!_phaseExecutorModule,
-  !!_milestoneCompleterModule,
-  !!_labelTriggerModule,
-  !!_authModule,
+    "Modules loaded:",
+    !!_githubModule,
+    !!_formatterModule,
+    !!_gitModule,
+    !!_branchModule,
+    !!_errorModule,
+    !!_planningModule,
+    !!_milestoneModule,
+    !!_phasePlannerModule,
+    !!_phaseExecutorModule,
+    !!_milestoneCompleterModule,
+    !!_labelTriggerModule,
+    !!_authModule,
 );
 
 try {
-  // Get inputs from action.yml
-  const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-number");
-  const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-owner");
-  const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-name");
-  const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("comment-body");
-  const triggerType = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("trigger-type") || "comment";
-  const issueTitle = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-title");
-  const issueBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-body");
-
-  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
-    `Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`,
-  );
-  _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Trigger type: ${triggerType}`);
-  if (triggerType === "comment") {
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Comment body: ${commentBody}`);
-  } else {
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Issue title: ${issueTitle}`);
-  }
-
-  // Extract GitHub context for error handling
-  const githubContext = {
-    owner: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.owner,
-    repo: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.repo,
-    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-  };
-
-  // Execute with error handling
-  const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U)(async () => {
-    // Handle label trigger (bypasses authorization - already gated by label permissions)
-    if (triggerType === "label") {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Label trigger detected, dispatching to label workflow");
-      const result = await (0,_milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b)({
-        owner: repoOwner,
-        repo: repoName,
-        issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        issueTitle,
-        issueBody,
-      });
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("label-trigger-complete", result.complete);
-      return { commandFound: true, ...result };
-    }
-
-    // Parse comment to extract command
-    const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseComment */ .vj)(commentBody);
-
-    if (!parsed) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "false");
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "false");
-      return { commandFound: false };
-    }
-
-    // CRITICAL: Authorization check BEFORE any git operations or state modifications
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Checking authorization for user`);
-    const authResult = await (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6)(_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8);
-
-    if (!authResult.authorized) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
-        `User ${authResult.username} not authorized: ${authResult.reason}`,
-      );
-      const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx)();
-      const errorComment = (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI)(
-        authResult.username,
-        `${repoOwner}/${repoName}`,
-        workflowUrl,
-      );
-      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy)(
-        repoOwner,
-        repoName,
-        _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        errorComment,
-      );
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("authorized", "false");
-      return {
-        commandFound: true,
-        authorized: false,
-        reason: authResult.reason,
-      };
-    }
+    // Get inputs from action.yml
+    const issueNumber = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-number");
+    const repoOwner = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-owner");
+    const repoName = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("repo-name");
+    const commentBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("comment-body");
+    const triggerType = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("trigger-type") || "comment";
+    const issueTitle = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-title");
+    const issueBody = _actions_core__WEBPACK_IMPORTED_MODULE_2__.getInput("issue-body");
 
     _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
-      `User ${authResult.username} authorized with ${authResult.permission} access`,
+        `Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`,
     );
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Trigger type: ${triggerType}`);
+    if (triggerType === "comment") {
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Comment body: ${commentBody}`);
+    } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Issue title: ${issueTitle}`);
+    }
 
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Found command: ${parsed.command}`);
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || "(none)"}`);
+    // Extract GitHub context for error handling
+    const githubContext = {
+        owner: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.owner,
+        repo: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.repo.repo,
+        issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+    };
 
-    // Parse arguments if present
-    const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseArguments */ .We)(parsed.args) : {};
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
+    // Execute with error handling
+    const result = await (0,_errors_handler_js__WEBPACK_IMPORTED_MODULE_10__/* .withErrorHandling */ .U)(async () => {
+        // Handle label trigger (bypasses authorization - already gated by label permissions)
+        if (triggerType === "label") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Label trigger detected, dispatching to label workflow");
+            const result = await (0,_milestone_label_trigger_js__WEBPACK_IMPORTED_MODULE_16__/* .executeLabelTriggerWorkflow */ .b)({
+                owner: repoOwner,
+                repo: repoName,
+                issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                issueTitle,
+                issueBody,
+            });
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("label-trigger-complete", result.complete);
+            return {commandFound: true, ...result};
+        }
 
-    // Validate command
-    (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .validateCommand */ .Md)(parsed.command);
+        // Parse comment to extract command
+        const parsed = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseComment */ .vj)(commentBody);
 
-    // Sanitize arguments
-    const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .sanitizeArguments */ .ml)(args) : {};
+        if (!parsed) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("No @gsd-bot command found in comment");
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "false");
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "false");
+            return {commandFound: false};
+        }
 
-    // Parse skill from args (if provided)
-    const skill = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseSkillArg */ .vE)(parsed.args || "");
-    if (skill) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Skill detected: ${skill}`);
-      // Validate skill is allowed for this command
-      if (!(0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .isValidSkillForCommand */ .E2)(skill, parsed.command)) {
-        const validSkills = (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .getValidSkillsForCommand */ .Pz)(parsed.command);
-        throw new Error(
-          `Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(", ")}`,
+        // CRITICAL: Authorization check BEFORE any git operations or state modifications
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Checking authorization for user`);
+        const authResult = await (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .checkAuthorization */ .K6)(_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8);
+
+        if (!authResult.authorized) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
+                `User ${authResult.username} not authorized: ${authResult.reason}`,
+            );
+            const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .getWorkflowRunUrl */ .gx)();
+            const errorComment = (0,_auth_index_js__WEBPACK_IMPORTED_MODULE_0__/* .formatAuthorizationError */ .TI)(
+                authResult.username,
+                `${repoOwner}/${repoName}`,
+                workflowUrl,
+            );
+            await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_1__/* .postComment */ .Gy)(
+                repoOwner,
+                repoName,
+                _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                errorComment,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("authorized", "false");
+            return {
+                commandFound: true,
+                authorized: false,
+                reason: authResult.reason,
+            };
+        }
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(
+            `User ${authResult.username} authorized with ${authResult.permission} access`,
         );
-      }
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Found command: ${parsed.command}`);
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Arguments: ${parsed.args || "(none)"}`);
+
+        // Parse arguments if present
+        const args = parsed.args ? (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseArguments */ .We)(parsed.args) : {};
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Parsed arguments: ${JSON.stringify(args)}`);
+
+        // Validate command
+        (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .validateCommand */ .Md)(parsed.command);
+
+        // Sanitize arguments
+        const sanitizedArgs = args ? (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .sanitizeArguments */ .ml)(args) : {};
+
+        // Parse skill from args (if provided)
+        const skill = (0,_lib_parser_js__WEBPACK_IMPORTED_MODULE_4__/* .parseSkillArg */ .vE)(parsed.args || "");
+        if (skill) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Skill detected: ${skill}`);
+            // Validate skill is allowed for this command
+            if (!(0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .isValidSkillForCommand */ .E2)(skill, parsed.command)) {
+                const validSkills = (0,_lib_validator_js__WEBPACK_IMPORTED_MODULE_6__/* .getValidSkillsForCommand */ .Pz)(parsed.command);
+                throw new Error(
+                    `Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(", ")}`,
+                );
+            }
+        }
+
+        // Command dispatch for milestone workflow
+        if (parsed.command === "new-milestone") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone workflow");
+            // Pass raw args string - parseMilestoneDescription expects the full text
+            const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT)(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                },
+                parsed.args || "",
+                skill,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Milestone workflow result: ${JSON.stringify(result)}`);
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-complete", result.complete);
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-phase", result.phase || "unknown");
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Command dispatch for phase planning workflow
+        if (parsed.command === "plan-phase") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase planning workflow");
+            // Pass raw args string - parsePhaseNumber expects string for .match()
+            const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A)(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                },
+                parsed.args || "",
+                skill,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-planned", result.complete);
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Command dispatch for phase execution workflow
+        if (parsed.command === "execute-phase") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase execution workflow");
+            // Pass raw args string - parsePhaseNumber expects string for .match()
+            const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q)(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                },
+                parsed.args || "",
+                skill,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("has-questions", result.hasQuestions);
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Command dispatch for milestone completion workflow
+        if (parsed.command === "complete-milestone") {
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone completion workflow");
+            const result = await (0,_milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L)(
+                {
+                    owner: repoOwner,
+                    repo: repoName,
+                    issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
+                },
+                skill,
+            );
+            _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-completed", result.complete);
+            return {commandFound: true, command: parsed.command, ...result};
+        }
+
+        // Load configuration
+        const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_5__/* .loadConfig */ .Z)(repoOwner, repoName);
+
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Configuration loaded and validated");
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Config paths: ${JSON.stringify(config.paths)}`);
+
+        // Set outputs
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "true");
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command", parsed.command);
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("config-loaded", "true");
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("arguments", JSON.stringify(sanitizedArgs));
+
+        // Configure git identity for commits
+        await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd)(
+            "github-actions[bot]",
+            "41898282+github-actions[bot]@users.noreply.github.com",
+        );
+
+        return {commandFound: true, command: parsed.command};
+    }, githubContext);
+
+    if (!result.success) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Command execution failed - error posted to issue");
     }
 
-    // Command dispatch for milestone workflow
-    if (parsed.command === "new-milestone") {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone workflow");
-      // Pass raw args string - parseMilestoneDescription expects the full text
-      const result = await (0,_milestone_index_js__WEBPACK_IMPORTED_MODULE_12__/* .executeMilestoneWorkflow */ .BT)(
-        {
-          owner: repoOwner,
-          repo: repoName,
-          issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        },
-        parsed.args || "",
-        skill,
-      );
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Milestone workflow result: ${JSON.stringify(result)}`);
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-complete", result.complete);
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-phase", result.phase || "unknown");
-      return { commandFound: true, command: parsed.command, ...result };
-    }
-
-    // Command dispatch for phase planning workflow
-    if (parsed.command === "plan-phase") {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase planning workflow");
-      // Pass raw args string - parsePhaseNumber expects string for .match()
-      const result = await (0,_milestone_phase_planner_js__WEBPACK_IMPORTED_MODULE_13__/* .executePhaseWorkflow */ .A)(
-        {
-          owner: repoOwner,
-          repo: repoName,
-          issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        },
-        parsed.args || "",
-        skill,
-      );
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-planned", result.complete);
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
-      return { commandFound: true, command: parsed.command, ...result };
-    }
-
-    // Command dispatch for phase execution workflow
-    if (parsed.command === "execute-phase") {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to phase execution workflow");
-      // Pass raw args string - parsePhaseNumber expects string for .match()
-      const result = await (0,_milestone_phase_executor_js__WEBPACK_IMPORTED_MODULE_14__/* .executePhaseExecutionWorkflow */ .q)(
-        {
-          owner: repoOwner,
-          repo: repoName,
-          issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        },
-        parsed.args || "",
-        skill,
-      );
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-executed", result.complete);
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("phase-number", result.phaseNumber);
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("has-questions", result.hasQuestions);
-      return { commandFound: true, command: parsed.command, ...result };
-    }
-
-    // Command dispatch for milestone completion workflow
-    if (parsed.command === "complete-milestone") {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Dispatching to milestone completion workflow");
-      const result = await (0,_milestone_milestone_completer_js__WEBPACK_IMPORTED_MODULE_15__/* .executeMilestoneCompletionWorkflow */ .L)(
-        {
-          owner: repoOwner,
-          repo: repoName,
-          issueNumber: _actions_github__WEBPACK_IMPORTED_MODULE_3__.context.issue?.number,
-        },
-        skill,
-      );
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("milestone-completed", result.complete);
-      return { commandFound: true, command: parsed.command, ...result };
-    }
-
-    // Load configuration
-    const config = await (0,_lib_config_js__WEBPACK_IMPORTED_MODULE_5__/* .loadConfig */ .Z)(repoOwner, repoName);
-
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Configuration loaded and validated");
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Config paths: ${JSON.stringify(config.paths)}`);
-
-    // Set outputs
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command-found", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("response-posted", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("command", parsed.command);
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("config-loaded", "true");
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setOutput("arguments", JSON.stringify(sanitizedArgs));
-
-    // Configure git identity for commits
-    await (0,_git_git_js__WEBPACK_IMPORTED_MODULE_8__/* .configureGitIdentity */ .Zd)(
-      "github-actions[bot]",
-      "41898282+github-actions[bot]@users.noreply.github.com",
-    );
-
-    // Execute GSD command via Claude Code Router stdin pipe
-    // CCR wraps Claude Code CLI for non-interactive CI/CD execution
-    // TODO: Execute command logic in later phases (Phase 5+)
-    // Example execution:
-    // exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
-    //   if (error) {
-    //     console.error(`Error: ${error.message}`);
-    //     return;
-    //   }
-    //   if (stderr) {
-    //     console.error(`stderr: ${stderr}`);
-    //   }
-    //   console.log(`stdout: ${stdout}`);
-    // });
-
-    return { commandFound: true, command: parsed.command };
-  }, githubContext);
-
-  if (!result.success) {
-    _actions_core__WEBPACK_IMPORTED_MODULE_2__.info("Command execution failed - error posted to issue");
-  }
-
-  // Clean exit - no explicit return needed
+    // Clean exit - no explicit return needed
 } catch (error) {
-  // Set failed exit code
-  _actions_core__WEBPACK_IMPORTED_MODULE_2__.setFailed(`Action failed: ${error.message}`);
+    // Set failed exit code
+    _actions_core__WEBPACK_IMPORTED_MODULE_2__.setFailed(`Action failed: ${error.message}`);
 }
 
 __webpack_async_result__();
