@@ -253,12 +253,38 @@ Questions:
       );
     });
 
-    it('includes raw output in details section', async () => {
+    it('includes raw output in code block when no structured content', async () => {
       const rawOutput = 'Raw execution output here';
       mockReadFile.mockResolvedValue(rawOutput);
 
       await executePhaseExecutionWorkflow(mockContext, '4');
 
+      // Without structured content, output is shown in code block directly
+      expect(mockPostComment).toHaveBeenCalledWith(
+        'test-owner',
+        'test-repo',
+        100,
+        expect.stringContaining('```')
+      );
+      expect(mockPostComment).toHaveBeenCalledWith(
+        'test-owner',
+        'test-repo',
+        100,
+        expect.stringContaining('Raw execution output here')
+      );
+    });
+
+    it('includes details section when structured content found', async () => {
+      const output = `
+[x] Task 1 completed
+[x] Task 2 completed
+Some other text
+`;
+      mockReadFile.mockResolvedValue(output);
+
+      await executePhaseExecutionWorkflow(mockContext, '4');
+
+      // With structured content, raw output goes in collapsible details
       expect(mockPostComment).toHaveBeenCalledWith(
         'test-owner',
         'test-repo',

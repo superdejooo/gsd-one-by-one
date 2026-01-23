@@ -34626,14 +34626,24 @@ function parseExecutionOutput(output) {
     completedActions: [],
     nextSteps: [],
     questions: [],
-    hasQuestions: false
+    hasQuestions: false,
+    gsdStatus: null
   };
 
-  // Extract completed actions (checkmarks, "completed", task markers)
-  const completedPattern = /(?:[*-]\s*)?(?:\[x\]|completed?:?|done:?)\s*(.+)/gi;
-  let match;
-  while ((match = completedPattern.exec(output)) !== null) {
-    sections.completedActions.push(match[1].trim());
+  // Extract GSD status message (e.g., "GSD ► NO INCOMPLETE PLANS FOUND")
+  const gsdStatusMatch = output.match(/GSD\s*►\s*(.+)/);
+  if (gsdStatusMatch) {
+    sections.gsdStatus = gsdStatusMatch[1].trim();
+  }
+
+  // Extract completed actions - only match explicit checkbox markers [x]
+  // at the start of a line (with optional list marker)
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const checkboxMatch = line.match(/^\s*[-*]?\s*\[x\]\s*(.+)/i);
+    if (checkboxMatch) {
+      sections.completedActions.push(checkboxMatch[1].trim());
+    }
   }
 
   // Extract next steps section
@@ -34661,12 +34671,54 @@ function parseExecutionOutput(output) {
 }
 
 /**
+ * Extract GSD formatted block from output
+ * Finds LAST "GSD ►" marker and returns everything from line above it onwards
+ * Falls back to last 80 lines if GSD marker not found
+ * @param {string} output - Raw output
+ * @returns {string} GSD block or last 80 lines
+ */
+function extractGsdBlock(output) {
+  const lines = output.split('\n');
+
+  // Find LAST occurrence of GSD ► (search from end)
+  let gsdLineIndex = -1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    if (lines[i].includes('GSD ►')) {
+      gsdLineIndex = i;
+      break;
+    }
+  }
+
+  if (gsdLineIndex !== -1) {
+    // Include line above (box drawing) and everything after
+    const startIndex = Math.max(0, gsdLineIndex - 1);
+    return lines.slice(startIndex).join('\n');
+  }
+
+  // Fallback: return last 80 lines
+  const tail = lines.slice(-80);
+  return tail.join('\n');
+}
+
+/**
  * Format parsed output into structured GitHub comment
  * @param {object} parsed - Parsed sections from parseExecutionOutput
  * @param {string} rawOutput - Original raw output for details section
  * @returns {string} Formatted markdown comment
  */
 function formatExecutionComment(parsed, rawOutput) {
+  const hasStructuredContent =
+    parsed.completedActions.length > 0 ||
+    parsed.nextSteps.length > 0 ||
+    parsed.questions.length > 0;
+
+  // If no structured content found, show GSD block (or last 80 lines)
+  if (!hasStructuredContent) {
+    const gsdBlock = extractGsdBlock(rawOutput);
+    return `## Phase Execution Update\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
+  }
+
+  // Build structured comment with extracted sections
   let comment = `## Phase Execution Update\n\n`;
 
   if (parsed.completedActions.length > 0) {
@@ -34693,7 +34745,7 @@ function formatExecutionComment(parsed, rawOutput) {
     comment += `\n**Reply to this comment to answer these questions. The workflow will resume when you reply.**\n\n`;
   }
 
-  // Include raw output in collapsible section
+  // Include raw output in collapsible section when we have structured content
   comment += `<details>\n<summary>Full Output</summary>\n\n\`\`\`\n${rawOutput}\n\`\`\`\n\n</details>`;
 
   return comment;
