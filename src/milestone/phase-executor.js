@@ -233,7 +233,7 @@ export async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 2: Execute GSD execute-plan via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:execute-plan ${phaseNumber}" | npx ccr code --print > ${outputPath}`;
+    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath}`;
 
     core.info(`Executing: ${command}`);
 

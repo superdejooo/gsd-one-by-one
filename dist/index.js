@@ -32381,7 +32381,7 @@ async function createPhaseBranch(milestoneNumber, phaseNumber, phaseName, startP
  */
 async function branchExists(branchName) {
   try {
-    await runGitCommand(`git rev-parse --verify ${branchName}`);
+    await (0,_git_js__WEBPACK_IMPORTED_MODULE_0__/* .runGitCommand */ .tD)(`git rev-parse --verify ${branchName}`);
     return true;
   } catch {
     return false;
@@ -32785,6 +32785,314 @@ async function postComment(owner, repo, issueNumber, body) {
 function getWorkflowRunUrl() {
   const { server_url, repository, run_id, run_attempt } = _actions_github__WEBPACK_IMPORTED_MODULE_1__.context;
   return `${server_url}/${repository}/actions/runs/${run_id}/attempts/${run_attempt}`;
+}
+
+
+/***/ }),
+
+/***/ 6764:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   LE: () => (/* binding */ extractTasksFromPlan),
+/* harmony export */   Ug: () => (/* binding */ getPhaseIssues),
+/* harmony export */   wY: () => (/* binding */ createIssuesForTasks)
+/* harmony export */ });
+/* unused harmony export formatIssueBody */
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var _github_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(739);
+/* harmony import */ var _labels_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3715);
+
+
+
+
+/**
+ * Extract tasks from PLAN.md content
+ * @param {string} planContent - Raw PLAN.md file content
+ * @returns {Array<{type: string, name: string, files: string, action: string, verify: string, done: string}>}
+ */
+function extractTasksFromPlan(planContent) {
+  const tasks = [];
+
+  // Match XML-style task blocks with type, name, files, action, verify, done
+  const taskPattern = /<task\s+type="(auto|checkpoint:[^"]+)">\s*<name>([\s\S]*?)<\/name>\s*<files>([\s\S]*?)<\/files>\s*<action>([\s\S]*?)<\/action>\s*<verify>([\s\S]*?)<\/verify>\s*<done>([\s\S]*?)<\/done>\s*<\/task>/g;
+
+  let match;
+  while ((match = taskPattern.exec(planContent)) !== null) {
+    const taskName = match[2].trim();
+
+    // Remove "Task N:" prefix if present
+    const cleanedName = taskName.replace(/^Task\s+\d+:\s*/i, '');
+
+    tasks.push({
+      type: match[1].trim(),
+      name: cleanedName,
+      files: match[3].trim(),
+      action: match[4].trim(),
+      verify: match[5].trim(),
+      done: match[6].trim()
+    });
+  }
+
+  return tasks;
+}
+
+/**
+ * Format issue body with task details
+ * @param {Object} task - Task object from extractTasksFromPlan
+ * @param {number} phaseNumber - Phase number
+ * @param {string} phaseName - Phase name
+ * @returns {string} Markdown-formatted issue body
+ */
+function formatIssueBody(task, phaseNumber, phaseName) {
+  let body = `## Task Details
+
+**Phase:** ${phaseNumber} - ${phaseName}
+**Files:** ${task.files}
+**Type:** ${task.type}
+
+## Action
+
+${task.action}
+
+## Verification
+
+\`\`\`bash
+${task.verify}
+\`\`\`
+
+## Done Criteria
+
+${task.done}
+
+---
+*Created by GSD Phase Planner*`;
+
+  // Truncate if exceeds GitHub's 65536 char limit (use 65000 for safety)
+  if (body.length > 65000) {
+    body = body.substring(0, 64997) + '...';
+  }
+
+  return body;
+}
+
+/**
+ * Truncate title to max length with ellipsis
+ * @param {string} title - Title to truncate
+ * @param {number} maxLength - Maximum length
+ * @returns {string} Truncated title
+ */
+function truncateTitle(title, maxLength) {
+  if (title.length <= maxLength) {
+    return title;
+  }
+  return title.substring(0, maxLength - 3) + '...';
+}
+
+/**
+ * Create GitHub issues for tasks
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {Array<Object>} tasks - Tasks from extractTasksFromPlan
+ * @param {number} phaseNumber - Phase number
+ * @param {string} phaseName - Phase name
+ * @returns {Promise<Array<{number: number, url: string, taskName: string}>>}
+ */
+async function createIssuesForTasks(owner, repo, tasks, phaseNumber, phaseName) {
+  // Ensure phase label exists
+  const phaseLabel = {
+    name: `phase-${phaseNumber}`,
+    color: '1d76db',  // Blue
+    description: `Phase ${phaseNumber} tasks`
+  };
+
+  // Ensure all labels exist (phase label + status labels)
+  await (0,_labels_js__WEBPACK_IMPORTED_MODULE_2__/* .ensureLabelsExist */ .p1)(owner, repo, [phaseLabel, ..._labels_js__WEBPACK_IMPORTED_MODULE_2__/* .STATUS_LABELS */ .Zt]);
+
+  const createdIssues = [];
+
+  // Create issues sequentially (throttling plugin handles rate limiting)
+  for (const task of tasks) {
+    try {
+      const cleanTaskName = task.name.replace(/^Task\s+\d+:\s*/i, '');
+      const issueTitle = truncateTitle(`${String(phaseNumber).padStart(2, '0')}: ${cleanTaskName}`, 240);
+
+      const issue = await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.create({
+        owner,
+        repo,
+        title: issueTitle,
+        body: formatIssueBody(task, phaseNumber, phaseName),
+        labels: ['status:pending', `phase-${phaseNumber}`]
+      });
+
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Created issue #${issue.data.number}: ${cleanTaskName}`);
+      createdIssues.push({
+        number: issue.data.number,
+        url: issue.data.html_url,
+        taskName: cleanTaskName
+      });
+    } catch (error) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to create issue for "${task.name}": ${error.message}`);
+      // Continue creating other issues
+    }
+  }
+
+  return createdIssues;
+}
+
+/**
+ * Get all issues for a phase
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} phaseNumber - Phase number
+ * @returns {Promise<Array<{number: number, title: string, status: string, url: string}>>}
+ */
+async function getPhaseIssues(owner, repo, phaseNumber) {
+  const { data: issues } = await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.listForRepo({
+    owner,
+    repo,
+    labels: `phase-${phaseNumber}`,
+    state: 'all',
+    per_page: 100
+  });
+
+  return issues.map(issue => {
+    // Extract status from status: label
+    const statusLabel = issue.labels.find(l => l.name.startsWith('status:'));
+    const status = statusLabel ? statusLabel.name : 'unknown';
+
+    return {
+      number: issue.number,
+      title: issue.title,
+      status,
+      url: issue.html_url
+    };
+  });
+}
+
+
+/***/ }),
+
+/***/ 3715:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   Zt: () => (/* binding */ STATUS_LABELS),
+/* harmony export */   p1: () => (/* binding */ ensureLabelsExist),
+/* harmony export */   vD: () => (/* binding */ updateIssueStatus)
+/* harmony export */ });
+/* unused harmony export applyLabels */
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(7484);
+/* harmony import */ var _github_js__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(739);
+
+
+
+/**
+ * Status labels for issue tracking
+ * These labels drive GitHub Project board automations
+ */
+const STATUS_LABELS = [
+  { name: 'status:pending', color: 'd4c5f9', description: 'Task is queued, not yet started' },
+  { name: 'status:in-progress', color: 'fbca04', description: 'Task is actively being worked on' },
+  { name: 'status:complete', color: '0e8a16', description: 'Task is finished' },
+  { name: 'status:blocked', color: 'd93f0b', description: 'Task cannot proceed' }
+];
+
+/**
+ * Ensure labels exist in repository, creating them if missing
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {Array<{name: string, color: string, description: string}>} labels - Labels to create
+ */
+async function ensureLabelsExist(owner, repo, labels) {
+  // Fetch existing labels
+  const existingLabels = await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.listLabelsForRepo({
+    owner,
+    repo,
+    per_page: 100
+  });
+
+  const existingNames = new Set(existingLabels.data.map(l => l.name));
+
+  // Create missing labels
+  for (const label of labels) {
+    if (!existingNames.has(label.name)) {
+      try {
+        await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.createLabel({
+          owner,
+          repo,
+          name: label.name,
+          color: label.color,
+          description: label.description
+        });
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Created label: ${label.name}`);
+      } catch (error) {
+        // Handle 422 error gracefully (label already exists due to race condition)
+        if (error.status === 422) {
+          _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Label already exists: ${label.name}`);
+        } else {
+          throw error;
+        }
+      }
+    } else {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Label already exists: ${label.name}`);
+    }
+  }
+}
+
+/**
+ * Apply labels to an issue
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {string[]} labels - Label names to add
+ */
+async function applyLabels(owner, repo, issueNumber, labels) {
+  await octokit.rest.issues.addLabels({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    labels
+  });
+  core.info(`Applied labels to issue #${issueNumber}: ${labels.join(', ')}`);
+}
+
+/**
+ * Update issue status by atomically replacing status label
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {number} issueNumber - Issue number
+ * @param {string} newStatus - New status (pending, in-progress, complete, blocked)
+ * @throws {Error} If newStatus is invalid
+ */
+async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
+  // Validate status
+  const validStatuses = ['pending', 'in-progress', 'complete', 'blocked'];
+  if (!validStatuses.includes(newStatus)) {
+    throw new Error(`Invalid status: ${newStatus}. Must be one of: ${validStatuses.join(', ')}`);
+  }
+
+  // Fetch current labels
+  const currentLabels = await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.listLabelsOnIssue({
+    owner,
+    repo,
+    issue_number: issueNumber
+  });
+
+  // Filter out existing status labels, keep all others
+  const nonStatusLabels = currentLabels.data
+    .filter(l => !l.name.startsWith('status:'))
+    .map(l => l.name);
+
+  // Replace labels: all non-status labels + new status label
+  await _github_js__WEBPACK_IMPORTED_MODULE_1__/* .octokit */ .A8.rest.issues.setLabels({
+    owner,
+    repo,
+    issue_number: issueNumber,
+    labels: [...nonStatusLabels, `status:${newStatus}`]
+  });
+
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Updated issue #${issueNumber} status to: status:${newStatus}`);
 }
 
 
@@ -34189,6 +34497,8 @@ function generatePhasesFromRequirements(answers) {
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
 /* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
+/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
+/* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(3715);
 /**
  * Phase Execution Workflow Module
  *
@@ -34210,7 +34520,64 @@ function generatePhasesFromRequirements(answers) {
 
 
 
+
+
 const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_3__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_2__.exec);
+
+/**
+ * Find issue that matches a task name
+ * @param {string} taskName - Task name from execution output
+ * @param {Array<{number: number, title: string}>} issues - Phase issues
+ * @returns {object|null} Matching issue or null
+ */
+function matchTaskToIssue(taskName, issues) {
+  // Normalize for comparison: lowercase, remove "Task N:" prefix
+  const normalizedTask = taskName
+    .toLowerCase()
+    .replace(/^task\s*\d+:\s*/i, '')
+    .trim();
+
+  return issues.find(issue => {
+    // Issue title format: "09: Task Name"
+    const issueTaskName = issue.title
+      .replace(/^\d+:\s*/, '')  // Remove "09: " prefix
+      .toLowerCase()
+      .replace(/^task\s*\d+:\s*/i, '')  // Remove any "Task N:" in title
+      .trim();
+
+    // Check for substring match (task name contained in issue title or vice versa)
+    return issueTaskName.includes(normalizedTask) ||
+           normalizedTask.includes(issueTaskName);
+  });
+}
+
+/**
+ * Update issues to complete status for completed tasks
+ * @param {string} owner - Repository owner
+ * @param {string} repo - Repository name
+ * @param {string[]} completedActions - List of completed task names
+ * @param {Array<{number: number, title: string, status: string}>} issues - Phase issues
+ * @returns {Promise<number>} Number of issues updated
+ */
+async function updateIssuesForCompletedTasks(owner, repo, completedActions, issues) {
+  let updatedCount = 0;
+
+  for (const taskName of completedActions) {
+    const matchingIssue = matchTaskToIssue(taskName, issues);
+
+    if (matchingIssue && matchingIssue.status !== 'status:complete') {
+      try {
+        await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_8__/* .updateIssueStatus */ .vD)(owner, repo, matchingIssue.number, 'complete');
+        updatedCount++;
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Marked issue #${matchingIssue.number} as complete`);
+      } catch (error) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to update issue #${matchingIssue.number}: ${error.message}`);
+      }
+    }
+  }
+
+  return updatedCount;
+}
 
 /**
  * Parse phase number from command arguments
@@ -34367,7 +34734,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 2: Execute GSD execute-plan via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:execute-plan ${phaseNumber}" | npx ccr code --print > ${outputPath}`;
+    const command = `echo "/gsd:execute-plan ${phaseNumber}" | ccr code --print > ${outputPath}`;
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -34403,6 +34770,35 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
     // Step 6: Parse and format structured output
     const parsed = parseExecutionOutput(output);
     const formattedComment = formatExecutionComment(parsed, output);
+
+    // Step 7: Update issue status for completed tasks
+    let issuesUpdated = 0;
+    try {
+      const phaseIssues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_7__/* .getPhaseIssues */ .Ug)(owner, repo, phaseNumber);
+
+      if (phaseIssues.length > 0 && parsed.completedActions.length > 0) {
+        // Mark all phase issues as in-progress at start (if still pending)
+        for (const issue of phaseIssues) {
+          if (issue.status === 'status:pending') {
+            try {
+              await (0,_lib_labels_js__WEBPACK_IMPORTED_MODULE_8__/* .updateIssueStatus */ .vD)(owner, repo, issue.number, 'in-progress');
+              _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Marked issue #${issue.number} as in-progress`);
+            } catch (error) {
+              _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to update issue #${issue.number}: ${error.message}`);
+            }
+          }
+        }
+
+        // Mark completed tasks
+        issuesUpdated = await updateIssuesForCompletedTasks(
+          owner, repo, parsed.completedActions, phaseIssues
+        );
+      }
+    } catch (issueError) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Issue status update failed: ${issueError.message}`);
+      // Don't fail the workflow - execution succeeded, status updates are supplementary
+    }
+
     await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, formattedComment);
 
     // Cleanup output file
@@ -34419,6 +34815,7 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
       phaseNumber,
       hasQuestions: parsed.hasQuestions,
       completedCount: parsed.completedActions.length,
+      issuesUpdated,
       message: parsed.hasQuestions
         ? "Phase execution paused - questions require user input"
         : "Phase execution completed successfully"
@@ -34447,14 +34844,18 @@ async function executePhaseExecutionWorkflow(context, commandArgs) {
 /* harmony import */ var child_process__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(5317);
 /* harmony import */ var util__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(9023);
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1943);
-/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
-/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(5878);
+/* harmony import */ var path__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(6928);
+/* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(739);
+/* harmony import */ var _errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(5878);
+/* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(6764);
 /**
  * Phase Planning Workflow Module
  *
  * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
+
+
 
 
 
@@ -34506,6 +34907,50 @@ function parsePhaseNumber(commandArgs) {
 }
 
 /**
+ * Find all PLAN.md files for a phase
+ * @param {number} phaseNumber - Phase number
+ * @returns {Promise<Array<{path: string, filename: string, phaseDir: string}>>}
+ */
+async function findPlanFiles(phaseNumber) {
+  const paddedPhase = String(phaseNumber).padStart(2, '0');
+  const phasesDir = '.planning/phases';
+
+  // Find phase directory (handles 01-name and 1-name patterns)
+  const dirs = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readdir(phasesDir);
+  const phaseDir = dirs.find(d =>
+    d.startsWith(`${paddedPhase}-`) || d.startsWith(`${phaseNumber}-`)
+  );
+
+  if (!phaseDir) {
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Phase directory not found for phase ${phaseNumber}`);
+    return [];
+  }
+
+  // Find all PLAN.md files
+  const files = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readdir(path__WEBPACK_IMPORTED_MODULE_5__.join(phasesDir, phaseDir));
+  const planFiles = files.filter(f => f.endsWith('-PLAN.md'));
+
+  return planFiles.map(filename => ({
+    path: path__WEBPACK_IMPORTED_MODULE_5__.join(phasesDir, phaseDir, filename),
+    filename,
+    phaseDir
+  }));
+}
+
+/**
+ * Extract human-readable phase name from directory
+ * @param {string} phaseDir - e.g., "09-issue-tracking-integration"
+ * @returns {string} - e.g., "Issue Tracking Integration"
+ */
+function extractPhaseName(phaseDir) {
+  const parts = phaseDir.split('-');
+  parts.shift(); // Remove number prefix
+  return parts
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
  * Execute the complete phase planning workflow
  *
  * This orchestrator handles:
@@ -34525,7 +34970,7 @@ function parsePhaseNumber(commandArgs) {
  */
 async function executePhaseWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
-  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .getWorkflowRunUrl */ .gx)();
+  const workflowUrl = (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .getWorkflowRunUrl */ .gx)();
 
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
 
@@ -34536,7 +34981,7 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = `echo "/gsd:plan-phase ${phaseNumber}" | npx ccr code --print > ${outputPath}`;
+    const command = `echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > ${outputPath}`;
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
 
@@ -34564,13 +35009,52 @@ async function executePhaseWorkflow(context, commandArgs) {
 
     // Step 5: Post result to GitHub
     if (isError) {
-      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
-      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
+      const errorMsg = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l)(new Error(output.trim()), workflowUrl);
+      await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, errorMsg);
       throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
     }
 
     // Post success - pass through GSD output
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+
+    // Step 6: Create GitHub issues for tasks
+    let createdIssues = [];
+    try {
+      const planFiles = await findPlanFiles(phaseNumber);
+
+      if (planFiles.length === 0) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning('No PLAN.md files found, skipping issue creation');
+      } else {
+        const phaseName = extractPhaseName(planFiles[0].phaseDir);
+
+        for (const planFile of planFiles) {
+          _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Processing ${planFile.filename}`);
+          const planContent = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(planFile.path, 'utf-8');
+          const tasks = (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_8__/* .extractTasksFromPlan */ .LE)(planContent);
+
+          if (tasks.length > 0) {
+            const issues = await (0,_lib_issues_js__WEBPACK_IMPORTED_MODULE_8__/* .createIssuesForTasks */ .wY)(
+              owner, repo, tasks, phaseNumber, phaseName
+            );
+            createdIssues.push(...issues);
+          }
+        }
+
+        // Post follow-up comment with issue links
+        if (createdIssues.length > 0) {
+          const issueList = createdIssues
+            .map(i => `- [ ] #${i.number} - ${i.taskName}`)
+            .join('\n');
+
+          await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber,
+            `## Issues Created\n\n${issueList}\n\n*Track progress by checking off completed issues.*`
+          );
+        }
+      }
+    } catch (issueError) {
+      _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Issue creation failed: ${issueError.message}`);
+      // Don't fail the workflow - planning succeeded, issues are supplementary
+    }
 
     // Cleanup output file
     try {
@@ -34584,6 +35068,7 @@ async function executePhaseWorkflow(context, commandArgs) {
     return {
       complete: true,
       phaseNumber,
+      issuesCreated: createdIssues.length,
       message: "Phase planning completed successfully"
     };
 
@@ -34591,8 +35076,8 @@ async function executePhaseWorkflow(context, commandArgs) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.error(`Phase planning workflow error: ${error.message}`);
 
     // Post error comment
-    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_6__/* .formatErrorComment */ .l)(error, workflowUrl);
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_5__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
+    const errorComment = (0,_errors_formatter_js__WEBPACK_IMPORTED_MODULE_7__/* .formatErrorComment */ .l)(error, workflowUrl);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, errorComment);
 
     throw error;
   }

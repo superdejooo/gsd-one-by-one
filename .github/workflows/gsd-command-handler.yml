@@ -15,6 +15,8 @@ concurrency:
 
 jobs:
   handle-gsd-command:
+    # Only run if comment contains @gsd-bot
+    if: contains(github.event.comment.body, '@gsd-bot')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -28,11 +30,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Cache global npm packages
+        uses: actions/cache@v4
+        id: npm-global-cache
+        with:
+          path: ~/.npm/_npx
+          key: npm-global-${{ runner.os }}-ccr-claude-gsd
+
       - name: Install Claude Code CLI
         run: npm install -g claude-code@latest
 
       - name: Install Claude Code Router
         run: npm install -g @musistudio/claude-code-router@latest
+
+      - name: Install GSD Skill
+        run: npm install -g get-shit-done-cc@latest
 
       - name: Generate CCR Configuration
         env:
@@ -41,13 +53,34 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
         run: npm run setup:ccr
 
+      - name: Verify Global Installs
+        run: |
+          # Add global npm bin to PATH for this and subsequent steps
+          echo "$(npm config get prefix)/bin" >> $GITHUB_PATH
+
+          # Verify installations
+          which ccr || (echo "CCR not found in PATH" && exit 1)
+          which claude || (echo "Claude Code not found in PATH" && exit 1)
+          ccr --version
+          claude --version
+
       - name: Start CCR Service
         run: |
           nohup ccr start > ccr.log 2>&1 &
-          sleep 5
 
-          # Verify service is running
-          curl -f http://127.0.0.1:3456/health || (echo "CCR service failed to start" && cat ccr.log && exit 1)
+          # Retry health check up to 10 times (30 seconds total)
+          for i in {1..10}; do
+            sleep 3
+            if curl -sf http://127.0.0.1:3456/health > /dev/null 2>&1; then
+              echo "CCR service started successfully"
+              exit 0
+            fi
+            echo "Health check attempt $i failed, retrying..."
+          done
+
+          echo "CCR service failed to start after 30 seconds"
+          cat ccr.log
+          exit 1
 
       - name: Run Action
         uses: ./
@@ -60,12 +93,14 @@ jobs:
           comment-body: ${{ github.event.comment.body }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload CCR logs (on failure)
-        if: failure()
+      - name: Upload CCR logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ccr-logs
+          name: ccr-logs-${{ github.run_id }}
           path: |
             ccr.log
+            output-*.txt
             ~/.claude-code-router/logs/
             ~/.claude-code-router/claude-code-router.log
+          retention-days: 7
