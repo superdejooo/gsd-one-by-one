@@ -298,6 +298,60 @@ Some other text
         expect.stringContaining('Full Output')
       );
     });
+
+    it('strips CCR debug logs from output', async () => {
+      const output = `[log_abc123] sending request
+method: 'post'
+url: 'http://127.0.0.1:3456/v1/messages'
+response 200 http://127.0.0.1:3456 Headers {
+durationMs: 1234
+}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PHASE COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+All done!`;
+      mockReadFile.mockResolvedValue(output);
+
+      await executePhaseExecutionWorkflow(mockContext, '5');
+
+      // Should not include CCR logs
+      expect(mockPostComment).toHaveBeenCalledWith(
+        'test-owner',
+        'test-repo',
+        100,
+        expect.not.stringContaining('[log_abc123]')
+      );
+      // Should include GSD block
+      expect(mockPostComment).toHaveBeenCalledWith(
+        'test-owner',
+        'test-repo',
+        100,
+        expect.stringContaining('GSD ► PHASE COMPLETE')
+      );
+    });
+
+    it('extracts GSD block from last GSD marker', async () => {
+      const output = `Earlier content
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► FIRST MARKER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Middle content
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► LAST MARKER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Final content`;
+      mockReadFile.mockResolvedValue(output);
+
+      await executePhaseExecutionWorkflow(mockContext, '6');
+
+      // Should include last GSD marker, not first
+      expect(mockPostComment).toHaveBeenCalledWith(
+        'test-owner',
+        'test-repo',
+        100,
+        expect.stringContaining('GSD ► LAST MARKER')
+      );
+    });
   });
 
   describe('executePhaseExecutionWorkflow', () => {

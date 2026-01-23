@@ -171,10 +171,35 @@ function parseExecutionOutput(output) {
 }
 
 /**
+ * Strip CCR debug logging from output
+ * Removes lines like [log_...], response 200 http://..., headers, etc.
+ * @param {string} output - Raw output with CCR logs
+ * @returns {string} Clean output without CCR logs
+ */
+function stripCcrLogs(output) {
+  const lines = output.split('\n');
+  const cleanLines = lines.filter(line => {
+    // Skip CCR log lines
+    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
+    if (/^response \d+ http:/.test(line)) return false;
+    if (/ReadableStream \{/.test(line)) return false;
+    if (/durationMs:/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line)) return false;
+    // Skip JS object notation (key: value patterns from debug output)
+    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
+    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
+    if (/^\s*[}\]],?\s*$/.test(line)) return false; // closing braces
+    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
+    return true;
+  });
+  return cleanLines.join('\n').trim();
+}
+
+/**
  * Extract GSD formatted block from output
  * Finds LAST "GSD ►" marker and returns everything from line above it onwards
  * Falls back to last 80 lines if GSD marker not found
- * @param {string} output - Raw output
+ * @param {string} output - Raw output (already stripped of CCR logs)
  * @returns {string} GSD block or last 80 lines
  */
 function extractGsdBlock(output) {
@@ -212,9 +237,12 @@ function formatExecutionComment(parsed, rawOutput) {
     parsed.nextSteps.length > 0 ||
     parsed.questions.length > 0;
 
+  // Strip CCR debug logs first
+  const cleanOutput = stripCcrLogs(rawOutput);
+
   // If no structured content found, show GSD block (or last 80 lines)
   if (!hasStructuredContent) {
-    const gsdBlock = extractGsdBlock(rawOutput);
+    const gsdBlock = extractGsdBlock(cleanOutput);
     return `## Phase Execution Update\n\n\`\`\`\n${gsdBlock}\n\`\`\``;
   }
 
@@ -245,8 +273,8 @@ function formatExecutionComment(parsed, rawOutput) {
     comment += `\n**Reply to this comment to answer these questions. The workflow will resume when you reply.**\n\n`;
   }
 
-  // Include raw output in collapsible section when we have structured content
-  comment += `<details>\n<summary>Full Output</summary>\n\n\`\`\`\n${rawOutput}\n\`\`\`\n\n</details>`;
+  // Include clean output in collapsible section when we have structured content
+  comment += `<details>\n<summary>Full Output</summary>\n\n\`\`\`\n${cleanOutput}\n\`\`\`\n\n</details>`;
 
   return comment;
 }
