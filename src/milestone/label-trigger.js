@@ -10,6 +10,8 @@ import { exec } from "child_process";
 import { promisify } from "util";
 import fs from "fs/promises";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
+import { parseMilestoneMetadata } from "../lib/planning-parser.js";
+import { updateIssueBody, postComment } from "../lib/github.js";
 
 const execAsync = promisify(exec);
 
@@ -93,10 +95,89 @@ export async function executeLabelTriggerWorkflow(context) {
 
     core.info(`Label trigger workflow complete`);
 
+    // Step 4: Parse milestone metadata from generated files
+    let metadata;
+    try {
+      metadata = await parseMilestoneMetadata();
+    } catch (parseError) {
+      core.warning(
+        `Failed to parse milestone metadata: ${parseError.message}`,
+      );
+      return { complete: true, phase: "gsd-complete-no-metadata" };
+    }
+
+    if (!metadata || !metadata.title) {
+      core.warning(
+        "Could not parse milestone metadata, skipping issue update",
+      );
+      return { complete: true, phase: "gsd-complete-no-metadata" };
+    }
+
+    // Step 5: Format milestone info section
+    const phaseList =
+      metadata.phases.length > 0
+        ? metadata.phases
+            .map((p) => `- [ ] Phase ${p.number}: ${p.name} (${p.status})`)
+            .join("\n")
+        : "- No phases defined yet";
+
+    const milestoneSection = `
+
+---
+
+## Milestone Created: ${metadata.title} ${metadata.version}
+
+${metadata.coreValue ? `**Core Value:** ${metadata.coreValue}` : ""}
+
+### Phases
+
+${phaseList}
+
+---
+*Created by GSD Bot via "good first issue" label*
+`;
+
+    // Step 6: Update issue body (append milestone info to original)
+    const originalBody = issueBody || "";
+    const updatedBody = originalBody + milestoneSection;
+
+    try {
+      await updateIssueBody(owner, repo, issueNumber, updatedBody);
+      core.info(`Updated issue #${issueNumber} with milestone info`);
+    } catch (updateError) {
+      core.error(`Failed to update issue body: ${updateError.message}`);
+      // Don't fail workflow - core work (GSD) is done
+    }
+
+    // Step 7: Post success comment
+    try {
+      await postComment(
+        owner,
+        repo,
+        issueNumber,
+        `## Milestone Created
+
+**${metadata.title}** (${metadata.version}) has been created from this issue.
+
+${metadata.phases.length} phase(s) defined. See the updated issue body for details.
+
+Next steps:
+- Review planning docs in \`.planning/\`
+- Use \`@gsd-bot plan-phase N\` to plan each phase
+- Use \`@gsd-bot execute-phase N\` to implement`,
+      );
+      core.info("Success comment posted");
+    } catch (commentError) {
+      core.error(`Failed to post success comment: ${commentError.message}`);
+      // Don't fail workflow - core work is done
+    }
+
     return {
       complete: true,
-      output,
-      message: "Label trigger completed successfully",
+      phase: "milestone-created",
+      title: metadata.title,
+      version: metadata.version,
+      phaseCount: metadata.phases.length,
     };
   } catch (error) {
     core.error(`Label trigger workflow error: ${error.message}`);
