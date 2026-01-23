@@ -89,18 +89,23 @@ Each task was committed atomically:
 ## Decisions Made
 
 **1. CCR service config generation at runtime**
+
 - Rationale: Config file created programmatically in workflow, not committed to repo. Allows dynamic provider selection based on available API keys. Follows 12-factor app principles (config via environment).
 
 **2. $VAR_NAME syntax for env var interpolation**
+
 - Rationale: CCR service interpolates environment variables at startup. Action code writes $VAR_NAME placeholders, workflow sets actual env vars from GitHub Secrets, CCR replaces on service start. Keeps secrets out of config files.
 
 **3. NON_INTERACTIVE_MODE: true for CI**
+
 - Rationale: Per CCR-07 requirement and 03-RESEARCH-CCR.md. Prevents CCR from hanging on prompts in GitHub Actions. Sets CI=true, FORCE_COLOR=0, and configures stdin handling.
 
 **4. permissionMode: acceptEdits in Agent SDK wrapper**
+
 - Rationale: Default SDK behavior is interactive prompts for file changes. CI has no TTY, so auto-approve mode required. Satisfies CCR-07 (non-interactive execution).
 
 **5. Multi-provider priority: OpenRouter > Anthropic > DeepSeek**
+
 - Rationale: OpenRouter provides access to multiple models with single API key (cost optimization). Anthropic direct for guaranteed availability. DeepSeek for reasoning tasks. Only include providers with env vars defined.
 
 ## Deviations from Plan
@@ -118,6 +123,7 @@ None - no external service configuration required at this stage. CCR service ins
 ## Next Phase Readiness
 
 **Ready for Plan 03-03:** LLM integration layer complete. Next plan will:
+
 - Add CCR service lifecycle to GitHub Actions workflow
 - Install CCR globally: `npm install -g @musistudio/claude-code-router`
 - Generate config via generateCCRConfig() in workflow step
@@ -126,12 +132,14 @@ None - no external service configuration required at this stage. CCR service ins
 - Verify CCR proxy is routing to configured providers
 
 **Architecture confirmed:**
+
 - Config generation: ✓ generateCCRConfig() creates ~/.claude-code-router/config.json
 - Agent SDK wrapper: ✓ executeLLMTask and executeLLMTaskWithRetry ready
 - Prompt templates: ✓ createMilestonePrompt ready
 - CCR proxy routing: Pending Plan 03-03 (workflow integration)
 
 **Integration flow:**
+
 1. Workflow sets env vars from GitHub Secrets (OPENROUTER_API_KEY, etc.)
 2. Workflow calls generateCCRConfig() to create config.json with $VAR_NAME placeholders
 3. Workflow installs CCR globally
@@ -141,6 +149,7 @@ None - no external service configuration required at this stage. CCR service ins
 7. CCR intercepts, routes to configured provider (OpenRouter/Anthropic/DeepSeek)
 
 **Module structure:**
+
 ```
 src/llm/
 ├── config-generator.js  - CCR service config generation
@@ -149,5 +158,6 @@ src/llm/
 ```
 
 ---
-*Phase: 03-ccr-integration*
-*Completed: 2026-01-21*
+
+_Phase: 03-ccr-integration_
+_Completed: 2026-01-21_

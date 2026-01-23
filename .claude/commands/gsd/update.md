@@ -19,6 +19,7 @@ cat ./.claude/get-shit-done/VERSION 2>/dev/null
 ```
 
 **If VERSION file missing:**
+
 ```
 ## GSD Update
 
@@ -40,6 +41,7 @@ npm view get-shit-done-cc version 2>/dev/null
 ```
 
 **If npm check fails:**
+
 ```
 Couldn't check for updates (offline or npm unavailable).
 
@@ -53,6 +55,7 @@ STOP here if npm unavailable.
 Compare installed vs latest:
 
 **If installed == latest:**
+
 ```
 ## GSD Update
 
@@ -65,6 +68,7 @@ You're already on the latest version.
 STOP here if already up to date.
 
 **If installed > latest:**
+
 ```
 ## GSD Update
 
@@ -120,6 +124,7 @@ If you've modified any GSD files directly, back them up first.
 ```
 
 Use AskUserQuestion:
+
 - Question: "Proceed with update?"
 - Options:
   - "Yes, update now"
@@ -142,6 +147,7 @@ Clear the update cache so statusline indicator disappears:
 ```bash
 rm -f ./.claude/cache/gsd-update-check.json
 ```
+
 </step>
 
 <step name="display_result">
@@ -156,11 +162,13 @@ Format completion message (changelog was already shown in confirmation step):
 
 [View full changelog](https://github.com/glittercowboy/get-shit-done/blob/main/CHANGELOG.md)
 ```
+
 </step>
 
 </process>
 
 <success_criteria>
+
 - [ ] Installed version read correctly
 - [ ] Latest version checked via npm
 - [ ] Update skipped if already current
@@ -169,4 +177,4 @@ Format completion message (changelog was already shown in confirmation step):
 - [ ] User confirmation obtained
 - [ ] Update executed successfully
 - [ ] Restart reminder shown
-</success_criteria>
+      </success_criteria>

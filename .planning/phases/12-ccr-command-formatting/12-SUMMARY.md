@@ -5,24 +5,29 @@
 ## What Was Done
 
 ### 1. Created CCR Command Helper Module
+
 - New `src/llm/ccr-command.js` with two exports:
   - `formatCcrCommand(gsdCommand)` - base formatter
   - `formatCcrCommandWithOutput(gsdCommand, outputPath)` - with redirect
 
 **Pattern:**
+
 ```
 /github-actions-testing and now trigger command /gsd:{command}
 ```
 
 **Commits:**
+
 - `5716582` refactor: extract CCR command formatting to helper function
 
 ### 2. Updated All Workflow Modules
+
 - `phase-planner.js` - uses `formatCcrCommandWithOutput`
 - `phase-executor.js` - uses `formatCcrCommandWithOutput`
 - `milestone-completer.js` - uses `formatCcrCommandWithOutput`
 
 ### 3. Added Tests
+
 - `src/llm/ccr-command.test.js` with 5 tests
 - Mocked helper in all workflow test files for isolation
 

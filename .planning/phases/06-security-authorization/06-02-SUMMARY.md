@@ -23,14 +23,15 @@ Integrate authorization validation into the main entry point and extend error ha
 
 ## Deliverables
 
-| File | Modification | Purpose |
-|------|--------------|---------|
-| `src/index.js` | Added auth imports and check call | Authorization check integrated before milestone workflow |
+| File                    | Modification                      | Purpose                                                          |
+| ----------------------- | --------------------------------- | ---------------------------------------------------------------- |
+| `src/index.js`          | Added auth imports and check call | Authorization check integrated before milestone workflow         |
 | `src/errors/handler.js` | Added AuthorizationError handling | Authorization-specific error handling for user-friendly messages |
 
 ## Key Files Modified
 
 **src/index.js** (27 lines added)
+
 - Imports `checkAuthorization` and `formatAuthorizationError` from `auth/index.js`
 - Adds `_authModule` trigger for bundling verification
 - Authorization check runs AFTER command parsing, BEFORE any git operations
@@ -38,6 +39,7 @@ Integrate authorization validation into the main entry point and extend error ha
 - No branches or commits created for unauthorized users
 
 **src/errors/handler.js** (11 lines added)
+
 - Imports `AuthorizationError` from `auth/errors.js`
 - Detects `error.isAuthorizationError === true` in catch block
 - Authorization errors post `error.userMessage` (user-friendly, actionable)
@@ -83,6 +85,7 @@ None encountered during this plan.
 ## Next Phase Readiness
 
 Authorization integration is complete. Ready for Phase 6 Plan 3:
+
 - Plan 03-PLAN.md: Create execute-phase workflow for agent task execution
 - Authorization module provides `checkAuthorization()` for any future workflows
 - Error handler ready to receive `AuthorizationError` from any module
@@ -94,11 +97,14 @@ No new dependencies - uses existing `@actions/github` and octokit patterns.
 ## Dependency Graph
 
 **Requires:**
+
 - Phase 6 Plan 1 (Authorization Module) - Provides checkAuthorization, formatAuthorizationError
 
 **Provides:**
+
 - Authorization integration for all command handlers
 - Error handler extension for auth-specific errors
 
 **Affects:**
+
 - Future commands in `src/index.js` automatically protected by authorization check

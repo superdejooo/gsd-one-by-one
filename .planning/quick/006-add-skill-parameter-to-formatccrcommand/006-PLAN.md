@@ -78,9 +78,9 @@ Update both functions to accept skill parameter:
    - Pass skill through to formatCcrCommand (even though it's not used)
 
 Valid skill values (for documentation): github-actions-templates, github-actions-testing, github-project-management, livewire-principles, refactor
-  </action>
-  <verify>npm test src/llm/ccr-command.test.js passes (existing tests unchanged)</verify>
-  <done>Both functions accept skill parameter, existing behavior unchanged</done>
+</action>
+<verify>npm test src/llm/ccr-command.test.js passes (existing tests unchanged)</verify>
+<done>Both functions accept skill parameter, existing behavior unchanged</done>
 </task>
 
 <task type="auto">
@@ -104,10 +104,10 @@ Valid skill values (for documentation): github-actions-templates, github-actions
 4. In milestone-completer.js (line ~89):
    - Call formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath, null, null)
    - Explicit null for prompt and skill for clarity
-  </action>
-  <verify>npm test passes (all 9+ ccr-command tests pass, workflow tests pass)</verify>
-  <done>Tests verify skill parameter acceptance, callers explicitly pass null</done>
-</task>
+     </action>
+     <verify>npm test passes (all 9+ ccr-command tests pass, workflow tests pass)</verify>
+     <done>Tests verify skill parameter acceptance, callers explicitly pass null</done>
+     </task>
 
 </tasks>
 
@@ -117,13 +117,14 @@ All tests pass, coverage maintained at 80%+
 </verification>
 
 <success_criteria>
+
 - formatCcrCommand and formatCcrCommandWithOutput accept skill parameter
 - Skill parameter is documented in JSDoc
 - All callers (phase-planner, phase-executor, milestone-completer) explicitly pass skill=null
 - Command string output is UNCHANGED (skill not used yet)
 - All existing tests pass
 - New tests verify skill parameter acceptance
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/quick/006-add-skill-parameter-to-formatccrcommand/006-SUMMARY.md`

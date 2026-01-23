@@ -5,11 +5,13 @@
 A **reusable GitHub Action** that brings the [GSD (Get Shit Done)](https://github.com/anthropics/claude-code) project management skill to GitHub. This Action wraps the existing GSD CLI skill and exposes it through GitHub Issue comments, enabling autonomous AI-driven development without local CLI usage.
 
 **Built On:**
+
 - **[Claude Code](https://claude.ai/code)** — Anthropic's AI coding assistant CLI
 - **[GSD Skill](https://www.npmjs.com/package/get-shit-done-cc)** — Project management plugin for Claude Code
 - **[Claude Code Router (CCR)](https://www.npmjs.com/package/@musistudio/claude-code-router)** — CI-safe proxy for non-interactive LLM execution
 
 **Architecture:**
+
 - Distributed as a reusable GitHub Action package
 - Projects install by adding a workflow file that references the Action
 - No code is copied into project repositories; all logic runs from the Action package
@@ -38,6 +40,7 @@ The GSD workflow follows a structured sequence. This Action exposes these comman
 ```
 
 **Current Implementation:**
+
 - ✅ `new-milestone` — Shipped in v1.0
 - ✅ `plan-phase` — Implemented in v1.1
 - ✅ `execute-phase` — Implemented in v1.1
@@ -45,6 +48,7 @@ The GSD workflow follows a structured sequence. This Action exposes these comman
 - ⏳ `verify-work` — Planned for future
 
 **Artifacts Generated:** All planning documents stored in `.planning/` folder (GSD standard):
+
 - `PROJECT.md`, `STATE.md`, `ROADMAP.md` — Project-level docs
 - `phases/{N}/RESEARCH.md`, `PLAN.md`, `SUMMARY.md` — Per-phase docs
 - `milestones/{N}/` — Milestone-specific docs
@@ -56,6 +60,7 @@ The GSD workflow follows a structured sequence. This Action exposes these comman
 **Phases:** 6 phases, 19 plans
 
 The v1.0 MVP delivers:
+
 - Reusable GitHub Action with Node.js 24 runtime
 - `@gsd-bot new-milestone` command via GitHub issue comments
 - Requirements gathering via multi-turn comment interaction
@@ -69,6 +74,7 @@ The v1.0 MVP delivers:
 **Goal:** Enable users to plan and execute individual phases through GitHub issue comments, with full workflow tracking via GitHub issues.
 
 **Target features:**
+
 - `gsd:plan-phase` command — Plan execution for a phase
 - `gsd:execute-phase` command — Execute planned actions
 - GitHub issues for each action (not just phases)
@@ -115,15 +121,15 @@ These requirements were shipped and validated in v1.0:
 
 ## Key Decisions
 
-| Decision | Rationale | Status |
-|----------|-----------|--------|
-| Create wrapper skill, not modify GSD | Keep GSD unchanged, easier maintenance | ✓ Working |
-| GitHub CLI for API calls | Simplest integration, built into Actions | ✓ Working |
-| Config in `.github/gsd-config.json` | Separate from GSD project config | ✓ Working |
-| Exit workflow after post | Avoid complexity of polling/retrying | ✓ Working |
-| Branch naming with milestone/phase | Organized, easy to identify | ✓ Working |
-| Phase + status labels only | Simple scheme for v1, user-defined | ✓ Working |
-| Requirements in comments (follow-up allowed) | Interactive, allows clarification | ✓ Working |
+| Decision                                                | Rationale                                                               | Status     |
+| ------------------------------------------------------- | ----------------------------------------------------------------------- | ---------- |
+| Create wrapper skill, not modify GSD                    | Keep GSD unchanged, easier maintenance                                  | ✓ Working  |
+| GitHub CLI for API calls                                | Simplest integration, built into Actions                                | ✓ Working  |
+| Config in `.github/gsd-config.json`                     | Separate from GSD project config                                        | ✓ Working  |
+| Exit workflow after post                                | Avoid complexity of polling/retrying                                    | ✓ Working  |
+| Branch naming with milestone/phase                      | Organized, easy to identify                                             | ✓ Working  |
+| Phase + status labels only                              | Simple scheme for v1, user-defined                                      | ✓ Working  |
+| Requirements in comments (follow-up allowed)            | Interactive, allows clarification                                       | ✓ Working  |
 | Planning docs in `.planning/` (not `.github/planning/`) | GSD CLI standard, visible in repo root, consistent with local CLI usage | ✓ Standard |
 
 ---
@@ -131,11 +137,13 @@ These requirements were shipped and validated in v1.0:
 ## Tech Stack
 
 **AI/LLM Pipeline:**
+
 - **Claude Code CLI** (`claude-code@latest`) — Anthropic's AI coding assistant
 - **GSD Skill** (`get-shit-done-cc`) — Project management plugin for Claude Code
 - **Claude Code Router** (`@musistudio/claude-code-router@2.1.15`) — CI-safe proxy for non-interactive execution
 
 **GitHub Action Runtime:**
+
 - **Node.js 24** — Action runtime
 - **@actions/core** — GitHub Actions toolkit (logging, outputs)
 - **@actions/github** — GitHub API client (Octokit)
@@ -146,4 +154,4 @@ These requirements were shipped and validated in v1.0:
 
 ---
 
-*Last updated: 2026-01-22 after v1.0 milestone, v1.1 started*
+_Last updated: 2026-01-22 after v1.0 milestone, v1.1 started_

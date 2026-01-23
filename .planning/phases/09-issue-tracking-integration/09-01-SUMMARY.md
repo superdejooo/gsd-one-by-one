@@ -19,7 +19,11 @@ affects: [phase-planning-command, phase-execution-command, issue-management]
 # Tech tracking
 tech-stack:
   added: []
-  patterns: [XML-style task parsing with regex, sequential issue creation with error recovery]
+  patterns:
+    [
+      XML-style task parsing with regex,
+      sequential issue creation with error recovery,
+    ]
 
 key-files:
   created: [src/lib/issues.js]
@@ -54,6 +58,7 @@ completed: 2026-01-23
 - **Files modified:** 1
 
 ## Accomplishments
+
 - Created issues.js module with 4 exported functions for PLAN.md parsing and issue management
 - Implemented XML-style task block parsing with regex (handles auto and checkpoint types)
 - Added sequential issue creation with phase-N labels and status:pending default
@@ -76,26 +81,31 @@ Each task was committed atomically:
    - Phase label creation with blue color
 
 ## Files Created/Modified
+
 - `src/lib/issues.js` - Four exported functions: extractTasksFromPlan (regex parser), formatIssueBody (markdown formatter), createIssuesForTasks (sequential creator with error recovery), getPhaseIssues (query by phase label)
 
 ## Decisions Made
 
 **1. Regex parsing instead of XML parser**
+
 - GSD's PLAN.md format is consistent and predictable
 - Regex pattern sufficient for <task type="...">...</task> blocks
 - Avoids heavy XML parser dependency
 
 **2. Sequential issue creation with per-issue error handling**
+
 - Simpler than batch operations
 - Single failure doesn't block other issues
 - Throttling plugin handles rate limiting automatically
 
 **3. Truncation limits to prevent API errors**
+
 - Titles truncated at 240 chars (GitHub limit is 256, using buffer)
 - Bodies truncated at 65000 chars (GitHub limit is 65536, using buffer)
 - Prevents silent failures from oversized content
 
 **4. Phase-N label pattern**
+
 - phase-1, phase-2, etc. for filtering
 - Blue color (1d76db) for visual consistency
 - Enables querying all tasks for a phase
@@ -115,16 +125,19 @@ None - no external service configuration required.
 ## Next Phase Readiness
 
 **Ready for integration:**
+
 - phase-planner.js can import createIssuesForTasks to create issues after GSD planning
 - phase-executor.js can import getPhaseIssues and updateIssueStatus (from labels.js) for progress tracking
 - Issue body format includes all task details (action, verification, done criteria)
 
 **Integration points:**
+
 - After GSD plan-phase completes: Read PLAN.md, extract tasks, create issues
 - During GSD execute-phase: Query phase issues, update status labels as tasks complete
 
 **No blockers** - module is self-contained and ready for use.
 
 ---
-*Phase: 09-issue-tracking-integration*
-*Completed: 2026-01-23*
+
+_Phase: 09-issue-tracking-integration_
+_Completed: 2026-01-23_

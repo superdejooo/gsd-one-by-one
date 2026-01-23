@@ -13,12 +13,12 @@ Create the planning documents module that generates PROJECT.md, STATE.md, and RO
 
 ### Key Files Created
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `src/milestone/planning-docs.js` | Document generation functions | Complete |
-| `.github/planning/milestones/{n}/PROJECT.md` | Milestone context and goals | Generated |
-| `.github/planning/milestones/{n}/STATE.md` | Milestone number and status | Generated |
-| `.github/planning/milestones/{n}/ROADMAP.md` | Phase structure | Generated |
+| File                                         | Purpose                       | Status    |
+| -------------------------------------------- | ----------------------------- | --------- |
+| `src/milestone/planning-docs.js`             | Document generation functions | Complete  |
+| `.github/planning/milestones/{n}/PROJECT.md` | Milestone context and goals   | Generated |
+| `.github/planning/milestones/{n}/STATE.md`   | Milestone number and status   | Generated |
+| `.github/planning/milestones/{n}/ROADMAP.md` | Phase structure               | Generated |
 
 ### Exports
 
@@ -68,6 +68,7 @@ export {
 ## Next Steps
 
 This module is ready for use by the milestone creation workflow. Subsequent plans in Phase 5 will:
+
 - Implement requirements gathering via GitHub comments
 - Create state management for multi-run workflows
 - Orchestrate the complete milestone creation flow

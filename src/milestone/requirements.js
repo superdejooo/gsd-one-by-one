@@ -20,23 +20,23 @@ export const DEFAULT_QUESTIONS = [
   {
     id: "scope",
     question: "What is the primary goal of this milestone?",
-    required: true
+    required: true,
   },
   {
     id: "features",
     question: "What are the key features or deliverables?",
-    required: true
+    required: true,
   },
   {
     id: "constraints",
     question: "Are there any technical constraints or requirements?",
-    required: false
+    required: false,
   },
   {
     id: "timeline",
     question: "What is the expected timeline?",
-    required: false
-  }
+    required: false,
+  },
 ];
 
 /**
@@ -72,26 +72,28 @@ function isBotComment(comment) {
  * @param {number} lastProcessedId - ID of the last processed comment (default: 0)
  * @returns {Promise<Array<object>>} New human comments, sorted by ID ascending
  */
-export async function getNewComments(owner, repo, issueNumber, lastProcessedId = 0) {
+export async function getNewComments(
+  owner,
+  repo,
+  issueNumber,
+  lastProcessedId = 0,
+) {
   const token = core.getInput("token") || process.env.GITHUB_TOKEN;
   const octokit = github.getOctokit(token);
 
   // Fetch all comments using pagination
-  const comments = await octokit.paginate(
-    octokit.rest.issues.listComments,
-    {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      per_page: 100
-    }
-  );
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
 
   // Filter to only new comments (higher ID = newer)
-  const newComments = comments.filter(c => c.id > lastProcessedId);
+  const newComments = comments.filter((c) => c.id > lastProcessedId);
 
   // Filter out bot comments
-  const humanComments = newComments.filter(c => !isBotComment(c));
+  const humanComments = newComments.filter((c) => !isBotComment(c));
 
   // Sort by ID ascending (oldest first)
   return humanComments.sort((a, b) => a.id - b.id);
@@ -121,7 +123,7 @@ export function parseUserAnswers(comments) {
       commentId: comment.id,
       user: comment.user.login,
       body: comment.body,
-      timestamp: comment.created_at
+      timestamp: comment.created_at,
     };
 
     answers.push(answer);
@@ -180,24 +182,28 @@ export function formatRequirementsQuestions(questions, existingAnswers = {}) {
  * @param {object} existingAnswers - Previously collected answers (optional)
  * @returns {object} Answers keyed by question ID
  */
-export function parseAnswersFromResponse(body, questions, existingAnswers = {}) {
+export function parseAnswersFromResponse(
+  body,
+  questions,
+  existingAnswers = {},
+) {
   const answers = {};
 
   // Split body into paragraphs/lines
-  const lines = body.split(/\n+/).filter(line => line.trim());
+  const lines = body.split(/\n+/).filter((line) => line.trim());
 
   // Build patterns for each question
-  const questionPatterns = questions.map(q => ({
+  const questionPatterns = questions.map((q) => ({
     id: q.id,
     patterns: [
-      new RegExp(`(?:Q${q.id}|Question\\s*${q.id}|${q.id}[:\\s]*)`, 'i'),
-      new RegExp(`(?:Q\\s*${q.id}|${q.id}[:\\s]*)`, 'i')
-    ]
+      new RegExp(`(?:Q${q.id}|Question\\s*${q.id}|${q.id}[:\\s]*)`, "i"),
+      new RegExp(`(?:Q\\s*${q.id}|${q.id}[:\\s]*)`, "i"),
+    ],
   }));
 
   // Track which questions have been answered
   const answeredIds = new Set(Object.keys(existingAnswers || {}));
-  const pendingQuestions = questions.filter(q => !answeredIds.has(q.id));
+  const pendingQuestions = questions.filter((q) => !answeredIds.has(q.id));
 
   // Current position in pending questions
   let currentQuestionIndex = 0;
@@ -219,7 +225,7 @@ export function parseAnswersFromResponse(body, questions, existingAnswers = {}) 
         const match = line.match(pattern);
         if (match) {
           // Remove the question prefix from the answer
-          const answer = line.replace(pattern, '').trim();
+          const answer = line.replace(pattern, "").trim();
           if (answer) {
             answers[qPattern.id] = answer;
           }

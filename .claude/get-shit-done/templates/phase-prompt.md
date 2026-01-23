@@ -16,17 +16,17 @@ Template for `.planning/phases/XX-name/{phase}-{plan}-PLAN.md` - executable phas
 phase: XX-name
 plan: NN
 type: execute
-wave: N                     # Execution wave (1, 2, 3...). Pre-computed at plan time.
-depends_on: []              # Plan IDs this plan requires (e.g., ["01-01"]).
-files_modified: []          # Files this plan modifies.
-autonomous: true            # false if plan has checkpoints requiring user interaction
-user_setup: []              # Human-required setup Claude cannot automate (see below)
+wave: N # Execution wave (1, 2, 3...). Pre-computed at plan time.
+depends_on: [] # Plan IDs this plan requires (e.g., ["01-01"]).
+files_modified: [] # Files this plan modifies.
+autonomous: true # false if plan has checkpoints requiring user interaction
+user_setup: [] # Human-required setup Claude cannot automate (see below)
 
 # Goal-backward verification (derived during planning, verified after execution)
 must_haves:
-  truths: []                # Observable behaviors that must be true for goal achievement
-  artifacts: []             # Files that must exist with real implementation
-  key_links: []             # Critical connections between artifacts
+  truths: [] # Observable behaviors that must be true for goal achievement
+  artifacts: [] # Files that must exist with real implementation
+  key_links: [] # Critical connections between artifacts
 ---
 
 <objective>
@@ -49,8 +49,11 @@ Output: [What artifacts will be created]
 @.planning/STATE.md
 
 # Only reference prior plan SUMMARYs if genuinely needed:
+
 # - This plan uses types/exports from prior plan
+
 # - Prior plan made decision that affects this plan
+
 # Do NOT reflexively chain: Plan 02 refs 01, Plan 03 refs 02...
 
 [Relevant source files:]
@@ -120,17 +123,17 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 
 ## Frontmatter Fields
 
-| Field | Required | Purpose |
-|-------|----------|---------|
-| `phase` | Yes | Phase identifier (e.g., `01-foundation`) |
-| `plan` | Yes | Plan number within phase (e.g., `01`, `02`) |
-| `type` | Yes | Always `execute` for standard plans, `tdd` for TDD plans |
-| `wave` | Yes | Execution wave number (1, 2, 3...). Pre-computed at plan time. |
-| `depends_on` | Yes | Array of plan IDs this plan requires. |
-| `files_modified` | Yes | Files this plan touches. |
-| `autonomous` | Yes | `true` if no checkpoints, `false` if has checkpoints |
-| `user_setup` | No | Array of human-required setup items (external services) |
-| `must_haves` | Yes | Goal-backward verification criteria (see below) |
+| Field            | Required | Purpose                                                        |
+| ---------------- | -------- | -------------------------------------------------------------- |
+| `phase`          | Yes      | Phase identifier (e.g., `01-foundation`)                       |
+| `plan`           | Yes      | Plan number within phase (e.g., `01`, `02`)                    |
+| `type`           | Yes      | Always `execute` for standard plans, `tdd` for TDD plans       |
+| `wave`           | Yes      | Execution wave number (1, 2, 3...). Pre-computed at plan time. |
+| `depends_on`     | Yes      | Array of plan IDs this plan requires.                          |
+| `files_modified` | Yes      | Files this plan touches.                                       |
+| `autonomous`     | Yes      | `true` if no checkpoints, `false` if has checkpoints           |
+| `user_setup`     | No       | Array of human-required setup items (external services)        |
+| `must_haves`     | Yes      | Goal-backward verification criteria (see below)                |
 
 **Wave is pre-computed:** Wave numbers are assigned during `/gsd:plan-phase`. Execute-phase reads `wave` directly from frontmatter and groups plans by wave number. No runtime dependency analysis needed.
 
@@ -191,7 +194,7 @@ Plan 02 in Wave 2 waits for Plan 01 in Wave 1 - genuine dependency on auth types
 wave: 3
 depends_on: ["01", "02"]
 files_modified: [src/components/Dashboard.tsx]
-autonomous: false  # Has checkpoint:human-verify
+autonomous: false # Has checkpoint:human-verify
 ```
 
 Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to user, resumes on approval.
@@ -211,11 +214,17 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 @.planning/STATE.md
 
 # Only include SUMMARY refs if genuinely needed:
+
 # - This plan imports types from prior plan
+
 # - Prior plan made decision affecting this plan
+
 # - Prior plan's output is input to this plan
+
 #
+
 # Independent plans need NO prior SUMMARY references.
+
 # Do NOT reflexively chain: 02 refs 01, 03 refs 02...
 
 @src/relevant/source.ts
@@ -223,6 +232,7 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 ```
 
 **Bad pattern (creates false dependencies):**
+
 ```markdown
 <context>
 @.planning/phases/03-features/03-01-SUMMARY.md  # Just because it's earlier
@@ -243,7 +253,7 @@ Wave 3 runs after Waves 1 and 2. Pauses at checkpoint, orchestrator presents to 
 **When to split:**
 
 - Different subsystems (auth vs API vs UI)
-- >3 tasks
+- > 3 tasks
 - Risk of context overflow
 - TDD candidates - separate plans
 
@@ -274,14 +284,15 @@ See `./.claude/get-shit-done/references/tdd.md` for TDD plan structure.
 
 ## Task Types
 
-| Type | Use For | Autonomy |
-|------|---------|----------|
-| `auto` | Everything Claude can do independently | Fully autonomous |
-| `checkpoint:human-verify` | Visual/functional verification | Pauses, returns to orchestrator |
-| `checkpoint:decision` | Implementation choices | Pauses, returns to orchestrator |
-| `checkpoint:human-action` | Truly unavoidable manual steps (rare) | Pauses, returns to orchestrator |
+| Type                      | Use For                                | Autonomy                        |
+| ------------------------- | -------------------------------------- | ------------------------------- |
+| `auto`                    | Everything Claude can do independently | Fully autonomous                |
+| `checkpoint:human-verify` | Visual/functional verification         | Pauses, returns to orchestrator |
+| `checkpoint:decision`     | Implementation choices                 | Pauses, returns to orchestrator |
+| `checkpoint:human-action` | Truly unavoidable manual steps (rare)  | Pauses, returns to orchestrator |
 
 **Checkpoint behavior in parallel execution:**
+
 - Plan runs until checkpoint
 - Agent returns with checkpoint details + agent_id
 - Orchestrator presents to user
@@ -301,7 +312,12 @@ plan: 01
 type: execute
 wave: 1
 depends_on: []
-files_modified: [src/features/user/model.ts, src/features/user/api.ts, src/features/user/UserList.tsx]
+files_modified:
+  [
+    src/features/user/model.ts,
+    src/features/user/api.ts,
+    src/features/user/UserList.tsx,
+  ]
 autonomous: true
 ---
 
@@ -342,9 +358,10 @@ Output: User model, API endpoints, and UI components.
 </verification>
 
 <success_criteria>
+
 - All tasks completed
 - User feature works end-to-end
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/phases/03-features/03-01-SUMMARY.md`
@@ -413,9 +430,10 @@ Output: Working dashboard component.
 </verification>
 
 <success_criteria>
+
 - All tasks completed
 - User approved visual layout
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/phases/03-features/03-03-SUMMARY.md`
@@ -427,11 +445,13 @@ After completion, create `.planning/phases/03-features/03-03-SUMMARY.md`
 ## Anti-Patterns
 
 **Bad: Reflexive dependency chaining**
+
 ```yaml
-depends_on: ["03-01"]  # Just because 01 comes before 02
+depends_on: ["03-01"] # Just because 01 comes before 02
 ```
 
 **Bad: Horizontal layer grouping**
+
 ```
 Plan 01: All models
 Plan 02: All APIs (depends on 01)
@@ -439,6 +459,7 @@ Plan 03: All UIs (depends on 02)
 ```
 
 **Bad: Missing autonomy flag**
+
 ```yaml
 # Has checkpoint but no autonomous: false
 depends_on: []
@@ -447,6 +468,7 @@ files_modified: [...]
 ```
 
 **Bad: Vague tasks**
+
 ```xml
 <task type="auto">
   <name>Set up authentication</name>
@@ -489,6 +511,7 @@ user_setup:
 ```
 
 **The automation-first rule:** `user_setup` contains ONLY what Claude literally cannot do:
+
 - Account creation (requires human signup)
 - Secret retrieval (requires dashboard access)
 - Dashboard configuration (requires human in browser)
@@ -536,20 +559,20 @@ must_haves:
 
 **Field descriptions:**
 
-| Field | Purpose |
-|-------|---------|
-| `truths` | Observable behaviors from user perspective. Each must be testable. |
-| `artifacts` | Files that must exist with real implementation. |
-| `artifacts[].path` | File path relative to project root. |
-| `artifacts[].provides` | What this artifact delivers. |
-| `artifacts[].min_lines` | Optional. Minimum lines to be considered substantive. |
-| `artifacts[].exports` | Optional. Expected exports to verify. |
-| `artifacts[].contains` | Optional. Pattern that must exist in file. |
-| `key_links` | Critical connections between artifacts. |
-| `key_links[].from` | Source artifact. |
-| `key_links[].to` | Target artifact or endpoint. |
-| `key_links[].via` | How they connect (description). |
-| `key_links[].pattern` | Optional. Regex to verify connection exists. |
+| Field                   | Purpose                                                            |
+| ----------------------- | ------------------------------------------------------------------ |
+| `truths`                | Observable behaviors from user perspective. Each must be testable. |
+| `artifacts`             | Files that must exist with real implementation.                    |
+| `artifacts[].path`      | File path relative to project root.                                |
+| `artifacts[].provides`  | What this artifact delivers.                                       |
+| `artifacts[].min_lines` | Optional. Minimum lines to be considered substantive.              |
+| `artifacts[].exports`   | Optional. Expected exports to verify.                              |
+| `artifacts[].contains`  | Optional. Pattern that must exist in file.                         |
+| `key_links`             | Critical connections between artifacts.                            |
+| `key_links[].from`      | Source artifact.                                                   |
+| `key_links[].to`        | Target artifact or endpoint.                                       |
+| `key_links[].via`       | How they connect (description).                                    |
+| `key_links[].pattern`   | Optional. Regex to verify connection exists.                       |
 
 **Why this matters:**
 

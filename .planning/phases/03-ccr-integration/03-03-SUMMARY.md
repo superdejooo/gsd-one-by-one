@@ -83,12 +83,14 @@ completed: 2026-01-22
 Each task was committed atomically:
 
 ### Initial Execution
+
 1. **Task 1: Add CCR setup script to package.json** - `01e3d2b` (feat)
 2. **Task 2: Add CCR service lifecycle to workflow** - `d6a46b7` (feat)
 3. **Task 3: Rebuild with complete integration** - `0453251` (feat)
 4. **Task 4: Checkpoint reached** - Human verification requested
 
 ### Continuation with Fixes
+
 5. **Fix 1: Rewrite CCR config generator** - `d5e7753` (fix) - Full config structure
 6. **Fix 2: Update workflow** - `397eb77` (fix) - CCR 2.1.15 + Claude Code installation
 7. **Fix 3: Deprecate Agent SDK** - `9bf2490` (chore) - Added deprecation notice
@@ -109,22 +111,27 @@ Each task was committed atomically:
 ## Decisions Made
 
 **1. Architecture pivot: Agent SDK → CCR stdin pipe**
+
 - Rationale: User verification revealed that CCR 2.1.15 wraps Claude Code CLI for non-interactive execution. The Agent SDK approach was an earlier architecture that's now superseded by stdin pipe execution.
 - Impact: Simpler architecture, smaller bundle, aligns with CCR's actual design pattern
 
 **2. Claude Code CLI + GSD plugin installation in workflow**
-- Rationale: CCR wraps Claude Code CLI, so Claude Code must be installed first. GSD plugin provides the /gsd:* command interface.
+
+- Rationale: CCR wraps Claude Code CLI, so Claude Code must be installed first. GSD plugin provides the /gsd:\* command interface.
 - Order: Install Claude Code → Install GSD plugin → Install CCR → Configure → Start
 
 **3. CCR version 2.1.15**
+
 - Rationale: Latest stable version with stdin pipe support and improved non-interactive execution
 - Changed from: 2.0.0 (initial plan)
 
 **4. Full CCR config structure**
+
 - Rationale: Complete configuration includes LOG settings, StatusLine customization, Router rules, and Provider model lists. Discovered during checkpoint verification.
 - Impact: Better observability, model routing, status feedback
 
 **5. Agent SDK wrapper deprecated**
+
 - Rationale: Agent SDK approach replaced by stdin pipe. File kept for reference but marked as deprecated.
 - Impact: Clearer codebase, no confusion about which approach to use
 
@@ -133,6 +140,7 @@ Each task was committed atomically:
 ### Checkpoint Corrections (User Feedback)
 
 **1. [Rule 2 - Missing Critical] Full CCR config structure**
+
 - **Found during:** Checkpoint verification (Task 4)
 - **Issue:** Config generator only had basic structure; full CCR config includes LOG, StatusLine, Router, and detailed Provider model lists
 - **Fix:** Config generator already had full structure from 03-02; verified correctness
@@ -140,6 +148,7 @@ Each task was committed atomically:
 - **Committed in:** d5e7753 (Fix 1 commit - verification only)
 
 **2. [Rule 2 - Missing Critical] Claude Code CLI + GSD plugin installation**
+
 - **Found during:** Checkpoint verification (Task 4)
 - **Issue:** CCR wraps Claude Code CLI, but workflow didn't install Claude Code or GSD plugin before CCR
 - **Fix:** Added two new workflow steps before "Install Claude Code Router"
@@ -149,6 +158,7 @@ Each task was committed atomically:
 - **Committed in:** 397eb77 (Fix 2 commit)
 
 **3. [Rule 1 - Bug] CCR version outdated**
+
 - **Found during:** Checkpoint verification (Task 4)
 - **Issue:** Workflow had CCR 2.0.0, but 2.1.15 is latest stable with stdin pipe improvements
 - **Fix:** Updated CCR version to 2.1.15
@@ -156,6 +166,7 @@ Each task was committed atomically:
 - **Committed in:** 397eb77 (Fix 2 commit)
 
 **4. [Rule 2 - Missing Critical] Agent SDK deprecation notice**
+
 - **Found during:** Checkpoint verification (Task 4)
 - **Issue:** Agent SDK wrapper file (src/llm/agent.js) lacked deprecation notice, could cause confusion
 - **Fix:** Added deprecation header explaining stdin pipe approach is used instead
@@ -163,6 +174,7 @@ Each task was committed atomically:
 - **Committed in:** 9bf2490 (Fix 3 commit)
 
 **5. [Rule 2 - Missing Critical] Architecture pivot in index.js**
+
 - **Found during:** Checkpoint verification (Task 4)
 - **Issue:** src/index.js still imported Agent SDK modules (executeLLMTaskWithRetry, createMilestonePrompt)
 - **Fix:** Removed Agent SDK imports, added stdin pipe execution approach with example
@@ -170,6 +182,7 @@ Each task was committed atomically:
 - **Committed in:** 5d76aec (Fix 4 commit)
 
 **6. [Rule 3 - Blocking] Bundle rebuild required**
+
 - **Found during:** After architecture changes (Fixes 1-5)
 - **Issue:** Bundle still contained Agent SDK code from 03-01
 - **Fix:** Rebuilt bundle with `npm run build`
@@ -189,6 +202,7 @@ None - checkpoint verification process caught architectural misalignment and all
 ## User Setup Required
 
 **GitHub Secrets (at least ONE required):**
+
 - `OPENROUTER_API_KEY` - Primary provider (recommended)
 - `ANTHROPIC_API_KEY` - Fallback direct Claude access
 - `DEEPSEEK_API_KEY` - Fallback for cost optimization
@@ -229,14 +243,16 @@ GitHub Actions Workflow
 ### Execution Pattern
 
 **Old approach (deprecated):**
+
 ```javascript
 import { executeLLMTaskWithRetry } from "./llm/agent.js";
 const result = await executeLLMTaskWithRetry(prompt);
 ```
 
 **New approach (current):**
+
 ```javascript
-const { exec } = require('child_process');
+const { exec } = require("child_process");
 exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
   // Handle result
 });
@@ -255,16 +271,19 @@ exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
 ## Bundle Metrics
 
 ### Before Corrections (after 03-01)
+
 - **Lines:** 53,888
 - **Size:** 1.8MB
 - **Included:** Agent SDK bundled
 
 ### After Corrections (03-03 complete)
+
 - **Lines:** 32,387 (-39.8%)
 - **Size:** 1.1MB (-38.9%)
 - **Excluded:** Agent SDK imports removed
 
 ### Baseline Comparison (from 01-02)
+
 - **Original:** 31,998 lines, 32KB
 - **Final:** 32,387 lines, 1.1MB
 - **Growth:** Minimal line increase, size growth from dependencies
@@ -274,18 +293,21 @@ exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
 **Ready for Phase 4 (GitHub Integration & Response):** CCR integration complete with stdin pipe execution architecture.
 
 **What Phase 4 will implement:**
+
 - GitHub CLI operations (issue/comment management)
 - Label management workflow
 - PR creation and updates
 - No LLM execution yet (deferred to Phase 5)
 
 **What Phase 5 will implement:**
+
 - Command execution via stdin pipe: `echo "/gsd:new-milestone" | ccr code`
 - Milestone planning workflow (06-RESEARCH scope)
 - Planning artifact creation (.planning/milestones/)
 - GitHub issue integration for progress tracking
 
 **CCR infrastructure status:**
+
 - Service lifecycle: ✓ Complete
 - Config generation: ✓ Complete
 - Multi-provider routing: ✓ Complete
@@ -293,17 +315,20 @@ exec(`echo "/gsd:new-milestone" | ccr code`, (error, stdout, stderr) => {
 - Execution pattern: ✓ Documented and ready
 
 **Architecture clarity:**
+
 - ~~Agent SDK wrapper~~ → Deprecated
 - CCR stdin pipe → **Current approach**
 - Claude Code CLI + GSD plugin → Required foundation
 - CCR service wrapper → Non-interactive execution layer
 
 **Integration testing:**
+
 - Workflow validates correctly (YAML syntax)
 - Bundle builds successfully (32,387 lines)
 - Config generator creates valid JSON structure
 - No execution testing yet (Phase 5)
 
 ---
-*Phase: 03-ccr-integration*
-*Completed: 2026-01-22*
+
+_Phase: 03-ccr-integration_
+_Completed: 2026-01-22_

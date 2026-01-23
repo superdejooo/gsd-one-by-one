@@ -16,9 +16,24 @@ import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 import { formatErrorComment } from "../errors/formatter.js";
 import { createMilestoneBranch, branchExists } from "../git/branches.js";
 import { runGitCommand, configureGitIdentity } from "../git/git.js";
-import { loadState, saveState, createInitialState, isRequirementsComplete, updateRequirementsAnswer, initializePendingQuestions, updateWorkflowRun, markRequirementsComplete } from "./state.js";
+import {
+  loadState,
+  saveState,
+  createInitialState,
+  isRequirementsComplete,
+  updateRequirementsAnswer,
+  initializePendingQuestions,
+  updateWorkflowRun,
+  markRequirementsComplete,
+} from "./state.js";
 import { createPlanningDocs } from "./planning-docs.js";
-import { getNewComments, parseUserAnswers, formatRequirementsQuestions, parseAnswersFromResponse, DEFAULT_QUESTIONS } from "./requirements.js";
+import {
+  getNewComments,
+  parseUserAnswers,
+  formatRequirementsQuestions,
+  parseAnswersFromResponse,
+  DEFAULT_QUESTIONS,
+} from "./requirements.js";
 import { generateMilestoneSummary } from "./summarizer.js";
 import { findIteration } from "../lib/projects.js";
 import { loadConfig } from "../lib/config.js";
@@ -57,7 +72,9 @@ export function parseMilestoneNumber(commandArgs) {
     return parseInt(standaloneMatch[1], 10);
   }
 
-  throw new Error("Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.");
+  throw new Error(
+    "Could not parse milestone number from arguments. Use '--milestone N' or provide the number directly.",
+  );
 }
 
 /**
@@ -70,18 +87,22 @@ export function parseMilestoneNumber(commandArgs) {
  */
 export function parseMilestoneDescription(commandArgs) {
   if (!commandArgs || commandArgs.trim().length === 0) {
-    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+    throw new Error(
+      "Milestone description is required. Provide a description of your milestone goals and features.",
+    );
   }
 
   // Remove --milestone or -m flags from the description
   let description = commandArgs;
-  description = description.replace(/--milestone[=\s]+\d+/g, '').trim();
-  description = description.replace(/-m[=\s]+\d+/g, '').trim();
+  description = description.replace(/--milestone[=\s]+\d+/g, "").trim();
+  description = description.replace(/-m[=\s]+\d+/g, "").trim();
   // Remove standalone number at the beginning (must be followed by space or end of string)
-  description = description.replace(/^\d+(\s+|$)/, '').trim();
+  description = description.replace(/^\d+(\s+|$)/, "").trim();
 
   if (description.length === 0) {
-    throw new Error("Milestone description is required. Provide a description of your milestone goals and features.");
+    throw new Error(
+      "Milestone description is required. Provide a description of your milestone goals and features.",
+    );
   }
 
   return description;
@@ -99,25 +120,32 @@ async function validateProjectIteration(owner, milestoneNumber, config) {
   // Check if project config exists
   const projectNumber = config?.project?.number;
   if (!projectNumber) {
-    core.info('No project configured, skipping iteration validation');
-    return { validated: false, reason: 'no-project-configured' };
+    core.info("No project configured, skipping iteration validation");
+    return { validated: false, reason: "no-project-configured" };
   }
 
   const isOrg = config?.project?.isOrg ?? true;
-  const iterationTitle = `v${milestoneNumber}`;  // Convention: v1, v2, etc.
+  const iterationTitle = `v${milestoneNumber}`; // Convention: v1, v2, etc.
 
-  const iteration = await findIteration(owner, projectNumber, iterationTitle, isOrg);
+  const iteration = await findIteration(
+    owner,
+    projectNumber,
+    iterationTitle,
+    isOrg,
+  );
 
   if (iteration) {
     core.info(`Found project iteration: ${iteration.title}`);
     return { validated: true, iteration };
   } else {
-    core.warning(`Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`);
+    core.warning(
+      `Project iteration "${iterationTitle}" not found. Create it manually in GitHub Projects.`,
+    );
     return {
       validated: false,
-      reason: 'iteration-not-found',
+      reason: "iteration-not-found",
       expected: iterationTitle,
-      setupGuide: 'See docs/project-setup.md for setup instructions'
+      setupGuide: "See docs/project-setup.md for setup instructions",
     };
   }
 }
@@ -133,7 +161,7 @@ async function commitPlanningDocs(milestoneNumber, files) {
   // Configure git identity for commits
   await configureGitIdentity(
     "github-actions[bot]",
-    "41898282+github-actions[bot]@users.noreply.github.com"
+    "41898282+github-actions[bot]@users.noreply.github.com",
   );
 
   // Create milestone branch if it doesn't exist
@@ -155,7 +183,7 @@ async function commitPlanningDocs(milestoneNumber, files) {
   }
 
   // Create commit with planning docs
-  const fileNames = files.map(f => f.path.split('/').pop()).join(', ');
+  const fileNames = files.map((f) => f.path.split("/").pop()).join(", ");
   await runGitCommand(`git commit -m "docs(m${milestoneNumber}): Create initial planning documents
 
 - ${fileNames}
@@ -183,7 +211,11 @@ Generated by GSD Bot"`);
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executeMilestoneWorkflow(context, commandArgs, skill = null) {
+export async function executeMilestoneWorkflow(
+  context,
+  commandArgs,
+  skill = null,
+) {
   const { owner, repo, issueNumber } = context;
   const workflowUrl = getWorkflowRunUrl();
 
@@ -197,7 +229,9 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
 
     // Step 2: Parse milestone description from arguments (REQUIRED)
     const description = parseMilestoneDescription(commandArgs);
-    core.info(`Parsed milestone description: ${description.substring(0, 100)}...`);
+    core.info(
+      `Parsed milestone description: ${description.substring(0, 100)}...`,
+    );
 
     // Step 3: Load existing state or create initial state
     let state = await loadState(owner, repo, milestoneNumber);
@@ -206,12 +240,14 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
     updateWorkflowRun(state);
 
     // Step 5: Skip Q&A gathering - use description directly
-    core.info("Using provided description, skipping requirements gathering Q&A");
+    core.info(
+      "Using provided description, skipping requirements gathering Q&A",
+    );
 
     // Populate requirements with description
     state.requirements.answered = {
       scope: description,
-      features: description
+      features: description,
     };
 
     // Mark requirements as complete immediately
@@ -223,21 +259,27 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
       owner,
       repo,
       milestoneNumber,
-      title: state.requirements.answered.scope ? `Milestone ${milestoneNumber}: ${state.requirements.answered.scope.substring(0, 50)}` : `Milestone ${milestoneNumber}`,
+      title: state.requirements.answered.scope
+        ? `Milestone ${milestoneNumber}: ${state.requirements.answered.scope.substring(0, 50)}`
+        : `Milestone ${milestoneNumber}`,
       goal: state.requirements.answered.scope || "To be defined",
       scope: state.requirements.answered.constraints || "To be defined",
-      features: state.requirements.answered.features ? state.requirements.answered.features.split('\n').filter(f => f.trim()) : [],
+      features: state.requirements.answered.features
+        ? state.requirements.answered.features
+            .split("\n")
+            .filter((f) => f.trim())
+        : [],
       requirements: {
         complete: true,
         answered: Object.keys(state.requirements.answered),
-        pending: []
+        pending: [],
       },
       phases: [],
       totalPhases: 6,
       status: "planning",
       createdAt: state.createdAt,
       lastRunAt: state.workflow?.lastRunAt,
-      runCount: state.workflow?.runCount || 1
+      runCount: state.workflow?.runCount || 1,
     };
 
     // Step 7: Create planning documents
@@ -254,16 +296,25 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
     const nextSteps = [
       "Review the planning documents in `.github/planning/milestones/`",
       "Use `@gsd-bot plan-phase` to plan each phase of the milestone",
-      "Use `@gsd-bot execute-phase` to execute planned work"
+      "Use `@gsd-bot execute-phase` to execute planned work",
     ];
 
     // Step 11: Validate project iteration
     const config = await loadConfig(owner, repo);
-    const validationResult = await validateProjectIteration(owner, milestoneNumber, config);
+    const validationResult = await validateProjectIteration(
+      owner,
+      milestoneNumber,
+      config,
+    );
 
     // Append warning to next steps if iteration not found
-    if (!validationResult.validated && validationResult.reason === 'iteration-not-found') {
-      nextSteps.push(`⚠️  Create project iteration "${validationResult.expected}" in GitHub Projects for tracking`);
+    if (
+      !validationResult.validated &&
+      validationResult.reason === "iteration-not-found"
+    ) {
+      nextSteps.push(
+        `⚠️  Create project iteration "${validationResult.expected}" in GitHub Projects for tracking`,
+      );
     }
 
     const summary = generateMilestoneSummary({
@@ -273,9 +324,9 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
       requirements: {
         complete: true,
         answered: Object.keys(state.requirements.answered),
-        pending: []
+        pending: [],
       },
-      nextSteps
+      nextSteps,
     });
 
     await postComment(owner, repo, issueNumber, summary);
@@ -286,12 +337,11 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
       complete: true,
       phase: "milestone-created",
       milestone: milestoneNumber,
-      files: fileList.map(f => f.path),
+      files: fileList.map((f) => f.path),
       branch: `gsd/${milestoneNumber}`,
       projectIteration: validationResult,
-      message: "Milestone created successfully with planning documents"
+      message: "Milestone created successfully with planning documents",
     };
-
   } catch (error) {
     core.error(`Milestone workflow error: ${error.message}`);
 
@@ -312,9 +362,29 @@ export async function executeMilestoneWorkflow(context, commandArgs, skill = nul
  */
 function generatePhasesFromRequirements(answers) {
   return [
-    { name: "Foundation Setup", goal: "Initial project structure and dependencies", status: "pending", dependencies: "None" },
-    { name: "Core Implementation", goal: "Main feature implementation", status: "pending", dependencies: "Phase 1" },
-    { name: "Integration", goal: "Connect components and verify functionality", status: "pending", dependencies: "Phase 2" },
-    { name: "Testing & Verification", goal: "Testing, bug fixes, and final verification", status: "pending", dependencies: "Phase 3" }
+    {
+      name: "Foundation Setup",
+      goal: "Initial project structure and dependencies",
+      status: "pending",
+      dependencies: "None",
+    },
+    {
+      name: "Core Implementation",
+      goal: "Main feature implementation",
+      status: "pending",
+      dependencies: "Phase 1",
+    },
+    {
+      name: "Integration",
+      goal: "Connect components and verify functionality",
+      status: "pending",
+      dependencies: "Phase 2",
+    },
+    {
+      name: "Testing & Verification",
+      goal: "Testing, bug fixes, and final verification",
+      status: "pending",
+      dependencies: "Phase 3",
+    },
   ];
 }

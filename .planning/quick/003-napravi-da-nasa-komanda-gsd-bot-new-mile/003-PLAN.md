@@ -69,11 +69,13 @@ Update `parseComment()` in parser.js to capture everything after the command as 
 3. No changes needed to parseComment - it already returns the full text after the command
 
 Add a new function `parseDescriptionArg(argsString)`:
+
 - Takes the raw args string from parseComment
 - Returns the description text (the entire string after command)
 - If empty/whitespace only, returns null
 
 Add tests for:
+
 - `@gsd-bot new-milestone This is my milestone description` -> description = "This is my milestone description"
 - `@gsd-bot new-milestone` with multiline text -> captures all lines
 - Very long descriptions (5000+ chars) -> captures complete text
@@ -81,7 +83,7 @@ Add tests for:
   </action>
   <verify>Run `npm test -- src/lib/parser.test.js` - all tests pass</verify>
   <done>parseComment returns full description text in args field, new helper validates non-empty description</done>
-</task>
+  </task>
 
 <task type="auto">
   <name>Task 2: Update validator to allow large descriptions</name>
@@ -103,10 +105,10 @@ Update `sanitizeArguments()` in validator.js:
    - Test description with 10000 chars passes
    - Test description with 50001 chars throws error
    - Test description still has shell metacharacters removed
-  </action>
-  <verify>Run `npm test -- src/lib/validator.test.js` - all tests pass</verify>
-  <done>sanitizeArguments allows up to 50000 chars for description key while maintaining 500 char limit for other args</done>
-</task>
+     </action>
+     <verify>Run `npm test -- src/lib/validator.test.js` - all tests pass</verify>
+     <done>sanitizeArguments allows up to 50000 chars for description key while maintaining 500 char limit for other args</done>
+     </task>
 
 <task type="auto">
   <name>Task 3: Update milestone workflow to require description</name>
@@ -141,10 +143,10 @@ Update `executeMilestoneWorkflow()` in milestone/index.js:
    - Test error when no description: "@gsd-bot new-milestone" -> throws
    - Test that workflow skips Q&A and goes straight to planning docs
    - Test that description populates requirements.answered.scope
-  </action>
-  <verify>Run `npm test -- src/milestone/index.test.js src/index.test.js` - all tests pass, then run full `npm test`</verify>
-  <done>new-milestone command requires description, skips Q&A, uses description for planning docs</done>
-</task>
+     </action>
+     <verify>Run `npm test -- src/milestone/index.test.js src/index.test.js` - all tests pass, then run full `npm test`</verify>
+     <done>new-milestone command requires description, skips Q&A, uses description for planning docs</done>
+     </task>
 
 </tasks>
 
@@ -156,12 +158,13 @@ Update `executeMilestoneWorkflow()` in milestone/index.js:
 </verification>
 
 <success_criteria>
+
 - new-milestone command requires mandatory description parameter
 - Descriptions up to 50000 characters are accepted
 - Missing description returns actionable error message
 - Multi-turn Q&A requirements gathering is bypassed when description provided
 - All existing tests pass, new tests added for description handling
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/quick/003-napravi-da-nasa-komanda-gsd-bot-new-mile/003-SUMMARY.md`

@@ -20,20 +20,21 @@ const execAsync = promisify(exec);
  * @returns {string} Clean output without CCR logs
  */
 function stripCcrLogs(output) {
-  const lines = output.split('\n');
-  const cleanLines = lines.filter(line => {
+  const lines = output.split("\n");
+  const cleanLines = lines.filter((line) => {
     if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
     if (/^response \d+ http:/.test(line)) return false;
     if (/ReadableStream \{/.test(line)) return false;
     if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
+      return false;
     if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
     if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
     if (/^\s*[}\]],?\s*$/.test(line)) return false;
     if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false;
     return true;
   });
-  return cleanLines.join('\n').trim();
+  return cleanLines.join("\n").trim();
 }
 
 /**
@@ -42,11 +43,11 @@ function stripCcrLogs(output) {
  * @returns {string} GSD block or last 80 lines
  */
 function extractGsdBlock(output) {
-  const lines = output.split('\n');
+  const lines = output.split("\n");
 
   let gsdLineIndex = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].includes('GSD ►')) {
+    if (lines[i].includes("GSD ►")) {
       gsdLineIndex = i;
       break;
     }
@@ -54,11 +55,11 @@ function extractGsdBlock(output) {
 
   if (gsdLineIndex !== -1) {
     const startIndex = Math.max(0, gsdLineIndex - 1);
-    return lines.slice(startIndex).join('\n');
+    return lines.slice(startIndex).join("\n");
   }
 
   const tail = lines.slice(-80);
-  return tail.join('\n');
+  return tail.join("\n");
 }
 
 /**
@@ -77,17 +78,27 @@ function extractGsdBlock(output) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executeMilestoneCompletionWorkflow(context, skill = null) {
+export async function executeMilestoneCompletionWorkflow(
+  context,
+  skill = null,
+) {
   const { owner, repo, issueNumber } = context;
 
-  core.info(`Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`);
+  core.info(
+    `Starting milestone completion workflow for ${owner}/${repo}#${issueNumber}`,
+  );
   if (skill) core.info(`Using skill: ${skill}`);
 
   try {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
     const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput('/gsd:complete-milestone', outputPath, null, skill);
+    const command = formatCcrCommandWithOutput(
+      "/gsd:complete-milestone",
+      outputPath,
+      null,
+      skill,
+    );
 
     core.info(`Executing: ${command}`);
 
@@ -103,7 +114,9 @@ export async function executeMilestoneCompletionWorkflow(context, skill = null) 
     let output = "";
     try {
       output = await fs.readFile(outputPath, "utf-8");
-      core.info(`CCR output (${output.length} chars): ${output.substring(0, 500)}`);
+      core.info(
+        `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
+      );
     } catch (error) {
       output = "(No output captured)";
       core.warning(`Failed to read output file: ${error.message}`);
@@ -111,17 +124,28 @@ export async function executeMilestoneCompletionWorkflow(context, skill = null) 
 
     // Validate for errors
     const outputWithoutWarnings = output
-      .split('\n')
-      .filter(line => !line.includes('⚠️') && !line.includes('Pre-flight check'))
-      .join('\n');
+      .split("\n")
+      .filter(
+        (line) => !line.includes("⚠️") && !line.includes("Pre-flight check"),
+      )
+      .join("\n");
 
-    const isError = exitCode !== 0 ||
-      /Permission Denied|Authorization failed|not authorized/i.test(outputWithoutWarnings) ||
-      /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
-      /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
+    const isError =
+      exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(
+        outputWithoutWarnings,
+      ) ||
+      /^Error:|Something went wrong|command failed/i.test(
+        outputWithoutWarnings,
+      ) ||
+      /Unknown command|invalid arguments|validation failed/i.test(
+        outputWithoutWarnings,
+      );
 
     if (isError) {
-      throw new Error(`Milestone completion failed: ${output.substring(0, 500)}`);
+      throw new Error(
+        `Milestone completion failed: ${output.substring(0, 500)}`,
+      );
     }
 
     // Format output for comment
@@ -142,9 +166,8 @@ export async function executeMilestoneCompletionWorkflow(context, skill = null) 
 
     return {
       complete: true,
-      message: "Milestone archived and completion workflow finished"
+      message: "Milestone archived and completion workflow finished",
     };
-
   } catch (error) {
     core.error(`Milestone completion workflow error: ${error.message}`);
     throw error;

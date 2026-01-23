@@ -19,12 +19,15 @@ Create the milestone workflow orchestrator that ties together planning docs, req
 ## Deliverables
 
 ### src/milestone/index.js
+
 **Provides:** Milestone workflow orchestrator
 **Exports:**
+
 - `executeMilestoneWorkflow(context, commandArgs)` - Main workflow orchestrator
 - `parseMilestoneNumber(commandArgs)` - Extract milestone number from args
 
 **Key functionality:**
+
 - Parses milestone number from `--milestone N`, `-m N`, or standalone number
 - Loads or creates state via `loadState()`/`createInitialState()`
 - Fetches new comments via `getNewComments()` and parses answers via `parseUserAnswers()`
@@ -33,9 +36,11 @@ Create the milestone workflow orchestrator that ties together planning docs, req
 - Returns `{complete: true, phase: "milestone-created", files: [...], branch: "gsd/{n}"}`
 
 ### src/milestone/summarizer.js
+
 **Provides:** Summary comment generation (already existed from 05-03)
 
 ### src/index.js Integration
+
 - Added import for `executeMilestoneWorkflow` and `parseMilestoneNumber`
 - Added `_milestoneModule` trigger for bundling
 - Command dispatch routes "new-milestone" to `executeMilestoneWorkflow`
@@ -43,15 +48,15 @@ Create the milestone workflow orchestrator that ties together planning docs, req
 
 ## Integration Points
 
-| From | To | Via | Pattern |
-|------|----|-----|---------|
-| src/milestone/index.js | src/milestone/planning-docs.js | `createPlanningDocs` call | Create PROJECT.md, STATE.md, ROADMAP.md |
-| src/milestone/index.js | src/milestone/requirements.js | `getNewComments`, `parseUserAnswers`, `DEFAULT_QUESTIONS` | Requirements gathering |
-| src/milestone/index.js | src/milestone/state.js | `loadState`, `saveState` | State persistence |
-| src/milestone/index.js | src/git/branches.js | `createMilestoneBranch` | Branch creation |
-| src/milestone/index.js | src/git/git.js | `runGitCommand`, `configureGitIdentity` | Commit operations |
-| src/milestone/index.js | src/lib/github.js | `postComment` | Summary posting |
-| src/milestone/index.js | src/milestone/summarizer.js | `generateMilestoneSummary` | Summary generation |
+| From                   | To                             | Via                                                       | Pattern                                 |
+| ---------------------- | ------------------------------ | --------------------------------------------------------- | --------------------------------------- |
+| src/milestone/index.js | src/milestone/planning-docs.js | `createPlanningDocs` call                                 | Create PROJECT.md, STATE.md, ROADMAP.md |
+| src/milestone/index.js | src/milestone/requirements.js  | `getNewComments`, `parseUserAnswers`, `DEFAULT_QUESTIONS` | Requirements gathering                  |
+| src/milestone/index.js | src/milestone/state.js         | `loadState`, `saveState`                                  | State persistence                       |
+| src/milestone/index.js | src/git/branches.js            | `createMilestoneBranch`                                   | Branch creation                         |
+| src/milestone/index.js | src/git/git.js                 | `runGitCommand`, `configureGitIdentity`                   | Commit operations                       |
+| src/milestone/index.js | src/lib/github.js              | `postComment`                                             | Summary posting                         |
+| src/milestone/index.js | src/milestone/summarizer.js    | `generateMilestoneSummary`                                | Summary generation                      |
 
 ## Dependencies
 
@@ -69,15 +74,16 @@ None - plan executed exactly as written.
 
 ## Files Created/Modified
 
-| File | Change |
-|------|--------|
-| src/milestone/index.js | Created (284 lines) |
-| src/index.js | Modified (+16 lines) |
+| File                        | Change                             |
+| --------------------------- | ---------------------------------- |
+| src/milestone/index.js      | Created (284 lines)                |
+| src/index.js                | Modified (+16 lines)               |
 | src/milestone/summarizer.js | Already existed (verified working) |
 
 ## Verification Results
 
 ### summarizer.js (already existed)
+
 - Summary generated: true
 - Includes milestone number: true
 - Includes files table: true
@@ -85,6 +91,7 @@ None - plan executed exactly as written.
 - Includes branch info: true
 
 ### parseMilestoneNumber function
+
 - Parsed milestone 5 from --milestone flag: true
 - Parsed milestone 7 from standalone: true
 - Parsed milestone 12 from --milestone= : true
@@ -93,6 +100,7 @@ None - plan executed exactly as written.
 - Correctly throws for empty input: true
 
 ### index.js integration
+
 - Imports executeMilestoneWorkflow: true
 - Imports parseMilestoneNumber: true
 - Module trigger added: true

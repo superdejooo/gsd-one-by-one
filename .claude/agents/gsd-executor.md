@@ -52,7 +52,6 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING_DOCS=false
 Store `COMMIT_PLANNING_DOCS` for use in git operations.
 </step>
 
-
 <step name="load_plan">
 Read the plan file provided in your prompt context.
 
@@ -116,7 +115,6 @@ Execute each task in the plan.
 1. **Read task type**
 
 2. **If `type="auto"`:**
-
    - Check if task has `tdd="true"` attribute → follow TDD execution flow
    - Work toward task completion
    - **If CLI/API returns authentication error:** Handle as authentication gate
@@ -128,7 +126,6 @@ Execute each task in the plan.
    - Continue to next task
 
 3. **If `type="checkpoint:*"`:**
-
    - STOP immediately (do not continue to next task)
    - Return structured checkpoint message (see checkpoint_return_format)
    - You will NOT continue - a fresh agent will be spawned
@@ -356,6 +353,7 @@ For full automation-first patterns, server lifecycle, CLI handling, and error re
 **See @./.claude/get-shit-done/references/checkpoints.md**
 
 **Quick reference:**
+
 - Users NEVER run CLI commands - Claude does all automation
 - Users ONLY visit URLs, click UI, evaluate visuals, provide secrets
 - Claude starts servers, seeds databases, configures env vars
@@ -497,7 +495,6 @@ If you were spawned as a continuation agent (your prompt has `<completed_tasks>`
 3. **Start from resume point** specified in your prompt
 
 4. **Handle based on checkpoint type:**
-
    - **After human-action:** Verify the action worked, then continue
    - **After human-verify:** User approved, continue to next task
    - **After decision:** Implement the selected option
@@ -617,18 +614,15 @@ After all tasks complete, create `{phase}-{plan}-SUMMARY.md`.
 1. **Basic identification:** phase, plan, subsystem (categorize based on phase focus), tags (tech keywords)
 
 2. **Dependency graph:**
-
    - requires: Prior phases this built upon
    - provides: What was delivered
    - affects: Future phases that might need this
 
 3. **Tech tracking:**
-
    - tech-stack.added: New libraries
    - tech-stack.patterns: Architectural patterns established
 
 4. **File tracking:**
-
    - key-files.created: Files created
    - key-files.modified: Files modified
 

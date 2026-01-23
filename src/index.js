@@ -4,14 +4,40 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { parseComment, parseArguments, parseSkillArg } from "./lib/parser.js";
 import { loadConfig } from "./lib/config.js";
-import { validateCommand, sanitizeArguments, isValidSkillForCommand, getValidSkillsForCommand } from "./lib/validator.js";
+import {
+  validateCommand,
+  sanitizeArguments,
+  isValidSkillForCommand,
+  getValidSkillsForCommand,
+} from "./lib/validator.js";
 import { postComment, getWorkflowRunUrl } from "./lib/github.js";
-import { formatErrorComment, formatSuccessComment } from "./errors/formatter.js";
-import { runGitCommand, createAndSwitchBranch, switchBranch, configureGitIdentity } from "./git/git.js";
-import { createMilestoneBranch, createPhaseBranch, slugify, branchExists } from "./git/branches.js";
+import {
+  formatErrorComment,
+  formatSuccessComment,
+} from "./errors/formatter.js";
+import {
+  runGitCommand,
+  createAndSwitchBranch,
+  switchBranch,
+  configureGitIdentity,
+} from "./git/git.js";
+import {
+  createMilestoneBranch,
+  createPhaseBranch,
+  slugify,
+  branchExists,
+} from "./git/branches.js";
 import { withErrorHandling } from "./errors/handler.js";
-import { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown } from "./milestone/planning-docs.js";
-import { executeMilestoneWorkflow, parseMilestoneNumber } from "./milestone/index.js";
+import {
+  createPlanningDocs,
+  generateProjectMarkdown,
+  generateStateMarkdown,
+  generateRoadmapMarkdown,
+} from "./milestone/planning-docs.js";
+import {
+  executeMilestoneWorkflow,
+  parseMilestoneNumber,
+} from "./milestone/index.js";
 import { executePhaseWorkflow } from "./milestone/phase-planner.js";
 import { executePhaseExecutionWorkflow } from "./milestone/phase-executor.js";
 import { executeMilestoneCompletionWorkflow } from "./milestone/milestone-completer.js";
@@ -19,16 +45,44 @@ import { executeMilestoneCompletionWorkflow } from "./milestone/milestone-comple
 // Trigger bundling of modules
 const _githubModule = { postComment, getWorkflowRunUrl };
 const _formatterModule = { formatErrorComment, formatSuccessComment };
-const _gitModule = { runGitCommand, createAndSwitchBranch, switchBranch, configureGitIdentity };
-const _branchModule = { createMilestoneBranch, createPhaseBranch, slugify, branchExists };
+const _gitModule = {
+  runGitCommand,
+  createAndSwitchBranch,
+  switchBranch,
+  configureGitIdentity,
+};
+const _branchModule = {
+  createMilestoneBranch,
+  createPhaseBranch,
+  slugify,
+  branchExists,
+};
 const _errorModule = { withErrorHandling };
-const _planningModule = { createPlanningDocs, generateProjectMarkdown, generateStateMarkdown, generateRoadmapMarkdown };
+const _planningModule = {
+  createPlanningDocs,
+  generateProjectMarkdown,
+  generateStateMarkdown,
+  generateRoadmapMarkdown,
+};
 const _milestoneModule = { executeMilestoneWorkflow, parseMilestoneNumber };
 const _phasePlannerModule = { executePhaseWorkflow };
 const _phaseExecutorModule = { executePhaseExecutionWorkflow };
 const _milestoneCompleterModule = { executeMilestoneCompletionWorkflow };
 const _authModule = { checkAuthorization, formatAuthorizationError };
-console.log("Modules loaded:", !!_githubModule, !!_formatterModule, !!_gitModule, !!_branchModule, !!_errorModule, !!_planningModule, !!_milestoneModule, !!_phasePlannerModule, !!_phaseExecutorModule, !!_milestoneCompleterModule, !!_authModule);
+console.log(
+  "Modules loaded:",
+  !!_githubModule,
+  !!_formatterModule,
+  !!_gitModule,
+  !!_branchModule,
+  !!_errorModule,
+  !!_planningModule,
+  !!_milestoneModule,
+  !!_phasePlannerModule,
+  !!_phaseExecutorModule,
+  !!_milestoneCompleterModule,
+  !!_authModule,
+);
 
 try {
   // Get inputs from action.yml
@@ -37,7 +91,9 @@ try {
   const repoName = core.getInput("repo-name");
   const commentBody = core.getInput("comment-body");
 
-  core.info(`Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`);
+  core.info(
+    `Processing command for issue ${issueNumber} in ${repoOwner}/${repoName}`,
+  );
   core.info(`Comment body: ${commentBody}`);
 
   // Extract GitHub context for error handling
@@ -64,19 +120,36 @@ try {
     const authResult = await checkAuthorization(octokit);
 
     if (!authResult.authorized) {
-      core.info(`User ${authResult.username} not authorized: ${authResult.reason}`);
+      core.info(
+        `User ${authResult.username} not authorized: ${authResult.reason}`,
+      );
       const workflowUrl = getWorkflowRunUrl();
-      const errorComment = formatAuthorizationError(authResult.username, `${repoOwner}/${repoName}`, workflowUrl);
-      await postComment(repoOwner, repoName, github.context.issue?.number, errorComment);
+      const errorComment = formatAuthorizationError(
+        authResult.username,
+        `${repoOwner}/${repoName}`,
+        workflowUrl,
+      );
+      await postComment(
+        repoOwner,
+        repoName,
+        github.context.issue?.number,
+        errorComment,
+      );
       core.setOutput("command-found", "true");
       core.setOutput("authorized", "false");
-      return { commandFound: true, authorized: false, reason: authResult.reason };
+      return {
+        commandFound: true,
+        authorized: false,
+        reason: authResult.reason,
+      };
     }
 
-    core.info(`User ${authResult.username} authorized with ${authResult.permission} access`);
+    core.info(
+      `User ${authResult.username} authorized with ${authResult.permission} access`,
+    );
 
     core.info(`Found command: ${parsed.command}`);
-    core.info(`Arguments: ${parsed.args || '(none)'}`);
+    core.info(`Arguments: ${parsed.args || "(none)"}`);
 
     // Parse arguments if present
     const args = parsed.args ? parseArguments(parsed.args) : {};
@@ -95,7 +168,9 @@ try {
       // Validate skill is allowed for this command
       if (!isValidSkillForCommand(skill, parsed.command)) {
         const validSkills = getValidSkillsForCommand(parsed.command);
-        throw new Error(`Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(', ')}`);
+        throw new Error(
+          `Skill '${skill}' is not valid for command '${parsed.command}'. Valid skills: ${validSkills.join(", ")}`,
+        );
       }
     }
 
@@ -104,9 +179,13 @@ try {
       core.info("Dispatching to milestone workflow");
       // Pass raw args string - parseMilestoneDescription expects the full text
       const result = await executeMilestoneWorkflow(
-        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        {
+          owner: repoOwner,
+          repo: repoName,
+          issueNumber: github.context.issue?.number,
+        },
         parsed.args || "",
-        skill
+        skill,
       );
       core.info(`Milestone workflow result: ${JSON.stringify(result)}`);
       core.setOutput("milestone-complete", result.complete);
@@ -119,9 +198,13 @@ try {
       core.info("Dispatching to phase planning workflow");
       // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseWorkflow(
-        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        {
+          owner: repoOwner,
+          repo: repoName,
+          issueNumber: github.context.issue?.number,
+        },
         parsed.args || "",
-        skill
+        skill,
       );
       core.setOutput("phase-planned", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
@@ -133,9 +216,13 @@ try {
       core.info("Dispatching to phase execution workflow");
       // Pass raw args string - parsePhaseNumber expects string for .match()
       const result = await executePhaseExecutionWorkflow(
-        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
+        {
+          owner: repoOwner,
+          repo: repoName,
+          issueNumber: github.context.issue?.number,
+        },
         parsed.args || "",
-        skill
+        skill,
       );
       core.setOutput("phase-executed", result.complete);
       core.setOutput("phase-number", result.phaseNumber);
@@ -147,8 +234,12 @@ try {
     if (parsed.command === "complete-milestone") {
       core.info("Dispatching to milestone completion workflow");
       const result = await executeMilestoneCompletionWorkflow(
-        { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-        skill
+        {
+          owner: repoOwner,
+          repo: repoName,
+          issueNumber: github.context.issue?.number,
+        },
+        skill,
       );
       core.setOutput("milestone-completed", result.complete);
       return { commandFound: true, command: parsed.command, ...result };
@@ -170,7 +261,7 @@ try {
     // Configure git identity for commits
     await configureGitIdentity(
       "github-actions[bot]",
-      "41898282+github-actions[bot]@users.noreply.github.com"
+      "41898282+github-actions[bot]@users.noreply.github.com",
     );
 
     // Execute GSD command via Claude Code Router stdin pipe

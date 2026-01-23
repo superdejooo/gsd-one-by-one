@@ -199,7 +199,8 @@ Make the edits inline. Update "Last updated" footer:
 
 ```markdown
 ---
-*Last updated: [date] after Phase [X]*
+
+_Last updated: [date] after Phase [X]_
 ```
 
 **Example evolution:**
@@ -397,10 +398,12 @@ Resume file: None
 **Step 1: Read ROADMAP.md and identify phases in current milestone**
 
 Read the ROADMAP.md file and extract:
+
 1. Current phase number (the phase just transitioned from)
 2. All phase numbers in the current milestone section
 
 To find phases, look for:
+
 - Phase headers: lines starting with `### Phase` or `#### Phase`
 - Phase list items: lines like `- [ ] **Phase X:` or `- [x] **Phase X:`
 
@@ -410,8 +413,8 @@ State: "Current phase is {X}. Milestone has {N} phases (highest: {Y})."
 
 **Step 2: Route based on milestone status**
 
-| Condition | Meaning | Action |
-|-----------|---------|--------|
+| Condition                     | Meaning            | Action            |
+| ----------------------------- | ------------------ | ----------------- |
 | current phase < highest phase | More phases remain | Go to **Route A** |
 | current phase = highest phase | Milestone complete | Go to **Route B** |
 

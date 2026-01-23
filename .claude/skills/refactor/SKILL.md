@@ -10,6 +10,7 @@ Expert guidance for refactoring Laravel and Livewire applications to modern best
 ## When to Use This Skill
 
 Use this skill when the user:
+
 - Requests to refactor Laravel or Livewire code
 - Asks to set up modern Laravel tooling (Pint, PHPStan, Pest, Rector)
 - Wants to implement CI/CD pipelines with quality gates
@@ -32,22 +33,26 @@ The Laravel ecosystem has matured around a standardized quality toolchain:
 ### Core Quality Tools
 
 **Laravel Pint** - Official code formatter (ships with Laravel)
+
 - Zero-configuration formatting for Laravel projects
 - Automatically fixes PSR-12 violations and Laravel conventions
 - Run: `./vendor/bin/pint` to format, `./vendor/bin/pint --test` for CI validation
 
 **PHPStan + Larastan** - Static analysis standard
+
 - Larastan 2.0+ understands Laravel magic (facades, Eloquent, scopes)
 - Most production apps target level 5-6 (catches real bugs without excessive strictness)
 - Use baseline feature for legacy code: `./vendor/bin/phpstan analyse --generate-baseline`
 - Progressive adoption: start at level 3, increase by 1 level per month
 
 **Pest** - Modern testing framework with mutation testing
+
 - Built-in architecture tests via `arch()` helper
 - Mutation testing validates test quality automatically
 - Compatible with existing PHPUnit tests (gradual migration)
 
 **Rector** - Automated refactoring via AST transformations
+
 - Used for framework upgrades and PHP version migrations
 - Converts patterns at scale (array syntax, constructor promotion, etc.)
 
@@ -56,6 +61,7 @@ The Laravel ecosystem has matured around a standardized quality toolchain:
 **Setting up new projects**: Configure Pint + PHPStan level 5 + Pest + architecture tests from day one
 
 **Modernizing legacy projects**: See `references/modern_tooling.md` for comprehensive setup guide including:
+
 - Progressive PHPStan adoption with baseline strategy
 - CI/CD pipeline configuration (GitHub Actions, GitLab CI)
 - Pre-commit hooks setup (GrumPHP vs Husky comparison)
@@ -64,6 +70,7 @@ The Laravel ecosystem has matured around a standardized quality toolchain:
 - Complete toolchain integration patterns
 
 **Quick tooling decisions**:
+
 - Code formatting → Laravel Pint (official, zero-config)
 - Static analysis → PHPStan + Larastan level 5-6
 - Testing → Pest for new projects (mutation testing + architecture tests)
@@ -179,7 +186,7 @@ class EditUser extends Component
     public string $name;
     public string $email;
     private User $user;
-    
+
     public function mount(User $user)
     {
         $this->user = $user;
@@ -194,11 +201,13 @@ class EditUser extends Component
 ### Step 1: Analysis
 
 **For specific code snippets:**
+
 1. Read the provided code
 2. Identify anti-patterns using the quick reference above
 3. Consult references/laravel_patterns.md or references/livewire_patterns.md for detailed patterns
 
 **For full directories/codebases:**
+
 1. Run the analyzer: `python3 scripts/analyze_code.py <directory>`
 2. Review the generated report (prioritizes HIGH → MEDIUM → LOW)
 3. Create a refactoring plan based on severity
@@ -206,6 +215,7 @@ class EditUser extends Component
 ### Step 2: Categorize Issues
 
 Group identified issues by type:
+
 - **Structure**: Fat controllers, missing layers, poor organization
 - **Database**: N+1 queries, missing transactions, inefficient queries
 - **Security**: Mass assignment, validation, authorization
@@ -215,6 +225,7 @@ Group identified issues by type:
 ### Step 3: Refactor Systematically
 
 Follow this priority order:
+
 1. **Security issues** (HIGH priority)
    - Fix mass assignment vulnerabilities
    - Add proper validation
@@ -240,18 +251,21 @@ Follow this priority order:
 Consult the detailed reference files for specific patterns:
 
 **Laravel patterns**: See `references/laravel_patterns.md` for:
+
 - Fat controller refactoring
 - Query optimization techniques
 - Modern Laravel features
 - Security best practices
 
 **Livewire patterns**: See `references/livewire_patterns.md` for:
+
 - Component optimization
 - Livewire 3 migration
 - Performance patterns
 - Event-driven communication
 
 **Comprehensive checklist**: See `references/refactoring_checklist.md` for:
+
 - Step-by-step refactoring process
 - Pre/post-refactoring tasks
 - Testing strategies
@@ -260,6 +274,7 @@ Consult the detailed reference files for specific patterns:
 ### Step 5: Validate Changes
 
 After refactoring:
+
 1. Ensure all functionality remains intact
 2. Add/update tests for refactored code
 3. Verify performance improvements
@@ -285,6 +300,7 @@ python3 scripts/analyze_code.py app --json
 ```
 
 The analyzer detects:
+
 - Fat controllers (> 30 lines per method)
 - N+1 query problems
 - Missing type hints
@@ -297,22 +313,26 @@ The analyzer detects:
 ## Best Practices for Refactoring
 
 ### Start Small
+
 - Refactor one file/method at a time
 - Make incremental changes
 - Test after each change
 - Commit frequently
 
 ### Maintain Backward Compatibility
+
 - Keep existing public APIs intact
 - Use deprecation warnings for changes
 - Update documentation for breaking changes
 
 ### Write Tests First
+
 - Add tests for existing behavior before refactoring
 - Verify tests pass after refactoring
 - Add new tests for improved functionality
 
 ### Follow Laravel Conventions
+
 - Use PSR-12 coding standards
 - Follow Laravel naming conventions
 - Leverage framework features over custom solutions
@@ -320,6 +340,7 @@ The analyzer detects:
 ## Common Refactoring Scenarios
 
 ### Scenario 1: "This controller is too large"
+
 1. Identify distinct responsibilities in the controller
 2. Extract business logic to Action/Service classes
 3. Move validation to Form Request classes
@@ -327,6 +348,7 @@ The analyzer detects:
 5. Use route model binding where possible
 
 ### Scenario 2: "The application is slow"
+
 1. Run analyzer to identify N+1 queries
 2. Add eager loading with ->with()
 3. Use select() to limit columns
@@ -335,6 +357,7 @@ The analyzer detects:
 6. Consider query optimization (chunk, lazy)
 
 ### Scenario 3: "Need to upgrade to Livewire 3"
+
 1. Replace computed property methods with #[Computed] attributes
 2. Migrate to Form objects for complex forms
 3. Update public property type hints
@@ -342,6 +365,7 @@ The analyzer detects:
 5. Test all component interactions
 
 ### Scenario 4: "Code has security vulnerabilities"
+
 1. Replace $request->all() with validated()
 2. Add $fillable or $guarded to all models
 3. Implement Form Requests for validation
@@ -352,6 +376,7 @@ The analyzer detects:
 ## Tips for Effective Refactoring
 
 **DO:**
+
 - Read the entire reference files when encountering complex patterns
 - Use the analyzer for objective assessment
 - Refactor with tests to prevent regressions
@@ -359,6 +384,7 @@ The analyzer detects:
 - Document significant architectural changes
 
 **DON'T:**
+
 - Make multiple types of changes in one commit
 - Skip testing after refactoring
 - Over-engineer simple solutions

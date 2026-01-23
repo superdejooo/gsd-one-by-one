@@ -59,6 +59,11 @@ export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
  *                               github-project-management, livewire-principles, refactor
  * @returns {string} Full CCR command string with output redirect
  */
-export function formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null, skill = null) {
+export function formatCcrCommandWithOutput(
+  gsdCommand,
+  outputPath,
+  prompt = null,
+  skill = null,
+) {
   return `${formatCcrCommand(gsdCommand, prompt, skill)} > ${outputPath} 2>&1`;
 }

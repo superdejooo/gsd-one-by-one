@@ -63,7 +63,7 @@ Verify the target phase exists in ROADMAP.md:
    ```
 
    Exit.
-</step>
+   </step>
 
 <step name="validate_future_phase">
 Verify the phase is a future phase (not started):
@@ -115,11 +115,13 @@ Collect information about the phase being removed:
 **Subsequent phase detection:**
 
 For integer phase removal (e.g., 17):
+
 - Find all phases > 17 (integers: 18, 19, 20...)
 - Find all decimal phases >= 17.0 and < 18.0 (17.1, 17.2...) → these become 16.x
 - Find all decimal phases for subsequent integers (18.1, 19.1...) → renumber with their parent
 
 For decimal phase removal (e.g., 17.1):
+
 - Find all decimal phases > 17.1 and < 18 (17.2, 17.3...) → renumber down
 - Integer phases unchanged
 
@@ -172,9 +174,10 @@ mv ".planning/phases/18-dashboard" ".planning/phases/17-dashboard"
 Process in descending order (20→19, then 19→18, then 18→17) to avoid overwriting.
 
 Also rename decimal phase directories:
+
 - `17.1-fix-bug` → `16.1-fix-bug` (if removing integer 17)
 - `17.2-hotfix` → `17.1-hotfix` (if removing decimal 17.1)
-</step>
+  </step>
 
 <step name="rename_files_in_directories">
 Rename plan files inside renumbered directories:
@@ -297,6 +300,7 @@ Would you like to:
 
 ---
 ```
+
 </step>
 
 </process>
@@ -309,24 +313,28 @@ Would you like to:
 - Don't add "removed phase" notes to STATE.md - git commit is the record
 - Don't ask about each decimal phase - just renumber them
 - Don't modify completed phase directories
-</anti_patterns>
+  </anti_patterns>
 
 <edge_cases>
 
 **Removing a decimal phase (e.g., 17.1):**
+
 - Only affects other decimals in same series (17.2 → 17.1, 17.3 → 17.2)
 - Integer phases unchanged
 - Simpler operation
 
 **No subsequent phases to renumber:**
+
 - Removing the last phase (e.g., Phase 20 when that's the end)
 - Just delete and update ROADMAP.md, no renumbering needed
 
 **Phase directory doesn't exist:**
+
 - Phase may be in ROADMAP.md but directory not created yet
 - Skip directory deletion, proceed with ROADMAP.md updates
 
 **Decimal phases under removed integer:**
+
 - Removing Phase 17 when 17.1, 17.2 exist
 - 17.1 → 16.1, 17.2 → 16.2
 - They maintain their position in execution order (after current last integer)
@@ -346,4 +354,4 @@ Phase removal is complete when:
 - [ ] Changes committed with descriptive message
 - [ ] No gaps in phase numbering
 - [ ] User informed of changes
-</success_criteria>
+      </success_criteria>

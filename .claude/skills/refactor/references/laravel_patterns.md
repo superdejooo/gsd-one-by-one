@@ -5,31 +5,33 @@
 ### 1. Fat Controllers
 
 **Problem:**
+
 ```php
 // Bad: Business logic in controller
 public function store(Request $request)
 {
     $validated = $request->validate([...]);
-    
+
     $user = User::create($validated);
-    
+
     Mail::to($user->email)->send(new WelcomeEmail($user));
-    
+
     event(new UserRegistered($user));
-    
+
     Log::info('User registered', ['user_id' => $user->id]);
-    
+
     return redirect()->route('dashboard');
 }
 ```
 
 **Solution: Service Classes or Actions**
+
 ```php
 // Good: Delegate to service/action
 public function store(Request $request, RegisterUserAction $action)
 {
     $user = $action->execute($request->validated());
-    
+
     return redirect()->route('dashboard');
 }
 
@@ -39,10 +41,10 @@ class RegisterUserAction
     public function execute(array $data): User
     {
         $user = User::create($data);
-        
+
         Mail::to($user->email)->queue(new WelcomeEmail($user));
         event(new UserRegistered($user));
-        
+
         return $user;
     }
 }
@@ -51,6 +53,7 @@ class RegisterUserAction
 ### 2. N+1 Query Problems
 
 **Problem:**
+
 ```php
 // Bad: N+1 queries
 $posts = Post::all();
@@ -60,6 +63,7 @@ foreach ($posts as $post) {
 ```
 
 **Solution: Eager Loading**
+
 ```php
 // Good: Eager load relationships
 $posts = Post::with('user')->get();
@@ -77,6 +81,7 @@ class Post extends Model
 ### 3. Missing Type Hints and Return Types
 
 **Problem:**
+
 ```php
 // Bad: No type hints
 public function getUserOrders($userId)
@@ -86,6 +91,7 @@ public function getUserOrders($userId)
 ```
 
 **Solution: Strict Types**
+
 ```php
 // Good: Type hints and return types
 public function getUserOrders(int $userId): Collection
@@ -97,6 +103,7 @@ public function getUserOrders(int $userId): Collection
 ### 4. Direct Eloquent Queries in Controllers
 
 **Problem:**
+
 ```php
 // Bad: Repository pattern violation
 public function index()
@@ -105,18 +112,19 @@ public function index()
         ->with('profile')
         ->latest()
         ->paginate(20);
-        
+
     return view('users.index', compact('activeUsers'));
 }
 ```
 
 **Solution: Repository Pattern**
+
 ```php
 // Good: Use repository
 public function index(UserRepository $users)
 {
     $activeUsers = $users->getActivePaginated(20);
-    
+
     return view('users.index', compact('activeUsers'));
 }
 
@@ -137,6 +145,7 @@ class UserRepository
 ### 5. Magic Numbers and Strings
 
 **Problem:**
+
 ```php
 // Bad: Magic values
 if ($user->role === 'admin') {
@@ -149,6 +158,7 @@ if ($order->status === 2) {
 ```
 
 **Solution: Constants/Enums**
+
 ```php
 // Good: Use enums (PHP 8.1+)
 enum UserRole: string
@@ -173,6 +183,7 @@ if ($user->role === UserRole::ADMIN->value) {
 ### 6. Poor Validation Organization
 
 **Problem:**
+
 ```php
 // Bad: Inline validation
 public function store(Request $request)
@@ -187,6 +198,7 @@ public function store(Request $request)
 ```
 
 **Solution: Form Requests**
+
 ```php
 // Good: Form Request class
 public function store(StoreUserRequest $request)
@@ -206,7 +218,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'min:8', 'confirmed'],
         ];
     }
-    
+
     public function messages(): array
     {
         return [
@@ -219,12 +231,14 @@ class StoreUserRequest extends FormRequest
 ### 7. Mass Assignment Vulnerabilities
 
 **Problem:**
+
 ```php
 // Bad: Unprotected mass assignment
 User::create($request->all());
 ```
 
 **Solution: Fillable/Guarded Properties**
+
 ```php
 // Good: Define fillable
 class User extends Model
@@ -234,7 +248,7 @@ class User extends Model
         'email',
         'password',
     ];
-    
+
     // Or use guarded for everything except:
     protected $guarded = [
         'id',
@@ -249,6 +263,7 @@ User::create($request->validated());
 ### 8. Poor Exception Handling
 
 **Problem:**
+
 ```php
 // Bad: Generic catch
 try {
@@ -259,6 +274,7 @@ try {
 ```
 
 **Solution: Specific Exception Handling**
+
 ```php
 // Good: Specific exceptions
 try {
@@ -277,13 +293,14 @@ try {
 ### 9. Database Transactions Missing
 
 **Problem:**
+
 ```php
 // Bad: No transaction for multi-step operations
 public function transferFunds(User $from, User $to, float $amount)
 {
     $from->decrement('balance', $amount);
     $to->increment('balance', $amount);
-    
+
     Transaction::create([
         'from_user_id' => $from->id,
         'to_user_id' => $to->id,
@@ -293,6 +310,7 @@ public function transferFunds(User $from, User $to, float $amount)
 ```
 
 **Solution: Use Database Transactions**
+
 ```php
 // Good: Wrap in transaction
 public function transferFunds(User $from, User $to, float $amount): Transaction
@@ -300,7 +318,7 @@ public function transferFunds(User $from, User $to, float $amount): Transaction
     return DB::transaction(function () use ($from, $to, $amount) {
         $from->decrement('balance', $amount);
         $to->increment('balance', $amount);
-        
+
         return Transaction::create([
             'from_user_id' => $from->id,
             'to_user_id' => $to->id,
@@ -313,6 +331,7 @@ public function transferFunds(User $from, User $to, float $amount): Transaction
 ### 10. Unnecessary Queries in Loops
 
 **Problem:**
+
 ```php
 // Bad: Query in loop
 foreach ($userIds as $userId) {
@@ -322,6 +341,7 @@ foreach ($userIds as $userId) {
 ```
 
 **Solution: Batch Operations**
+
 ```php
 // Good: Single query
 $users = User::whereIn('id', $userIds)->get();
@@ -338,6 +358,7 @@ $results = User::whereIn('id', $userIds)
 ## Modern Laravel Features to Adopt
 
 ### Route Model Binding
+
 ```php
 // Old
 public function show($id)
@@ -354,6 +375,7 @@ public function show(Post $post)
 ```
 
 ### Invokable Controllers
+
 ```php
 // Old: Single action controller with invoke
 class ShowProfileController extends Controller
@@ -369,6 +391,7 @@ Route::get('/profile/{user}', ShowProfileController::class);
 ```
 
 ### Attribute-Based Routing (Laravel 11+)
+
 ```php
 use Illuminate\Support\Facades\Route;
 
@@ -377,13 +400,14 @@ class PostController extends Controller
 {
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index() { }
-    
+
     #[Route('/{post}', name: 'show', methods: ['GET'])]
     public function show(Post $post) { }
 }
 ```
 
 ### Pipeline Pattern
+
 ```php
 // Old: Nested conditionals
 $data = $request->all();
@@ -407,6 +431,7 @@ $data = app(Pipeline::class)
 ## Query Optimization Patterns
 
 ### Chunking Large Datasets
+
 ```php
 // Bad: Load everything into memory
 User::where('active', true)->get()->each(function ($user) {
@@ -427,6 +452,7 @@ User::where('active', true)->lazy()->each(function ($user) {
 ```
 
 ### Efficient Counting
+
 ```php
 // Bad: Loading all records to count
 $count = Post::where('published', true)->get()->count();
@@ -439,6 +465,7 @@ $hasPublished = Post::where('published', true)->exists();
 ```
 
 ### Select Only Needed Columns
+
 ```php
 // Bad: Select all columns
 $users = User::all();

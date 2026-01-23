@@ -12,7 +12,8 @@ provides:
   - Optional prompt parameter support in formatCcrCommand
   - Optional prompt parameter support in formatCcrCommandWithOutput
   - Backward compatible API (prompt defaults to null)
-affects: [new-milestone, verify-work, future commands requiring prompt passthrough]
+affects:
+  [new-milestone, verify-work, future commands requiring prompt passthrough]
 
 # Tech tracking
 tech-stack:
@@ -51,6 +52,7 @@ completed: 2026-01-23
 - **Files modified:** 2
 
 ## Accomplishments
+
 - Added optional prompt parameter to formatCcrCommand function
 - Added optional prompt parameter to formatCcrCommandWithOutput function
 - Maintained 100% backward compatibility (existing calls work unchanged)
@@ -71,15 +73,18 @@ Each task was committed atomically:
 ## Decisions Made
 
 **1. Prompt parameter defaults to null**
+
 - Ensures backward compatibility - existing calls work without changes
 - Null treated same as undefined (no prompt appended)
 
 **2. Prompt appended AFTER /github-actions-testing**
+
 - Pattern: `/gsd:{command} /github-actions-testing {prompt}`
 - Keeps skill context first, user prompt last
 - Matches expected Claude Code Router argument ordering
 
 **3. formatCcrCommandWithOutput passes prompt through**
+
 - Third parameter added: `formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null)`
 - Delegates to formatCcrCommand for consistency (single source of truth)
 
@@ -96,16 +101,18 @@ None
 Ready for integration into command handlers (new-milestone, verify-work, etc.) to enable user-provided prompts.
 
 **Example usage:**
+
 ```javascript
 // Without prompt (existing behavior)
-formatCcrCommand("/gsd:plan-phase 7")
+formatCcrCommand("/gsd:plan-phase 7");
 // Returns: 'ccr code --print "/gsd:plan-phase 7 /github-actions-testing"'
 
 // With prompt (new behavior)
-formatCcrCommand("/gsd:new-milestone", "Build a login system")
+formatCcrCommand("/gsd:new-milestone", "Build a login system");
 // Returns: 'ccr code --print "/gsd:new-milestone /github-actions-testing Build a login system"'
 ```
 
 ---
-*Phase: quick*
-*Completed: 2026-01-23*
+
+_Phase: quick_
+_Completed: 2026-01-23_

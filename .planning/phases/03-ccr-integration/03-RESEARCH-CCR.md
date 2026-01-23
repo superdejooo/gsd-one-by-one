@@ -9,6 +9,7 @@
 Claude Code Router (CCR) is a **proxy server** tool that intercepts Claude Code requests and routes them to alternative AI providers (OpenRouter, DeepSeek, Ollama, Gemini, etc.). It allows using Claude Code's infrastructure while directing API calls to non-Anthropic models for cost optimization or multi-provider flexibility.
 
 **Critical architectural insight:** CCR is NOT a Node.js library with a programmatic API. It's a CLI tool that runs as a background service/proxy server. Integration requires:
+
 1. Installing CCR globally (`npm install -g @musistudio/claude-code-router`)
 2. Starting the CCR service (`ccr start`)
 3. Configuring providers in `~/.claude-code-router/config.json`
@@ -21,20 +22,21 @@ Claude Code Router (CCR) is a **proxy server** tool that intercepts Claude Code 
 
 ## Package Information
 
-| Attribute | Details |
-|-----------|---------|
-| **npm Package** | `@musistudio/claude-code-router` |
-| **Current Version** | 2.0.0 (as of 2026-01-14) |
-| **Latest Update** | 14 days ago (actively maintained) |
-| **Installation** | `npm install -g @musistudio/claude-code-router` |
-| **Node.js Requirement** | >= 18.0.0 |
-| **Package Manager Options** | npm, pnpm (>= 8.0.0), yarn |
-| **License** | MIT |
-| **Maintenance Status** | ACTIVE (27 releases in ~1 month) |
+| Attribute                   | Details                                         |
+| --------------------------- | ----------------------------------------------- |
+| **npm Package**             | `@musistudio/claude-code-router`                |
+| **Current Version**         | 2.0.0 (as of 2026-01-14)                        |
+| **Latest Update**           | 14 days ago (actively maintained)               |
+| **Installation**            | `npm install -g @musistudio/claude-code-router` |
+| **Node.js Requirement**     | >= 18.0.0                                       |
+| **Package Manager Options** | npm, pnpm (>= 8.0.0), yarn                      |
+| **License**                 | MIT                                             |
+| **Maintenance Status**      | ACTIVE (27 releases in ~1 month)                |
 
 **Confidence:** HIGH - Verified from npm package registry and official documentation
 
 **Sources:**
+
 - [npm package page](https://www.npmjs.com/package/@musistudio/claude-code-router)
 - [GitHub repository](https://github.com/musistudio/claude-code-router)
 - [Package.json](https://github.com/musistudio/claude-code-router/blob/main/package.json)
@@ -46,6 +48,7 @@ Claude Code Router (CCR) is a **proxy server** tool that intercepts Claude Code 
 **Critical Finding:** CCR does **not** expose a Node.js API for `import` or `require`. It's a command-line tool that operates as a proxy service.
 
 **Architecture:**
+
 ```
 GitHub Actions Workflow
   ↓
@@ -62,18 +65,18 @@ GitHub Actions Workflow
 
 ### CLI Commands Available
 
-| Command | Purpose | Usage Context |
-|---------|---------|---------------|
-| `ccr code` | Start Claude Code using router | Interactive CLI development |
-| `ccr start` | Start CCR proxy service | Background service (CI/CD) |
-| `ccr restart` | Restart service after config changes | After modifying config.json |
-| `ccr model` | Interactive model selector | Manual model switching |
-| `ccr ui` | Web-based configuration interface | Visual config management |
-| `ccr activate` | Output shell environment variables | Shell integration |
-| `ccr statusline` | Read JSON from stdin for status | Shell statusline integration |
-| `ccr preset export [name]` | Export current config as preset | Configuration sharing |
-| `ccr preset install [path]` | Install preset configuration | Quick setup |
-| `ccr --version` | Show version | Verification |
+| Command                     | Purpose                              | Usage Context                |
+| --------------------------- | ------------------------------------ | ---------------------------- |
+| `ccr code`                  | Start Claude Code using router       | Interactive CLI development  |
+| `ccr start`                 | Start CCR proxy service              | Background service (CI/CD)   |
+| `ccr restart`               | Restart service after config changes | After modifying config.json  |
+| `ccr model`                 | Interactive model selector           | Manual model switching       |
+| `ccr ui`                    | Web-based configuration interface    | Visual config management     |
+| `ccr activate`              | Output shell environment variables   | Shell integration            |
+| `ccr statusline`            | Read JSON from stdin for status      | Shell statusline integration |
+| `ccr preset export [name]`  | Export current config as preset      | Configuration sharing        |
+| `ccr preset install [path]` | Install preset configuration         | Quick setup                  |
+| `ccr --version`             | Show version                         | Verification                 |
 
 **Confidence:** HIGH - Verified from official documentation
 
@@ -128,6 +131,7 @@ GitHub Actions Workflow
 **Confidence:** MEDIUM - Pattern inferred from GitHub Actions example and official documentation
 
 **Sources:**
+
 - [GitHub Actions Integration Example](https://github.com/musistudio/claude-code-router)
 - [Official Installation Guide](https://musistudio.github.io/claude-code-router/docs/cli/installation/)
 
@@ -151,27 +155,27 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 {
   // === Service Configuration ===
 
-  "HOST": "127.0.0.1",
+  HOST: "127.0.0.1",
   // Optional: Server host address
   // If APIKEY is not set, forced to 127.0.0.1 for security
   // Default: 127.0.0.1
 
-  "PORT": 3456,
+  PORT: 3456,
   // Optional: Server port (not explicitly documented, inferred from examples)
   // Default: 3456
 
-  "APIKEY": "your-secret-key",
+  APIKEY: "your-secret-key",
   // Optional: Authentication secret for CCR API
   // Clients must provide in Authorization: Bearer <key> or x-api-key: <key>
   // If unset, no authentication required (local-only access)
 
-  "PROXY_URL": "http://127.0.0.1:7890",
+  PROXY_URL: "http://127.0.0.1:7890",
   // Optional: HTTP proxy for outbound API requests
   // Format: http://host:port
 
   // === Non-Interactive Mode (CI/CD) ===
 
-  "NON_INTERACTIVE_MODE": true,
+  NON_INTERACTIVE_MODE: true,
   // CRITICAL for GitHub Actions: Prevents prompts, sets CI env vars
   // When true, CCR sets: CI=true, FORCE_COLOR=0, and configures stdin
   // Default: false
@@ -179,12 +183,12 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 
   // === Logging Configuration ===
 
-  "LOG": true,
+  LOG: true,
   // Enable/disable logging
   // When false, no log files created
   // Default: true
 
-  "LOG_LEVEL": "debug",
+  LOG_LEVEL: "debug",
   // Options: "fatal", "error", "warn", "info", "debug", "trace"
   // Server logs: ~/.claude-code-router/logs/ccr-*.log
   // Application logs: ~/.claude-code-router/claude-code-router.log
@@ -192,7 +196,7 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 
   // === Request Configuration ===
 
-  "API_TIMEOUT_MS": 600000,
+  API_TIMEOUT_MS: 600000,
   // Timeout for API requests in milliseconds
   // Default: 600000 (10 minutes)
 
@@ -204,107 +208,107 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 
   // === Providers Array ===
 
-  "Providers": [
+  Providers: [
     {
-      "name": "openrouter",
+      name: "openrouter",
       // Unique identifier for this provider
       // Required: must be unique across all providers
 
-      "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
+      api_base_url: "https://openrouter.ai/api/v1/chat/completions",
       // Full endpoint URL for chat completions
       // Required: must be a complete URL
 
-      "api_key": "$OPENROUTER_API_KEY",
+      api_key: "$OPENROUTER_API_KEY",
       // Provider authentication token
       // Required: can use env var interpolation
 
-      "models": [
+      models: [
         "google/gemini-2.5-pro-preview",
         "anthropic/claude-sonnet-4",
         "anthropic/claude-3.5-sonnet",
-        "anthropic/claude-3.7-sonnet:thinking"
+        "anthropic/claude-3.7-sonnet:thinking",
       ],
       // Array of model identifiers available from this provider
       // Required: must list at least one model
 
-      "transformer": {
-        "use": ["openrouter"]
+      transformer: {
+        use: ["openrouter"],
         // Optional: Request/response adapters
         // Available transformers: anthropic, deepseek, gemini, openrouter,
         //   groq, maxtoken, tooluse, reasoning, enhancetool
-      }
+      },
     },
     {
-      "name": "deepseek",
-      "api_base_url": "https://api.deepseek.com/chat/completions",
-      "api_key": "$DEEPSEEK_API_KEY",
-      "models": ["deepseek-chat", "deepseek-reasoner"],
-      "transformer": {
-        "use": ["deepseek"],
+      name: "deepseek",
+      api_base_url: "https://api.deepseek.com/chat/completions",
+      api_key: "$DEEPSEEK_API_KEY",
+      models: ["deepseek-chat", "deepseek-reasoner"],
+      transformer: {
+        use: ["deepseek"],
         // Model-specific transformer configuration
         "deepseek-chat": {
-          "use": ["tooluse"]
-        }
-      }
+          use: ["tooluse"],
+        },
+      },
     },
     {
-      "name": "ollama",
-      "api_base_url": "http://localhost:11434/v1/chat/completions",
-      "api_key": "ollama",
-      "models": ["qwen2.5-coder:latest"]
+      name: "ollama",
+      api_base_url: "http://localhost:11434/v1/chat/completions",
+      api_key: "ollama",
+      models: ["qwen2.5-coder:latest"],
       // No transformer needed for Ollama
     },
     {
-      "name": "gemini",
-      "api_base_url": "https://generativelanguage.googleapis.com/v1beta/models/",
-      "api_key": "$GEMINI_API_KEY",
-      "models": ["gemini-2.5-flash", "gemini-2.5-pro"],
-      "transformer": {
-        "use": ["gemini"]
-      }
-    }
+      name: "gemini",
+      api_base_url: "https://generativelanguage.googleapis.com/v1beta/models/",
+      api_key: "$GEMINI_API_KEY",
+      models: ["gemini-2.5-flash", "gemini-2.5-pro"],
+      transformer: {
+        use: ["gemini"],
+      },
+    },
   ],
 
   // === Router Configuration ===
 
-  "Router": {
-    "default": "deepseek,deepseek-chat",
+  Router: {
+    default: "deepseek,deepseek-chat",
     // Format: "provider_name,model_name"
     // Used for all requests unless scenario-specific route exists
     // Required: must specify at least default
 
-    "background": "ollama,qwen2.5-coder:latest",
+    background: "ollama,qwen2.5-coder:latest",
     // Optional: For simple, low-cost background tasks
 
-    "think": "deepseek,deepseek-reasoner",
+    think: "deepseek,deepseek-reasoner",
     // Optional: For complex reasoning, planning, architectural tasks
 
-    "longContext": "openrouter,google/gemini-2.5-pro-preview",
+    longContext: "openrouter,google/gemini-2.5-pro-preview",
     // Optional: For tasks exceeding longContextThreshold
 
-    "longContextThreshold": 60000,
+    longContextThreshold: 60000,
     // Token count threshold for triggering longContext model
     // Default: 60000
     // Token calculation uses tiktoken (cl100k_base)
 
-    "webSearch": "gemini,gemini-2.5-flash",
+    webSearch: "gemini,gemini-2.5-flash",
     // Optional: For web search tasks (requires model support)
 
-    "image": "openrouter,anthropic/claude-sonnet-4"
+    image: "openrouter,anthropic/claude-sonnet-4",
     // Optional (beta): For image-related tasks
     // If model doesn't support tool calling, set config.forceUseImageAgent: true
   },
 
   // === Transformers Array (Advanced) ===
 
-  "transformers": [
+  transformers: [
     // Load custom external transformers
     // Array of paths to custom transformer modules
   ],
 
   // === Custom Router (Advanced) ===
 
-  "CUSTOM_ROUTER_PATH": "/path/to/custom-router.js"
+  CUSTOM_ROUTER_PATH: "/path/to/custom-router.js",
   // Optional: Load custom routing logic from external JavaScript file
   // For advanced routing scenarios beyond built-in Router object
 }
@@ -314,29 +318,30 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 
 ### Required vs Optional Fields
 
-| Field | Required? | Default | Notes |
-|-------|-----------|---------|-------|
-| `Providers` | Yes | N/A | Must have at least one provider |
-| `Providers[].name` | Yes | N/A | Unique identifier |
-| `Providers[].api_base_url` | Yes | N/A | Full endpoint URL |
-| `Providers[].api_key` | Yes | N/A | Can use env var interpolation |
-| `Providers[].models` | Yes | N/A | At least one model |
-| `Router.default` | Yes | N/A | Primary model selection |
-| `NON_INTERACTIVE_MODE` | No | false | **Set to true for CI/CD** |
-| `LOG` | No | true | Enable logging |
-| `LOG_LEVEL` | No | "debug" | Verbosity level |
-| `API_TIMEOUT_MS` | No | 600000 | Request timeout |
-| `HOST` | No | "127.0.0.1" | Server host |
-| `APIKEY` | No | N/A | Service authentication |
-| `PROXY_URL` | No | N/A | Outbound proxy |
-| `Router.background` | No | Uses default | Background tasks model |
-| `Router.think` | No | Uses default | Reasoning tasks model |
-| `Router.longContext` | No | Uses default | Long context model |
-| `Router.longContextThreshold` | No | 60000 | Token threshold |
+| Field                         | Required? | Default      | Notes                           |
+| ----------------------------- | --------- | ------------ | ------------------------------- |
+| `Providers`                   | Yes       | N/A          | Must have at least one provider |
+| `Providers[].name`            | Yes       | N/A          | Unique identifier               |
+| `Providers[].api_base_url`    | Yes       | N/A          | Full endpoint URL               |
+| `Providers[].api_key`         | Yes       | N/A          | Can use env var interpolation   |
+| `Providers[].models`          | Yes       | N/A          | At least one model              |
+| `Router.default`              | Yes       | N/A          | Primary model selection         |
+| `NON_INTERACTIVE_MODE`        | No        | false        | **Set to true for CI/CD**       |
+| `LOG`                         | No        | true         | Enable logging                  |
+| `LOG_LEVEL`                   | No        | "debug"      | Verbosity level                 |
+| `API_TIMEOUT_MS`              | No        | 600000       | Request timeout                 |
+| `HOST`                        | No        | "127.0.0.1"  | Server host                     |
+| `APIKEY`                      | No        | N/A          | Service authentication          |
+| `PROXY_URL`                   | No        | N/A          | Outbound proxy                  |
+| `Router.background`           | No        | Uses default | Background tasks model          |
+| `Router.think`                | No        | Uses default | Reasoning tasks model           |
+| `Router.longContext`          | No        | Uses default | Long context model              |
+| `Router.longContextThreshold` | No        | 60000        | Token threshold                 |
 
 **Confidence:** HIGH
 
 **Sources:**
+
 - [GitHub CLAUDE.md Documentation](https://github.com/musistudio/claude-code-router/blob/main/CLAUDE.md)
 - [Configuration Examples](https://github.com/musistudio/claude-code-router)
 
@@ -344,19 +349,19 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
 
 ### Supported Providers
 
-| Provider | Base URL | Transformer | Notes |
-|----------|----------|-------------|-------|
-| **OpenRouter** | `https://openrouter.ai/api/v1/chat/completions` | `openrouter` | Access to 400+ models including Claude, GPT, Gemini |
-| **DeepSeek** | `https://api.deepseek.com/chat/completions` | `deepseek` | Cost-effective reasoning models |
-| **Ollama** | `http://localhost:11434/v1/chat/completions` | None | Local models, no API key needed |
-| **Gemini** | `https://generativelanguage.googleapis.com/v1beta/models/` | `gemini` | Google's models |
-| **Anthropic Direct** | (Via OpenRouter or direct) | `anthropic` | Direct Anthropic API (less useful with CCR) |
-| **Groq** | `https://api.groq.com/openai/v1` | `groq` | Fast inference |
-| **Volcengine** | (Provider-specific) | Custom | Chinese cloud provider |
-| **SiliconFlow** | (Provider-specific) | Custom | Chinese cloud provider |
-| **ModelScope** | (Provider-specific) | Custom | Alibaba model hub |
-| **DashScope** | (Provider-specific) | Custom | Alibaba cloud |
-| **AIHubMix** | (Provider-specific) | Custom | Model aggregator |
+| Provider             | Base URL                                                   | Transformer  | Notes                                               |
+| -------------------- | ---------------------------------------------------------- | ------------ | --------------------------------------------------- |
+| **OpenRouter**       | `https://openrouter.ai/api/v1/chat/completions`            | `openrouter` | Access to 400+ models including Claude, GPT, Gemini |
+| **DeepSeek**         | `https://api.deepseek.com/chat/completions`                | `deepseek`   | Cost-effective reasoning models                     |
+| **Ollama**           | `http://localhost:11434/v1/chat/completions`               | None         | Local models, no API key needed                     |
+| **Gemini**           | `https://generativelanguage.googleapis.com/v1beta/models/` | `gemini`     | Google's models                                     |
+| **Anthropic Direct** | (Via OpenRouter or direct)                                 | `anthropic`  | Direct Anthropic API (less useful with CCR)         |
+| **Groq**             | `https://api.groq.com/openai/v1`                           | `groq`       | Fast inference                                      |
+| **Volcengine**       | (Provider-specific)                                        | Custom       | Chinese cloud provider                              |
+| **SiliconFlow**      | (Provider-specific)                                        | Custom       | Chinese cloud provider                              |
+| **ModelScope**       | (Provider-specific)                                        | Custom       | Alibaba model hub                                   |
+| **DashScope**        | (Provider-specific)                                        | Custom       | Alibaba cloud                                       |
+| **AIHubMix**         | (Provider-specific)                                        | Custom       | Model aggregator                                    |
 
 **Confidence:** HIGH for documented providers, MEDIUM for Chinese providers (mentioned but not detailed)
 
@@ -372,14 +377,14 @@ The configuration file uses **JSON5 format** (allows comments and flexible synta
       "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
       "api_key": "$OPENROUTER_API_KEY",
       "models": ["anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview"],
-      "transformer": {"use": ["openrouter"]}
+      "transformer": { "use": ["openrouter"] }
     },
     {
       "name": "deepseek",
       "api_base_url": "https://api.deepseek.com/chat/completions",
       "api_key": "$DEEPSEEK_API_KEY",
       "models": ["deepseek-chat", "deepseek-reasoner"],
-      "transformer": {"use": ["deepseek"]}
+      "transformer": { "use": ["deepseek"] }
     }
   ]
 }
@@ -433,14 +438,14 @@ CCR uses **scenario-based routing**, NOT automatic fallback:
 
 **Scenario Mapping:**
 
-| Scenario | Trigger Condition | Example Use Case |
-|----------|-------------------|------------------|
-| `default` | No other scenario matches | General coding tasks |
-| `background` | Simple, low-token tasks | Quick file operations |
-| `think` | Complex reasoning needed | Architecture decisions, planning |
-| `longContext` | Tokens > `longContextThreshold` (default 60000) | Large codebase analysis |
-| `webSearch` | Web search capability needed | Current info retrieval |
-| `image` | Image processing tasks | Visual content analysis |
+| Scenario      | Trigger Condition                               | Example Use Case                 |
+| ------------- | ----------------------------------------------- | -------------------------------- |
+| `default`     | No other scenario matches                       | General coding tasks             |
+| `background`  | Simple, low-token tasks                         | Quick file operations            |
+| `think`       | Complex reasoning needed                        | Architecture decisions, planning |
+| `longContext` | Tokens > `longContextThreshold` (default 60000) | Large codebase analysis          |
+| `webSearch`   | Web search capability needed                    | Current info retrieval           |
+| `image`       | Image processing tasks                          | Visual content analysis          |
 
 **Manual Model Switching:**
 
@@ -459,6 +464,7 @@ ccr model
 **Confidence:** MEDIUM - Inferred from documentation, no explicit fallback mechanism documented
 
 **Sources:**
+
 - [Router Configuration](https://github.com/musistudio/claude-code-router)
 - [ClaudeLog Documentation](https://claudelog.com/claude-code-mcps/claude-code-router/)
 
@@ -469,6 +475,7 @@ ccr model
 **Key Field:** `"NON_INTERACTIVE_MODE": true`
 
 **What it does:**
+
 1. Sets `CI=true` environment variable
 2. Sets `FORCE_COLOR=0` (disables color output)
 3. Configures stdin handling to prevent process hangs
@@ -501,7 +508,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Install Claude Code Router
         run: npm install -g @musistudio/claude-code-router
@@ -582,6 +589,7 @@ jobs:
 **Confidence:** MEDIUM - Inferred from common CI patterns
 
 **Sources:**
+
 - [GitHub Actions Integration Example](https://github.com/musistudio/claude-code-router)
 - [NON_INTERACTIVE_MODE Documentation](https://github.com/musistudio/claude-code-router/blob/main/CLAUDE.md)
 
@@ -592,6 +600,7 @@ jobs:
 **Default Path:** `~/.claude-code-router/config.json`
 
 **Discovery Mechanism:**
+
 1. CCR automatically reads from `~/.claude-code-router/config.json` on startup
 2. No command-line flag or explicit path parameter required
 3. Config file MUST exist before running `ccr start`
@@ -602,13 +611,13 @@ jobs:
 
 **CCR-Specific Variables:**
 
-| Variable | Purpose | Usage |
-|----------|---------|-------|
-| `ANTHROPIC_BASE_URL` | Point Claude tools to CCR proxy | Set to `http://127.0.0.1:3456` |
-| `ANTHROPIC_AUTH_TOKEN` | API key for Anthropic (overridden by CCR) | Set by `ccr activate` |
-| `ANTHROPIC_API_KEY` | Alternative API key variable | Should be empty when using CCR |
-| `CUSTOM_ROUTER_PATH` | Load custom routing logic | Path to custom router JS file |
-| `LOG_LEVEL` | Override config logging level | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
+| Variable               | Purpose                                   | Usage                                              |
+| ---------------------- | ----------------------------------------- | -------------------------------------------------- |
+| `ANTHROPIC_BASE_URL`   | Point Claude tools to CCR proxy           | Set to `http://127.0.0.1:3456`                     |
+| `ANTHROPIC_AUTH_TOKEN` | API key for Anthropic (overridden by CCR) | Set by `ccr activate`                              |
+| `ANTHROPIC_API_KEY`    | Alternative API key variable              | Should be empty when using CCR                     |
+| `CUSTOM_ROUTER_PATH`   | Load custom routing logic                 | Path to custom router JS file                      |
+| `LOG_LEVEL`            | Override config logging level             | `fatal`, `error`, `warn`, `info`, `debug`, `trace` |
 
 **Config Interpolation Variables:**
 
@@ -670,6 +679,7 @@ This is important for GitHub Actions - if config changes between workflow runs, 
 **Confidence:** HIGH
 
 **Sources:**
+
 - [CLAUDE.md Documentation](https://github.com/musistudio/claude-code-router/blob/main/CLAUDE.md)
 - [Configuration Guide](https://github.com/musistudio/claude-code-router)
 
@@ -688,6 +698,7 @@ npm install -g @musistudio/claude-code-router
 ```
 
 **Prerequisites:**
+
 - Node.js >= 18.0.0
 - API key from chosen LLM provider(s)
 
@@ -702,11 +713,13 @@ ccr --version
 ### Version Stability
 
 **Release Cadence:**
+
 - 27 releases in ~1 month (very active development)
 - Latest release: 14 days ago (2.0.0)
 - Previous version: 1.0.26
 
 **Stability Assessment:**
+
 - **MEDIUM stability** - Rapid release cycle suggests active development and potential breaking changes
 - Recommend pinning to specific version in GitHub Actions: `@musistudio/claude-code-router@2.0.0`
 - Monitor releases: https://github.com/musistudio/claude-code-router/releases
@@ -732,6 +745,7 @@ yarn global add @musistudio/claude-code-router
 ### Related Packages
 
 **Alternative forks:**
+
 - `@tellerlin/claude-code-router` (v1.1.2, 6 months old - potentially outdated)
 - `@rikaaa0928/claude-code-router` (variant)
 - `@datartech/claude-code-router` (v1.0.32, 5 months old)
@@ -741,21 +755,22 @@ yarn global add @musistudio/claude-code-router
 **Confidence:** HIGH
 
 **Sources:**
+
 - [npm Package Registry](https://www.npmjs.com/package/@musistudio/claude-code-router)
 - [Installation Guide](https://musistudio.github.io/claude-code-router/docs/cli/installation/)
 - [GitHub Repository](https://github.com/musistudio/claude-code-router)
 
 ## Confidence Assessment
 
-| Area | Confidence Level | Reason |
-|------|------------------|--------|
-| **Package Information** | HIGH | Verified from npm registry, GitHub repo, and official docs |
-| **API Patterns** | MEDIUM-HIGH | CLI commands verified; GitHub Actions pattern inferred from examples |
-| **Configuration Schema** | HIGH | Comprehensive documentation in CLAUDE.md, verified examples |
-| **Multi-Provider Setup** | HIGH | Multiple examples and official transformer list available |
-| **Non-Interactive Execution** | HIGH | `NON_INTERACTIVE_MODE` explicitly documented for CI/CD |
-| **Config Discovery** | HIGH | Default path and env var interpolation clearly documented |
-| **Installation** | HIGH | npm package verified, official installation guide available |
+| Area                          | Confidence Level | Reason                                                               |
+| ----------------------------- | ---------------- | -------------------------------------------------------------------- |
+| **Package Information**       | HIGH             | Verified from npm registry, GitHub repo, and official docs           |
+| **API Patterns**              | MEDIUM-HIGH      | CLI commands verified; GitHub Actions pattern inferred from examples |
+| **Configuration Schema**      | HIGH             | Comprehensive documentation in CLAUDE.md, verified examples          |
+| **Multi-Provider Setup**      | HIGH             | Multiple examples and official transformer list available            |
+| **Non-Interactive Execution** | HIGH             | `NON_INTERACTIVE_MODE` explicitly documented for CI/CD               |
+| **Config Discovery**          | HIGH             | Default path and env var interpolation clearly documented            |
+| **Installation**              | HIGH             | npm package verified, official installation guide available          |
 
 ### Open Questions
 
@@ -789,12 +804,14 @@ yarn global add @musistudio/claude-code-router
 ### Option A: Use Claude Code Router (Multi-Provider)
 
 **Pros:**
+
 - Multi-provider flexibility (OpenRouter, DeepSeek, etc.)
 - Cost optimization via provider selection
 - Scenario-based routing (cheap models for background, powerful for thinking)
 - Provider competition/redundancy
 
 **Cons:**
+
 - Additional complexity (proxy service architecture)
 - Rapid development cycle (potential breaking changes)
 - Stateful service in stateless CI (requires careful setup)
@@ -805,12 +822,14 @@ yarn global add @musistudio/claude-code-router
 ### Option B: Use Anthropic Agent SDK (Direct)
 
 **Pros:**
+
 - Simpler architecture (no proxy)
 - Official Anthropic support
 - Stateless design (better for CI)
 - Fewer moving parts
 
 **Cons:**
+
 - Single provider (Anthropic only)
 - No cost optimization via provider switching
 - Higher API costs (Anthropic direct pricing)
@@ -844,7 +863,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: "24"
 
       - name: Setup CCR
         run: |
@@ -910,11 +929,8 @@ jobs:
       "name": "openrouter",
       "api_base_url": "https://openrouter.ai/api/v1/chat/completions",
       "api_key": "$OPENROUTER_API_KEY",
-      "models": [
-        "anthropic/claude-sonnet-4",
-        "google/gemini-2.5-pro-preview"
-      ],
-      "transformer": {"use": ["openrouter"]}
+      "models": ["anthropic/claude-sonnet-4", "google/gemini-2.5-pro-preview"],
+      "transformer": { "use": ["openrouter"] }
     },
     {
       "name": "deepseek",
@@ -923,7 +939,7 @@ jobs:
       "models": ["deepseek-chat", "deepseek-reasoner"],
       "transformer": {
         "use": ["deepseek"],
-        "deepseek-chat": {"use": ["tooluse"]}
+        "deepseek-chat": { "use": ["tooluse"] }
       }
     }
   ],
@@ -990,6 +1006,7 @@ This research revealed that CCR is architecturally different from the Anthropic 
 2. **Agent SDK = Library** (imported into Node.js code)
 
 For the GitHub Actions project, the architecture will be:
+
 ```
 Workflow → Install CCR → Start CCR Service → Configure ANTHROPIC_BASE_URL → Use Agent SDK → Routes through CCR → Provider APIs
 ```

@@ -49,6 +49,7 @@ it('creates a role', function () {
 ```
 
 **Why behavior is better:**
+
 - If you refactor to use a Form object, the implementation test breaks
 - The behavior test survives - it only cares that a Role was created
 - One test replaces two, and it's more meaningful
@@ -116,8 +117,9 @@ it('creates a user with valid data', function () {
 ```
 
 **Why less is better:**
+
 - Laravel's validation works - you don't need to prove it
-- Test that validation *exists*, not every rule in detail
+- Test that validation _exists_, not every rule in detail
 - Test the happy path thoroughly
 - Two tests cover what four tests covered, with less coupling
 
@@ -164,6 +166,7 @@ it('updates a role', function () {
 ```
 
 **Why:**
+
 - The `formModified` tracking shouldn't exist in the first place
 - If it does exist, it's an implementation detail
 - The test that matters: "Can I update a role?" Yes/No.
@@ -212,6 +215,7 @@ it('edits a user', function () {
 ```
 
 **Why:**
+
 - Who cares if `showModal` is true? The user cares if they can edit.
 - Modal reset is an implementation detail - test that the next edit works
 - One test replaces two, tests what matters
@@ -270,6 +274,7 @@ it('prevents students from modifying submission IDs in the form', function () {
 ```
 
 **Why the difference:**
+
 - Trusted staff won't manipulate URLs to access others' data
 - Students might - there's always one who'll try
 - Authorization tests are essential for student-facing features

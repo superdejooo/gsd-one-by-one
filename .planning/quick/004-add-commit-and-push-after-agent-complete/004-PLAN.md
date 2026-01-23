@@ -13,6 +13,7 @@ The GSD quick skill (`/gsd:quick`) orchestrates planning and execution but curre
 ## Desired Behavior
 
 After the executor agent completes:
+
 1. Stage all changes (plan, summary, any code changes)
 2. Commit with standard GSD format
 3. Push to remote branch
@@ -25,11 +26,13 @@ After the executor agent completes:
 Find where the gsd:quick skill is defined (likely in get-shit-done-cc package or local .claude/skills) and modify Step 8 to add git push after commit.
 
 The change should:
+
 1. After the commit in Step 8, add: `git push origin HEAD`
 2. Handle push failures gracefully (log warning, don't fail the task)
 3. Update the completion output to show push status
 
 Modified Step 8 should look like:
+
 ```bash
 # Stage and commit
 git add ${QUICK_DIR}/${next_num}-PLAN.md
@@ -48,6 +51,7 @@ git push origin HEAD || echo "Warning: Push failed, changes are committed locall
 
 commit_hash=$(git rev-parse --short HEAD)
 ```
+
 </description>
 <acceptance_criteria>
 - [ ] gsd:quick Step 8 includes git push after commit
@@ -65,6 +69,7 @@ commit_hash=$(git rev-parse --short HEAD)
 ## Verification
 
 After change:
+
 1. Run `/gsd:quick` with a test task
 2. Verify changes are committed AND pushed to remote
 3. Check `git log` and `git status` show clean state

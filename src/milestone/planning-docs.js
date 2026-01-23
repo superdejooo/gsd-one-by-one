@@ -71,18 +71,20 @@ export function generateProjectMarkdown(data) {
     scope,
     features,
     requirements,
-    createdAt
+    createdAt,
   } = data;
 
-  const featuresList = features && features.length > 0
-    ? features.map(f => `- ${f}`).join('\n')
-    : "- To be defined";
+  const featuresList =
+    features && features.length > 0
+      ? features.map((f) => `- ${f}`).join("\n")
+      : "- To be defined";
 
-  const requirementsSummary = requirements?.answered && Object.keys(requirements.answered).length > 0
-    ? Object.entries(requirements.answered)
-      .map(([key, value]) => `| \`${key}\` | ${value || "(empty)"} |`)
-      .join('\n')
-    : "| |";
+  const requirementsSummary =
+    requirements?.answered && Object.keys(requirements.answered).length > 0
+      ? Object.entries(requirements.answered)
+          .map(([key, value]) => `| \`${key}\` | ${value || "(empty)"} |`)
+          .join("\n")
+      : "| |";
 
   return `# Milestone ${milestoneNumber}: ${title}
 
@@ -125,17 +127,20 @@ export function generateStateMarkdown(data) {
     requirements,
     createdAt,
     lastRunAt,
-    runCount
+    runCount,
   } = data;
 
-  const phaseRows = phases && phases.length > 0
-    ? phases.map((p, i) => {
-        const phaseNum = String(i + 1).padStart(2, '0');
-        const phaseName = p.name || "Unnamed Phase";
-        const phaseStatus = p.status || "pending";
-        return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
-      }).join('\n')
-    : "|   | (none defined) | pending |";
+  const phaseRows =
+    phases && phases.length > 0
+      ? phases
+          .map((p, i) => {
+            const phaseNum = String(i + 1).padStart(2, "0");
+            const phaseName = p.name || "Unnamed Phase";
+            const phaseStatus = p.status || "pending";
+            return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
+          })
+          .join("\n")
+      : "|   | (none defined) | pending |";
 
   const reqStatus = requirements?.complete ? "Complete" : "In Progress";
   const answeredCount = Object.keys(requirements?.answered || {}).length;
@@ -178,24 +183,26 @@ ${phaseRows}
 export function generateRoadmapMarkdown(data) {
   const { milestoneNumber, phases, totalPhases } = data;
 
-  const phaseCount = totalPhases || (phases?.length || 0);
+  const phaseCount = totalPhases || phases?.length || 0;
 
   let phaseStructure = "";
   if (phases && phases.length > 0) {
-    phaseStructure = phases.map((p, i) => {
-      const phaseNum = i + 1;
-      const phaseName = p.name || `Phase ${phaseNum}`;
-      const phaseGoal = p.goal || "To be defined";
-      const phaseDeps = p.dependencies || "None";
-      const phaseStatus = p.status || "pending";
+    phaseStructure = phases
+      .map((p, i) => {
+        const phaseNum = i + 1;
+        const phaseName = p.name || `Phase ${phaseNum}`;
+        const phaseGoal = p.goal || "To be defined";
+        const phaseDeps = p.dependencies || "None";
+        const phaseStatus = p.status || "pending";
 
-      return `### Phase ${phaseNum}: ${phaseName}
+        return `### Phase ${phaseNum}: ${phaseName}
 
 - **Status:** ${phaseStatus}
 - **Goal:** ${phaseGoal}
 - **Dependencies:** ${phaseDeps}
 `;
-    }).join('\n');
+      })
+      .join("\n");
   } else {
     phaseStructure = "Phases will be defined during planning.";
   }
@@ -210,9 +217,15 @@ ${phaseStructure}
 
 ## Execution Order
 
-${phases && phases.length > 0
-  ? phases.map((p, i) => `${i + 1}. Phase ${i + 1}: ${p.name || `Phase ${i + 1}`}`).join('\n')
-  : "1. Phase 1: Foundation Setup\n2. Phase 2: Core Implementation\n3. Phase 3: Integration\n4. Phase 4: Testing & Verification"}
+${
+  phases && phases.length > 0
+    ? phases
+        .map(
+          (p, i) => `${i + 1}. Phase ${i + 1}: ${p.name || `Phase ${i + 1}`}`,
+        )
+        .join("\n")
+    : "1. Phase 1: Foundation Setup\n2. Phase 2: Core Implementation\n3. Phase 3: Integration\n4. Phase 4: Testing & Verification"
+}
 
 ## Notes
 

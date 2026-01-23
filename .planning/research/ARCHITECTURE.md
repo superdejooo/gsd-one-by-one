@@ -37,6 +37,7 @@
 **Purpose:** Entry point triggered by issue comment events
 
 **Responsibilities:**
+
 - Listen for `issue_comment` events (`created` activity type)
 - Extract comment body and metadata from GitHub context
 - Set up environment with required permissions
@@ -50,6 +51,7 @@
 **Purpose:** Extract and validate bot commands from comment text
 
 **Responsibilities:**
+
 - Parse comment body for bot command pattern (`@gsd-bot`)
 - Extract command parameters and context
 - Validate command syntax
@@ -64,6 +66,7 @@
 **Purpose:** Bridge between GitHub Actions workflow and existing GSD skill
 
 **Responsibilities:**
+
 - Receive parsed command data
 - Format arguments for Claude CLI/GSD skill
 - Execute GSD skill via subprocess
@@ -78,6 +81,7 @@
 **Purpose:** Persist planning artifacts for reference
 
 **Responsibilities:**
+
 - Store GSD output files in `.github/planning/`
 - Use GitHub artifacts for temporary file storage if needed
 - Commit generated files back to repository
@@ -90,6 +94,7 @@
 **Purpose:** Post bot responses back to GitHub
 
 **Responsibilities:**
+
 - Use `gh issue comment` or `gh pr comment` CLI
 - Format output for readability (code blocks, markdown)
 - Update existing comments for multi-step responses
@@ -103,6 +108,7 @@
 **Purpose:** Create and manage branches for planning work
 
 **Responsibilities:**
+
 - Use `gh repo create-branch` or similar
 - Switch to planning branch
 - Commit artifacts to branch
@@ -110,14 +116,14 @@
 
 ## Component Boundaries
 
-| Component | Responsibility | Communicates With | Data Flow |
-|-----------|---------------|-------------------|-----------|
-| GitHub Actions Workflow | Event trigger, orchestration, permissions | Command Parser, Response Publisher | Comment event → Parsed command → Final response |
-| Command Parser | Extract/validate commands | GitHub Actions, GSD Wrapper | Comment body → Command object |
-| GSD Skill Wrapper | Execute GSD skill, transform output | Command Parser, Artifact Storage, Response Publisher | Command → GSD execution → Formatted output |
-| Artifact Storage | Persist planning files | GSD Wrapper, GitHub Actions | GSD output → Repository files |
-| Response Publisher | Post responses to GitHub | GSD Wrapper, GitHub Actions API | Formatted output → GitHub comment |
-| Branch Manager | Create/manage planning branches | Artifact Storage, GitHub Actions API | Branch name → GitHub branch |
+| Component               | Responsibility                            | Communicates With                                    | Data Flow                                       |
+| ----------------------- | ----------------------------------------- | ---------------------------------------------------- | ----------------------------------------------- |
+| GitHub Actions Workflow | Event trigger, orchestration, permissions | Command Parser, Response Publisher                   | Comment event → Parsed command → Final response |
+| Command Parser          | Extract/validate commands                 | GitHub Actions, GSD Wrapper                          | Comment body → Command object                   |
+| GSD Skill Wrapper       | Execute GSD skill, transform output       | Command Parser, Artifact Storage, Response Publisher | Command → GSD execution → Formatted output      |
+| Artifact Storage        | Persist planning files                    | GSD Wrapper, GitHub Actions                          | GSD output → Repository files                   |
+| Response Publisher      | Post responses to GitHub                  | GSD Wrapper, GitHub Actions API                      | Formatted output → GitHub comment               |
+| Branch Manager          | Create/manage planning branches           | Artifact Storage, GitHub Actions API                 | Branch name → GitHub branch                     |
 
 **Boundary Design Principles:**
 
@@ -387,33 +393,33 @@ For better reusability, wrap the GSD execution logic in a composite action:
 **File:** `.github/actions/gsd-bot/action.yml`
 
 ```yaml
-name: 'GSD Bot Action'
-description: 'Execute GSD skill from GitHub comment'
+name: "GSD Bot Action"
+description: "Execute GSD skill from GitHub comment"
 
 inputs:
   comment-body:
-    description: 'Comment body to parse'
+    description: "Comment body to parse"
     required: true
   issue-number:
-    description: 'Issue or PR number'
+    description: "Issue or PR number"
     required: true
   command-type:
-    description: 'Type of GSD command to execute'
+    description: "Type of GSD command to execute"
     required: true
 
 outputs:
   response-file:
-    description: 'Path to generated response file'
+    description: "Path to generated response file"
   has-artifacts:
-    description: 'Whether artifacts were generated'
+    description: "Whether artifacts were generated"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: "20"
 
     - name: Parse comment
       shell: bash
@@ -488,10 +494,11 @@ jobs:
 **Why:** Limits blast radius if workflow is compromised
 
 **Example:**
+
 ```yaml
 permissions:
-  contents: read      # Only need to read repository files
-  issues: write       # Need to post comments
+  contents: read # Only need to read repository files
+  issues: write # Need to post comments
   pull-requests: write # Need to post PR comments
   # All other permissions default to none
 ```
@@ -507,6 +514,7 @@ permissions:
 **Why:** Makes parsing easier and user experience more intuitive
 
 **Example:**
+
 ```
 @gsd-bot new-project "Project Name"
 @gsd-bot help
@@ -515,6 +523,7 @@ permissions:
 ```
 
 **Implementation:**
+
 ```javascript
 // parse-comment.js
 function parseCommand(commentBody) {
@@ -522,9 +531,9 @@ function parseCommand(commentBody) {
   if (!match) return null;
 
   return {
-    trigger: '@gsd-bot',
+    trigger: "@gsd-bot",
     command: match[1], // new-project, help, roadmap, status
-    args: match[2] || ''
+    args: match[2] || "",
   };
 }
 ```
@@ -538,6 +547,7 @@ function parseCommand(commentBody) {
 **Why:** Reduces comment noise and keeps related updates together
 
 **Example:**
+
 ```bash
 # Initial status comment
 gh issue comment 123 --body "Analyzing project..."
@@ -560,6 +570,7 @@ gh issue comment --edit-last --body-file final-response.md
 **Why:** Artifacts become part of codebase history, reviewable via git
 
 **Example:**
+
 ```bash
 # After GSD generates artifacts
 git config user.name "gsd-bot[bot]"
@@ -578,6 +589,7 @@ git push
 **Why:** Saves workflow minutes and provides cleaner error handling
 
 **Example:**
+
 ```yaml
 jobs:
   validate:
@@ -605,6 +617,7 @@ jobs:
 **Why:** Issues may be for planning, PRs may be for code review
 
 **Example:**
+
 ```yaml
 jobs:
   handle-comment:
@@ -660,6 +673,7 @@ permissions:
 **Why bad:** GitHub Actions jobs have 6-hour timeout, users see no progress
 
 **Instead:**
+
 1. Break into smaller chunks
 2. Use comment updates to show progress
 3. For very long operations, consider async pattern with status comment
@@ -693,6 +707,7 @@ echo "response" | gh issue comment $NUMBER --body-file -
 **Instead:** Reference official webhook payload documentation
 
 **Key issue_comment properties:**
+
 - `github.event.comment.body` - Comment text
 - `github.event.comment.user.login` - Who commented
 - `github.event.issue.number` - Issue/PR number
@@ -740,23 +755,25 @@ on:
 
 ## Scalability Considerations
 
-| Concern | At 100 users | At 10K users | At 1M users |
-|---------|--------------|--------------|-------------|
-| **Workflow execution time** | Single job (2-5 min) | Single job (5-15 min) | Queued execution, cache results |
-| **Storage** | Repository commits | Repository commits | Dedicated storage service, S3 |
-| **Rate limits** | Within GITHUB_TOKEN limits | May hit API limits | GitHub App with higher limits |
-| **Artifact retention** | 90-day artifact retention | Repository commits | Separate artifact database |
-| **Concurrency** | Sequential workflows | Parallel jobs by repo | Distributed processing |
-| **Authentication** | GITHUB_TOKEN | Personal Access Token | GitHub App with installation tokens |
+| Concern                     | At 100 users               | At 10K users          | At 1M users                         |
+| --------------------------- | -------------------------- | --------------------- | ----------------------------------- |
+| **Workflow execution time** | Single job (2-5 min)       | Single job (5-15 min) | Queued execution, cache results     |
+| **Storage**                 | Repository commits         | Repository commits    | Dedicated storage service, S3       |
+| **Rate limits**             | Within GITHUB_TOKEN limits | May hit API limits    | GitHub App with higher limits       |
+| **Artifact retention**      | 90-day artifact retention  | Repository commits    | Separate artifact database          |
+| **Concurrency**             | Sequential workflows       | Parallel jobs by repo | Distributed processing              |
+| **Authentication**          | GITHUB_TOKEN               | Personal Access Token | GitHub App with installation tokens |
 
 ### Scaling Recommendations
 
 **At 10K users:**
+
 - Add caching for frequently accessed project data
 - Use reusable workflows to reduce duplication
 - Implement rate limit handling and backoff
 
 **At 1M users:**
+
 - Move from GITHUB_TOKEN to GitHub App for higher rate limits
 - Consider external artifact storage (S3, database)
 - Implement job queue for handling high concurrency
@@ -767,6 +784,7 @@ on:
 Based on component dependencies, build in this order:
 
 ### Phase 1: Foundation (Core Infrastructure)
+
 1. **GitHub Actions Workflow Skeleton**
    - Basic workflow file with issue_comment trigger
    - Minimal permissions configuration
@@ -782,6 +800,7 @@ Based on component dependencies, build in this order:
 **Tests:** Mock webhook payloads for various command formats
 
 ### Phase 2: Wrapper Integration
+
 3. **GSD Skill Wrapper (Node.js)**
    - Accept command object from parser
    - Execute GSD skill via subprocess
@@ -797,6 +816,7 @@ Based on component dependencies, build in this order:
 **Tests:** Mock GSD skill execution, verify output transformation
 
 ### Phase 3: GitHub Integration
+
 5. **Response Publisher**
    - Implement gh comment posting
    - Handle both issue and PR comments
@@ -811,6 +831,7 @@ Based on component dependencies, build in this order:
 **Tests:** Real GitHub CLI calls on test repository
 
 ### Phase 4: Polish & Features
+
 7. **Multi-Step Response Updates**
    - Implement --edit-last pattern
    - Add progress indicators
@@ -825,6 +846,7 @@ Based on component dependencies, build in this order:
 **Tests:** Multi-command workflows, branch operations
 
 ### Phase 5: Production Readiness
+
 9. **Error Handling**
    - Graceful error messages to users
    - Retry logic for transient failures
@@ -882,7 +904,7 @@ Create reusable composite actions for common operations:
 
 ```yaml
 # .github/actions/post-comment/action.yml
-name: 'Post Comment'
+name: "Post Comment"
 inputs:
   issue-number:
     required: true
@@ -890,10 +912,10 @@ inputs:
     required: true
   is-pr:
     required: false
-    default: 'false'
+    default: "false"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Post to issue
       if: inputs.is-pr == 'false'

@@ -14,6 +14,7 @@ Enable the bot to interact with GitHub via CLI - posting comments to issues/PRs,
 ## Implementation Decisions
 
 ### Branch naming & structure
+
 - Milestone branches: `gsd/1`, `gsd/2` (minimal format)
 - Phase branches: `gsd/1-1-basic-user-auth` (flat, not nested - milestone-phase-slug)
 - Phase branch slugs include descriptive phase name from roadmap
@@ -21,24 +22,28 @@ Enable the bot to interact with GitHub via CLI - posting comments to issues/PRs,
 - Example: `gsd/1-1-basic-user-auth`, `gsd/1-2-session-management`
 
 ### Comment formatting & tone
+
 - Technical & precise tone - detailed, accurate, no casual language
 - Full output in success comments - complete agent output, all files created, all decisions
 - Rich markdown formatting - code blocks, tables, collapsible sections, badges
 - No emojis - professional text only
 
 ### Git commit patterns
+
 - Conventional Commits format - `feat:`, `fix:`, `docs:` prefix with scope
 - Commit granularity already configured in GSD plugin - defer to plugin's atomic commit behavior
 - Always reference triggering issue in commit messages - full traceability
 - Format: `type(scope): message (issue #N)`
 
 ### Error communication
+
 - Error summary with stack trace in collapsible details section
 - Workflow run links configurable - can be enabled for errors only, all comments, or none (config option)
 - Always suggest next steps - every error includes actionable guidance or retry instructions
 - Rate limit handling: auto-retry with exponential backoff - transparent to user
 
 ### Claude's Discretion
+
 - Exact markdown formatting structure (heading levels, table layouts)
 - Git author identity (github-actions[bot] vs gsd-bot vs custom)
 - Collapsible section implementation details
@@ -65,5 +70,5 @@ None - discussion stayed within phase scope
 
 ---
 
-*Phase: 04-github-integration-response*
-*Context gathered: 2026-01-22*
+_Phase: 04-github-integration-response_
+_Context gathered: 2026-01-22_

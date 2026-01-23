@@ -43,6 +43,7 @@ Upgrades:           Laravel Shift (automated framework migrations)
 Taylor Otwell's core principle: **"The Laravel apps that age best are the ones that don't get too clever, because the clever dev always moves on."**
 
 Modern practices prioritize:
+
 - Simplicity over cleverness
 - Framework conventions over custom architecture
 - Automated quality enforcement over manual review
@@ -83,28 +84,25 @@ Create `pint.json` in project root:
 
 ```json
 {
-    "preset": "laravel",
-    "rules": {
-        "simplified_null_return": true,
-        "ordered_imports": {
-            "sort_algorithm": "alpha"
-        },
-        "no_unused_imports": true,
-        "concat_space": {
-            "spacing": "one"
-        }
+  "preset": "laravel",
+  "rules": {
+    "simplified_null_return": true,
+    "ordered_imports": {
+      "sort_algorithm": "alpha"
     },
-    "exclude": [
-        "vendor",
-        "storage",
-        "bootstrap/cache"
-    ]
+    "no_unused_imports": true,
+    "concat_space": {
+      "spacing": "one"
+    }
+  },
+  "exclude": ["vendor", "storage", "bootstrap/cache"]
 }
 ```
 
 ### CI Integration
 
 **.github/workflows/pint.yml**:
+
 ```yaml
 name: Code Style
 
@@ -125,12 +123,14 @@ jobs:
 ### Pint vs PHP CS Fixer
 
 **Use Pint when:**
+
 - Working on Laravel projects exclusively
 - Want zero-configuration defaults
 - Prefer faster execution (static compilation)
 - Need official Laravel support
 
 **Use PHP CS Fixer when:**
+
 - Managing multi-framework codebases
 - Require granular rule control
 - Need broader rule catalog
@@ -147,6 +147,7 @@ jobs:
 ### Why Larastan
 
 Larastan 2.0+ understands Laravel's magic:
+
 - Facades resolve correctly (`Cache::get()` knows return type)
 - Eloquent dynamic properties validate (`$user->posts` understood)
 - Framework patterns recognized (`scopeActive()` methods don't trigger false positives)
@@ -204,6 +205,7 @@ EOF
 ### Configuration Deep Dive
 
 **For Laravel 11+ applications**:
+
 ```neon
 includes:
     - vendor/nunomaduro/larastan/extension.neon
@@ -214,25 +216,25 @@ parameters:
         - config
         - database
         - routes
-    
+
     level: 5
-    
+
     # Octane compatibility (if using Octane)
     checkOctaneCompatibility: true
-    
+
     # Validate Eloquent model properties
     checkModelProperties: true
-    
+
     # Exclude problematic paths
     excludePaths:
         - app/Console/Kernel.php
         - bootstrap/cache/*
-    
+
     # Common Laravel ignores
     ignoreErrors:
         - '#Unsafe usage of new static#'
         - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder#'
-    
+
     # Performance optimization
     parallel:
         maximumNumberOfProcesses: 4
@@ -240,6 +242,7 @@ parameters:
 ```
 
 **For packages (stricter)**:
+
 ```neon
 parameters:
     level: 8
@@ -267,6 +270,7 @@ The baseline allows teams to enforce higher standards on new code immediately wh
 ```
 
 **phpstan.neon with baseline**:
+
 ```neon
 includes:
     - vendor/nunomaduro/larastan/extension.neon
@@ -281,12 +285,14 @@ parameters:
 ### Progressive Adoption Timeline
 
 **Week 1**: Install Larastan, generate baseline
+
 ```bash
 composer require --dev nunomaduro/larastan
 ./vendor/bin/phpstan analyse --generate-baseline
 ```
 
 **Week 2**: Configure level 3, address obvious issues
+
 ```bash
 # Set level: 3 in phpstan.neon
 ./vendor/bin/phpstan analyse
@@ -295,21 +301,25 @@ composer require --dev nunomaduro/larastan
 ```
 
 **Month 2**: Increase to level 4, fix baseline errors incrementally
+
 - Allocate 1-2 hours per week to baseline reduction
 - Track progress: `wc -l phpstan-baseline.neon`
 - Celebrate when baseline shrinks
 
 **Month 3**: Reach level 5 (production-ready analysis)
+
 - Level 5 = minimum for professional Laravel applications
 - Catches legitimate bugs without excessive strictness
 
 **Month 6+**: Consider level 6-8 for critical components
+
 - Level 6-8 for admin panels, payment processing, authentication
 - Level 9 for packages and public APIs
 
 ### Real-World Example
 
 **Spatie's approach** across 500+ packages:
+
 - New packages start at level 8
 - Legacy packages at level 5-6 with aggressive baseline reduction
 - Critical packages (like laravel-permission) at level 9
@@ -333,6 +343,7 @@ composer require --dev pestphp/pest pestphp/pest-plugin-laravel
 ### Basic Test Structure
 
 **tests/Feature/UserControllerTest.php**:
+
 ```php
 <?php
 
@@ -340,7 +351,7 @@ use App\Models\User;
 
 test('users can view their profile', function () {
     $user = User::factory()->create();
-    
+
     $this->actingAs($user)
         ->get('/profile')
         ->assertOk()
@@ -356,6 +367,7 @@ it('requires authentication to view profile', function () {
 ### Pest vs PHPUnit
 
 **Pest advantages**:
+
 - More readable syntax (test/it functions)
 - Built-in architecture testing
 - Native mutation testing support
@@ -363,6 +375,7 @@ it('requires authentication to view profile', function () {
 - Less boilerplate
 
 **PHPUnit advantages**:
+
 - More established ecosystem
 - Some package test suites require it
 - Team familiarity
@@ -397,6 +410,7 @@ it('requires authentication to view profile', function () {
 ### Core Architecture Test Patterns
 
 **tests/Architecture/ArchitectureTest.php**:
+
 ```php
 <?php
 
@@ -505,6 +519,7 @@ Escaped: 2 (4.4%)
 ### Example Mutation Scenario
 
 **Original code**:
+
 ```php
 public function calculateDiscount(int $total): int
 {
@@ -536,6 +551,7 @@ composer require --dev rector/rector
 ### Configuration
 
 **rector.php**:
+
 ```php
 <?php
 
@@ -567,18 +583,21 @@ return RectorConfig::configure()
 ### Common Use Cases
 
 **1. Framework Upgrades**
+
 ```bash
 # Migrate deprecated Laravel APIs
 ./vendor/bin/rector process --set laravel-110
 ```
 
 **2. PHP Version Migrations**
+
 ```bash
 # Adopt PHP 8.3 features
 ./vendor/bin/rector process --set php83
 ```
 
 **3. Architecture Refactoring**
+
 ```bash
 # Convert to constructor property promotion
 ./vendor/bin/rector process --rule \Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector
@@ -587,6 +606,7 @@ return RectorConfig::configure()
 ### Real-World Example: Spatie's Use
 
 Spatie uses Rector rules to maintain consistency across 500+ repositories:
+
 - Automated conversion to short array syntax
 - Constructor property promotion across all packages
 - Migration from older Laravel patterns to modern equivalents
@@ -634,6 +654,7 @@ Spatie uses Rector rules to maintain consistency across 500+ repositories:
 ### GitHub Actions - Complete Example
 
 **.github/workflows/tests.yml**:
+
 ```yaml
 name: Tests
 
@@ -646,13 +667,13 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         php: [8.2, 8.3]
         laravel: [10.*, 11.*]
         dependency-version: [prefer-lowest, prefer-stable]
-    
+
     services:
       mysql:
         image: mysql:8.0
@@ -662,43 +683,43 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
-      
+
       redis:
         image: redis:7-alpine
         ports:
           - 6379:6379
         options: --health-cmd="redis-cli ping" --health-interval=10s --health-timeout=5s --health-retries=3
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv
           coverage: xdebug
-      
+
       - name: Get composer cache directory
         id: composer-cache
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ runner.os }}-composer-
-      
+
       - name: Install dependencies
         run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction
-      
+
       - name: Copy environment file
         run: cp .env.example .env
-      
+
       - name: Generate application key
         run: php artisan key:generate
-      
+
       - name: Run migrations
         run: php artisan migrate --force
         env:
@@ -708,12 +729,13 @@ jobs:
           DB_DATABASE: laravel
           DB_USERNAME: root
           DB_PASSWORD: password
-      
+
       - name: Execute tests with coverage
         run: ./vendor/bin/pest --coverage --min=70
 ```
 
 **.github/workflows/quality.yml**:
+
 ```yaml
 name: Code Quality
 
@@ -730,7 +752,7 @@ jobs:
           php-version: 8.3
       - run: composer install --no-progress
       - run: ./vendor/bin/pint --test
-  
+
   phpstan:
     name: Static Analysis
     runs-on: ubuntu-latest
@@ -741,7 +763,7 @@ jobs:
           php-version: 8.3
       - run: composer install --no-progress
       - run: ./vendor/bin/phpstan analyse --memory-limit=2G
-  
+
   security:
     name: Security Audit
     runs-on: ubuntu-latest
@@ -757,6 +779,7 @@ jobs:
 ### GitLab CI - Elite Pattern
 
 **.gitlab-ci.yml** (inspired by Oh Dear):
+
 ```yaml
 stages:
   - prepare
@@ -855,7 +878,7 @@ deploy:
     - main
   when: manual
   script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - "which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )"
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
@@ -866,6 +889,7 @@ deploy:
 ### Pipeline Optimization Strategies
 
 **1. Parallelization**
+
 ```yaml
 # GitHub Actions
 jobs:
@@ -877,6 +901,7 @@ jobs:
 ```
 
 **2. Caching**
+
 ```yaml
 # Cache Composer dependencies
 - uses: actions/cache@v3
@@ -886,14 +911,15 @@ jobs:
 ```
 
 **3. Conditional Execution**
+
 ```yaml
 # Only run on specific branches
 on:
   push:
     branches: [main, develop]
     paths:
-      - '**.php'
-      - 'composer.json'
+      - "**.php"
+      - "composer.json"
 ```
 
 ---
@@ -923,6 +949,7 @@ Optional checks:
 ### Quality Metrics Thresholds
 
 **Professional Laravel application standards**:
+
 - Code style: 100% compliance (Pint)
 - Static analysis: PHPStan level 5-6 with 0 errors
 - Test coverage: 70-80% minimum
@@ -933,6 +960,7 @@ Optional checks:
 ### Enforcement Strategies
 
 **1. Fail Fast**
+
 ```yaml
 # Run syntax check first (fastest failure)
 - name: Check syntax
@@ -952,6 +980,7 @@ Optional checks:
 ```
 
 **2. Parallel Execution**
+
 ```yaml
 jobs:
   quality:
@@ -964,6 +993,7 @@ jobs:
 ```
 
 **3. Progressive Enhancement**
+
 ```
 Week 1: Add Pint (easy win, fast)
 Week 2: Add PHPStan level 3 with baseline
@@ -982,6 +1012,7 @@ Month 3: Add mutation testing
 ### GrumPHP - PHP-Native Solution
 
 **Advantages**:
+
 - Native PHP integration
 - Automatic Git hook installation
 - 50+ built-in tasks
@@ -989,11 +1020,13 @@ Month 3: Add mutation testing
 - Zero Node.js dependency
 
 **Installation**:
+
 ```bash
 composer require --dev phpro/grumphp
 ```
 
 **grumphp.yml**:
+
 ```yaml
 grumphp:
   tasks:
@@ -1002,33 +1035,33 @@ grumphp:
       level: 5
       configuration: phpstan.neon
       memory_limit: "-1"
-    
+
     # Code style
     phpcsfixer:
       config: .php-cs-fixer.php
       allow_risky: true
-    
+
     # Tests
     phpunit:
       config: phpunit.xml
-      always_execute: false  # Only on staged test files
-    
+      always_execute: false # Only on staged test files
+
     # Complexity
     phpmd:
-      ruleset: ['cleancode', 'codesize', 'naming']
+      ruleset: ["cleancode", "codesize", "naming"]
       exclude:
         - vendor
         - storage
-    
+
     # Security
     composer_audit:
       composer_file: composer.json
       locked: true
-    
+
     # JSON/YAML validation
     jsonlint:
       detect_key_conflicts: true
-    
+
     yamllint: ~
 
   testsuites:
@@ -1039,6 +1072,7 @@ grumphp:
 ```
 
 **Usage**:
+
 ```bash
 # Hooks run automatically on git commit
 git commit -m "Add feature"
@@ -1056,18 +1090,21 @@ git commit -m "Hotfix" --no-verify
 ### Husky with lint-staged - Node.js Solution
 
 **Advantages**:
+
 - Optimized for full-stack teams
 - Processes only staged files (faster)
 - Integrates with frontend tooling
 - Automatic Git hook installation
 
 **Installation**:
+
 ```bash
 npm install --save-dev husky lint-staged
 npx husky install
 ```
 
 **package.json**:
+
 ```json
 {
   "scripts": {
@@ -1078,19 +1115,14 @@ npx husky install
       "./vendor/bin/pint",
       "./vendor/bin/phpstan analyse --memory-limit=2G"
     ],
-    "*.{js,vue}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{css,scss}": [
-      "stylelint --fix",
-      "prettier --write"
-    ]
+    "*.{js,vue}": ["eslint --fix", "prettier --write"],
+    "*.{css,scss}": ["stylelint --fix", "prettier --write"]
   }
 }
 ```
 
 **.husky/pre-commit**:
+
 ```bash
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
@@ -1101,12 +1133,14 @@ npx lint-staged
 ### Comparison: GrumPHP vs Husky
 
 **Use GrumPHP when**:
+
 - Pure PHP team
 - PHP-centric workflow
 - Want comprehensive built-in tasks
 - Prefer native PHP solution
 
 **Use Husky when**:
+
 - Full-stack team (PHP + JavaScript)
 - Significant frontend work
 - Need integration with ESLint/Prettier
@@ -1121,12 +1155,14 @@ npx lint-staged
 ### What Shift Does
 
 **Single-use Shifts** ($9-29 per version jump):
+
 - Handles Laravel 4.2 → latest incrementally
 - Creates detailed PRs with atomic commits
 - Completes in under 40 minutes
 - Provides explanatory comments throughout
 
 **Process**:
+
 1. Connect via GitHub/GitLab/Bitbucket
 2. Select source and target Laravel version
 3. Shift creates new branch with changes
@@ -1185,6 +1221,7 @@ foreach ($repositories as $repo) {
 ### Spatie's Quality Standards (500+ Packages, 1.9B Downloads)
 
 **GitHub Actions Workflows**:
+
 ```
 .github/workflows/
 ├── run-tests.yml         (Pest with PHP 8.2, 8.3, 8.4)
@@ -1194,11 +1231,13 @@ foreach ($repositories as $repo) {
 ```
 
 **PHPStan Configuration**:
+
 - Level 5-8 typical across packages
 - Critical packages (laravel-permission, laravel-backup) reach level 9
 - Matrix testing validates all supported PHP and Laravel versions
 
 **Testing Strategy**:
+
 - Pest framework exclusively for new packages
 - Mutation testing on critical packages
 - Architecture tests prevent regressions
@@ -1207,6 +1246,7 @@ foreach ($repositories as $repo) {
 ### Tighten's Comprehensive Approach
 
 **TLint - Laravel-Specific Linting**:
+
 ```bash
 ./vendor/bin/tlint lint
 
@@ -1219,6 +1259,7 @@ foreach ($repositories as $repo) {
 ```
 
 **Duster - All-in-One Quality Tool**:
+
 ```bash
 # Check everything
 ./vendor/bin/duster lint
@@ -1231,6 +1272,7 @@ foreach ($repositories as $repo) {
 ```
 
 **Bundles**:
+
 - Laravel Pint
 - PHP_CodeSniffer
 - PHP-CS-Fixer
@@ -1263,6 +1305,7 @@ Optional but recommended:
 ### Phase 1: Quick Wins (Week 1-2)
 
 **Priority**: Automated formatting
+
 ```bash
 # Install and configure Pint
 composer require --dev laravel/pint
@@ -1278,6 +1321,7 @@ git commit -m "Apply Laravel Pint formatting"
 ### Phase 2: Static Analysis Foundation (Week 3-4)
 
 **Priority**: PHPStan with baseline
+
 ```bash
 # Install Larastan
 composer require --dev nunomaduro/larastan
@@ -1305,6 +1349,7 @@ git commit -m "Add PHPStan with baseline"
 ### Phase 3: Automated Testing (Month 2)
 
 **Priority**: Pest with architecture tests
+
 ```bash
 # Install Pest
 composer require --dev pestphp/pest pestphp/pest-plugin-laravel
@@ -1315,6 +1360,7 @@ mkdir -p tests/Architecture
 ```
 
 **tests/Architecture/ArchitectureTest.php**:
+
 ```php
 <?php
 
@@ -1333,6 +1379,7 @@ arch('strict types everywhere')
 ### Phase 4: CI/CD Integration (Month 2-3)
 
 **Priority**: Quality gates in pipeline
+
 ```bash
 # Create GitHub Actions workflows
 mkdir -p .github/workflows
@@ -1345,6 +1392,7 @@ mkdir -p .github/workflows
 ### Phase 5: Pre-commit Hooks (Month 3)
 
 **Priority**: Local feedback loop
+
 ```bash
 # Install GrumPHP (PHP teams)
 composer require --dev phpro/grumphp
@@ -1358,6 +1406,7 @@ npm install --save-dev husky lint-staged
 ### Phase 6: Advanced Quality (Month 4+)
 
 **Priority**: Mutation testing and enhanced analysis
+
 ```bash
 # Add mutation testing
 composer require --dev pestphp/pest-plugin-mutate
@@ -1385,6 +1434,7 @@ Month 6: Consider level 6-8 for critical areas
 ### Success Metrics
 
 **Track progress monthly**:
+
 ```bash
 # PHPStan baseline size (goal: decrease)
 wc -l phpstan-baseline.neon
@@ -1406,6 +1456,7 @@ wc -l phpstan-baseline.neon
 **The 2024-2025 Laravel quality toolchain has reached maturity.**
 
 Modern Laravel development combines:
+
 - **Automated formatting** via Pint (eliminates style debates)
 - **Static analysis** via Larastan (catches type errors pre-runtime)
 - **Mutation testing** via Pest (validates test quality)
@@ -1419,6 +1470,7 @@ Modern Laravel development combines:
 **The path forward**: automate quality enforcement, trust the tooling, and focus human creativity on solving actual business problems rather than reinventing quality standards solved years ago.
 
 **Implementation priority by impact**:
+
 1. Laravel Pint (instant consistency)
 2. Larastan level 5 with baseline (legacy code friendly)
 3. Architecture tests (structural validation)

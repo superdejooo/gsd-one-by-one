@@ -2,7 +2,8 @@ import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { getOctokit } from "@actions/github";
 
-const token = core.getInput("token") || process.env.GITHUB_TOKEN || github.context.token;
+const token =
+  core.getInput("token") || process.env.GITHUB_TOKEN || github.context.token;
 
 // Use getOctokit from @actions/github (ESM-compatible)
 export const octokit = getOctokit(token);

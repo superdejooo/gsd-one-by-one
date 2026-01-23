@@ -6,8 +6,8 @@
  * Without these global mocks, any test importing modules that use
  * github.js will fail with "getInput is not a function" errors.
  */
-import { vi, afterEach } from 'vitest';
-import createFetchMock from 'vitest-fetch-mock';
+import { vi, afterEach } from "vitest";
+import createFetchMock from "vitest-fetch-mock";
 
 // ============================================================
 // GLOBAL MOCKS FOR @actions PACKAGES
@@ -15,18 +15,18 @@ import createFetchMock from 'vitest-fetch-mock';
 // ============================================================
 
 // Mock @actions/core - prevents github.js from failing on import
-vi.mock('@actions/core', () => ({
-  getInput: vi.fn(() => 'mock-token'),
+vi.mock("@actions/core", () => ({
+  getInput: vi.fn(() => "mock-token"),
   setOutput: vi.fn(),
   setFailed: vi.fn(),
   info: vi.fn(),
   debug: vi.fn(),
   warning: vi.fn(),
-  error: vi.fn()
+  error: vi.fn(),
 }));
 
 // Mock @actions/github with full context
-vi.mock('@actions/github', () => ({
+vi.mock("@actions/github", () => ({
   getOctokit: vi.fn(() => ({
     rest: {
       issues: {
@@ -36,29 +36,29 @@ vi.mock('@actions/github', () => ({
         setLabels: vi.fn(),
         listLabelsOnIssue: vi.fn(),
         listLabelsForRepo: vi.fn(),
-        createLabel: vi.fn()
+        createLabel: vi.fn(),
       },
       repos: {
-        getCollaboratorPermissionLevel: vi.fn()
-      }
+        getCollaboratorPermissionLevel: vi.fn(),
+      },
     },
     graphql: vi.fn(),
-    paginate: vi.fn()
+    paginate: vi.fn(),
   })),
   context: {
-    repo: { owner: 'test-owner', repo: 'test-repo' },
+    repo: { owner: "test-owner", repo: "test-repo" },
     issue: { number: 123 },
     payload: {
-      sender: { login: 'test-user' },
+      sender: { login: "test-user" },
       comment: { id: 456 },
-      issue: { number: 123 }
+      issue: { number: 123 },
     },
-    token: 'mock-token',
-    server_url: 'https://github.com',
-    repository: 'test-owner/test-repo',
-    run_id: '12345',
-    run_attempt: '1'
-  }
+    token: "mock-token",
+    server_url: "https://github.com",
+    repository: "test-owner/test-repo",
+    run_id: "12345",
+    run_attempt: "1",
+  },
 }));
 
 // ============================================================

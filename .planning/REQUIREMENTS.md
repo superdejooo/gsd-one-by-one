@@ -54,31 +54,33 @@ Requirements for the Plan & Execute Commands milestone.
 
 ## Out of Scope
 
-| Feature | Reason |
-|---------|--------|
-| Jira integration | Defer to v2 with GitHub-Jira mirroring |
-| Multi-repo workflows | Single repo focus for v1.x |
-| Real-time progress dashboard | Issue comments sufficient for v1.x |
-| Complex branching strategies | Main branch workflow for v1.x |
+| Feature                      | Reason                                 |
+| ---------------------------- | -------------------------------------- |
+| Jira integration             | Defer to v2 with GitHub-Jira mirroring |
+| Multi-repo workflows         | Single repo focus for v1.x             |
+| Real-time progress dashboard | Issue comments sufficient for v1.x     |
+| Complex branching strategies | Main branch workflow for v1.x          |
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| PLAN-01 | Phase 7 | Complete |
-| PLAN-02 | Phase 7 | Complete |
-| PLAN-03 | Phase 7 | Complete |
-| EXEC-01 | Phase 8 | Complete |
-| EXEC-02 | Phase 8 | Complete |
-| RETRY-01 | Phase 8 | Complete |
-| ISSUE-01 | Phase 9 | Pending |
-| ISSUE-02 | Phase 9 | Pending |
-| EXEC-03 | Phase 9 | Pending |
+| Requirement | Phase   | Status   |
+| ----------- | ------- | -------- |
+| PLAN-01     | Phase 7 | Complete |
+| PLAN-02     | Phase 7 | Complete |
+| PLAN-03     | Phase 7 | Complete |
+| EXEC-01     | Phase 8 | Complete |
+| EXEC-02     | Phase 8 | Complete |
+| RETRY-01    | Phase 8 | Complete |
+| ISSUE-01    | Phase 9 | Pending  |
+| ISSUE-02    | Phase 9 | Pending  |
+| EXEC-03     | Phase 9 | Pending  |
 
 **Coverage:**
+
 - v1.1 requirements: 9 total
 - Mapped to phases: 9
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-01-22 for v1.1 milestone*
+
+_Requirements defined: 2026-01-22 for v1.1 milestone_

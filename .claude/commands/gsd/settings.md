@@ -30,6 +30,7 @@ cat .planning/config.json
 ```
 
 Parse current values (default to `true` if not present):
+
 - `workflow.research` — spawn researcher during plan-phase
 - `workflow.plan_check` — spawn plan checker during plan-phase
 - `workflow.verifier` — spawn verifier during execute-phase
@@ -129,8 +130,9 @@ Quick commands:
 </process>
 
 <success_criteria>
+
 - [ ] Current config read
 - [ ] User presented with 4 settings (profile + 3 toggles)
 - [ ] Config updated with model_profile and workflow section
 - [ ] Changes confirmed to user
-</success_criteria>
+      </success_criteria>

@@ -65,6 +65,7 @@ class EditUserModal extends Component
 ```
 
 **Why simpler is better:**
+
 - Validation handles "nothing changed" (no actual changes = no validation errors = nothing to save)
 - The open method resets state - no need for separate reset logic
 - Form object owns its data and validation
@@ -113,6 +114,7 @@ public function assignRole(): void
 ```
 
 **Why simpler is better:**
+
 - Validation rules are declarative and readable
 - `exists:` rules check the database for you
 - Error messages are consistent with the rest of Laravel
@@ -210,6 +212,7 @@ class PostForm extends Form
 ```
 
 **Why simpler is better:**
+
 - Component is tiny - just coordinates UI
 - Form is self-contained - owns data, validation, persistence
 - Easy to test the Form in isolation
@@ -252,6 +255,7 @@ public function deletePost(Post $post): void
 ```
 
 **Why simpler is better:**
+
 - Route model binding throws 404 if post doesn't exist (useful error)
 - Policy throws 403 if unauthorized (useful error)
 - Sentry captures unexpected failures
@@ -304,6 +308,7 @@ You don't need close handlers. The open method resets state.
 ```
 
 **Why simpler is better:**
+
 - `flux:modal.close` handles the close - no wire:click needed
 - No `@close` handler - next `openModal()` call resets everything
 - No conditional button rendering - always show Save, let validation handle invalid states

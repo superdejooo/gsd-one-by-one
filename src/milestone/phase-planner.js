@@ -53,7 +53,9 @@ export function parsePhaseNumber(commandArgs) {
     return parseInt(standaloneMatch[1], 10);
   }
 
-  throw new Error("Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.");
+  throw new Error(
+    "Could not parse phase number from arguments. Use '--phase N', '-p N', or provide the number directly.",
+  );
 }
 
 /**
@@ -62,13 +64,13 @@ export function parsePhaseNumber(commandArgs) {
  * @returns {Promise<Array<{path: string, filename: string, phaseDir: string}>>}
  */
 async function findPlanFiles(phaseNumber) {
-  const paddedPhase = String(phaseNumber).padStart(2, '0');
-  const phasesDir = '.planning/phases';
+  const paddedPhase = String(phaseNumber).padStart(2, "0");
+  const phasesDir = ".planning/phases";
 
   // Find phase directory (handles 01-name and 1-name patterns)
   const dirs = await fs.readdir(phasesDir);
-  const phaseDir = dirs.find(d =>
-    d.startsWith(`${paddedPhase}-`) || d.startsWith(`${phaseNumber}-`)
+  const phaseDir = dirs.find(
+    (d) => d.startsWith(`${paddedPhase}-`) || d.startsWith(`${phaseNumber}-`),
   );
 
   if (!phaseDir) {
@@ -78,12 +80,12 @@ async function findPlanFiles(phaseNumber) {
 
   // Find all PLAN.md files
   const files = await fs.readdir(path.join(phasesDir, phaseDir));
-  const planFiles = files.filter(f => f.endsWith('-PLAN.md'));
+  const planFiles = files.filter((f) => f.endsWith("-PLAN.md"));
 
-  return planFiles.map(filename => ({
+  return planFiles.map((filename) => ({
     path: path.join(phasesDir, phaseDir, filename),
     filename,
-    phaseDir
+    phaseDir,
   }));
 }
 
@@ -93,11 +95,11 @@ async function findPlanFiles(phaseNumber) {
  * @returns {string} - e.g., "Issue Tracking Integration"
  */
 function extractPhaseName(phaseDir) {
-  const parts = phaseDir.split('-');
+  const parts = phaseDir.split("-");
   parts.shift(); // Remove number prefix
   return parts
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 /**
@@ -121,7 +123,9 @@ function extractPhaseName(phaseDir) {
 export async function executePhaseWorkflow(context, commandArgs, skill = null) {
   const { owner, repo, issueNumber } = context;
 
-  core.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
+  core.info(
+    `Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`,
+  );
   if (skill) core.info(`Using skill: ${skill}`);
 
   try {
@@ -131,7 +135,12 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 2: Execute GSD plan-phase command via CCR
     const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput(`/gsd:plan-phase ${phaseNumber}`, outputPath, null, skill);
+    const command = formatCcrCommandWithOutput(
+      `/gsd:plan-phase ${phaseNumber}`,
+      outputPath,
+      null,
+      skill,
+    );
 
     core.info(`Executing: ${command}`);
 
@@ -152,7 +161,8 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
     }
 
     // Step 4: Validate for errors
-    const isError = exitCode !== 0 ||
+    const isError =
+      exitCode !== 0 ||
       /Permission Denied|Authorization failed|not authorized/i.test(output) ||
       /Error:|Something went wrong|failed/i.test(output) ||
       /Unknown command|invalid arguments|validation failed/i.test(output);
@@ -171,18 +181,22 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
       const planFiles = await findPlanFiles(phaseNumber);
 
       if (planFiles.length === 0) {
-        core.warning('No PLAN.md files found, skipping issue creation');
+        core.warning("No PLAN.md files found, skipping issue creation");
       } else {
         const phaseName = extractPhaseName(planFiles[0].phaseDir);
 
         for (const planFile of planFiles) {
           core.info(`Processing ${planFile.filename}`);
-          const planContent = await fs.readFile(planFile.path, 'utf-8');
+          const planContent = await fs.readFile(planFile.path, "utf-8");
           const tasks = extractTasksFromPlan(planContent);
 
           if (tasks.length > 0) {
             const issues = await createIssuesForTasks(
-              owner, repo, tasks, phaseNumber, phaseName
+              owner,
+              repo,
+              tasks,
+              phaseNumber,
+              phaseName,
             );
             createdIssues.push(...issues);
           }
@@ -191,11 +205,14 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
         // Post follow-up comment with issue links
         if (createdIssues.length > 0) {
           const issueList = createdIssues
-            .map(i => `- [ ] #${i.number} - ${i.taskName}`)
-            .join('\n');
+            .map((i) => `- [ ] #${i.number} - ${i.taskName}`)
+            .join("\n");
 
-          await postComment(owner, repo, issueNumber,
-            `## Issues Created\n\n${issueList}\n\n*Track progress by checking off completed issues.*`
+          await postComment(
+            owner,
+            repo,
+            issueNumber,
+            `## Issues Created\n\n${issueList}\n\n*Track progress by checking off completed issues.*`,
           );
         }
       }
@@ -217,9 +234,8 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
       complete: true,
       phaseNumber,
       issuesCreated: createdIssues.length,
-      message: "Phase planning completed successfully"
+      message: "Phase planning completed successfully",
     };
-
   } catch (error) {
     core.error(`Phase planning workflow error: ${error.message}`);
     throw error; // withErrorHandling will post the comment

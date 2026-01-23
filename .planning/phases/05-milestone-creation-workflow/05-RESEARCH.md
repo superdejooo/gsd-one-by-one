@@ -13,27 +13,31 @@ This phase research focuses on implementing the complete `gsd:new-milestone` wor
 ## Standard Stack
 
 ### Core
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| @actions/github | Latest | GitHub API client (octokit) | Official GitHub Actions toolkit |
-| @actions/core | Latest | Input/output, error handling, logging | Official GitHub Actions toolkit |
-| octokit.paginate | Latest | Automatic pagination for list endpoints | Built-in octokit method for fetching all comments |
-| GitHub Contents API | REST v20 | Create/update files in repository | Standard REST API for file operations |
+
+| Library             | Version  | Purpose                                 | Why Standard                                      |
+| ------------------- | -------- | --------------------------------------- | ------------------------------------------------- |
+| @actions/github     | Latest   | GitHub API client (octokit)             | Official GitHub Actions toolkit                   |
+| @actions/core       | Latest   | Input/output, error handling, logging   | Official GitHub Actions toolkit                   |
+| octokit.paginate    | Latest   | Automatic pagination for list endpoints | Built-in octokit method for fetching all comments |
+| GitHub Contents API | REST v20 | Create/update files in repository       | Standard REST API for file operations             |
 
 ### Supporting
-| Tool | Purpose | When to Use |
-|------|---------|-------------|
-| Buffer (Node.js built-in) | Base64 encode file content | When creating files via Contents API |
-| util.promisify | Execute git commands | All git operations (existing pattern) |
+
+| Tool                      | Purpose                    | When to Use                           |
+| ------------------------- | -------------------------- | ------------------------------------- |
+| Buffer (Node.js built-in) | Base64 encode file content | When creating files via Contents API  |
+| util.promisify            | Execute git commands       | All git operations (existing pattern) |
 
 ### Utilities Needed
-| Module | Purpose | Implements |
-|--------|---------|------------|
-| src/milestone/planning-docs.js | Create PROJECT.md, STATE.md, ROADMAP.md | MILE-01, MILE-02, MILE-03 |
-| src/milestone/requirements.js | Multi-turn requirements gathering | REQG-01, REQG-02, REQG-03, REQG-04 |
-| src/milestone/state.js | State file management | Multi-run persistence |
+
+| Module                         | Purpose                                 | Implements                         |
+| ------------------------------ | --------------------------------------- | ---------------------------------- |
+| src/milestone/planning-docs.js | Create PROJECT.md, STATE.md, ROADMAP.md | MILE-01, MILE-02, MILE-03          |
+| src/milestone/requirements.js  | Multi-turn requirements gathering       | REQG-01, REQG-02, REQG-03, REQG-04 |
+| src/milestone/state.js         | State file management                   | Multi-run persistence              |
 
 **Installation:**
+
 ```bash
 # No new packages - using existing @actions/github + Node.js built-ins
 ```
@@ -41,6 +45,7 @@ This phase research focuses on implementing the complete `gsd:new-milestone` wor
 ## Architecture Patterns
 
 ### Recommended Project Structure
+
 ```
 src/
 ├── lib/
@@ -64,9 +69,11 @@ src/
 ```
 
 ### Pattern 1: Multi-Run State Persistence
+
 **What:** Store requirements gathering state in a file that persists across workflow runs
 **When to use:** Tracking which questions have been answered, milestone progress, requirements status
 **Example:**
+
 ```javascript
 // src/milestone/state.js
 import * as github from "@actions/github";
@@ -91,10 +98,12 @@ export async function loadState(owner, repo, milestoneNumber) {
     const response = await octokit.rest.repos.getContent({
       owner,
       repo,
-      path
+      path,
     });
 
-    const content = Buffer.from(response.data.content, "base64").toString("utf-8");
+    const content = Buffer.from(response.data.content, "base64").toString(
+      "utf-8",
+    );
     return parseStateFile(content);
   } catch (error) {
     if (error.status === 404) {
@@ -134,7 +143,7 @@ export async function saveState(owner, repo, milestoneNumber, state) {
     path,
     message: `chore: Update milestone ${milestoneNumber} state`,
     content: encodedContent,
-    sha: sha // Omit for create, include for update
+    sha: sha, // Omit for create, include for update
   });
 
   core.info(`State saved to ${path}`);
@@ -151,21 +160,23 @@ function createInitialState(milestoneNumber) {
     requirements: {
       questions: [],
       answered: [],
-      pending: []
+      pending: [],
     },
     workflow: {
       startedAt: new Date().toISOString(),
       lastRunAt: null,
-      runCount: 0
-    }
+      runCount: 0,
+    },
   };
 }
 ```
 
 ### Pattern 2: Detect New User Comments
+
 **What:** Distinguish new user answers from previous bot comments by tracking comment IDs
 **When to use:** Reading user responses during requirements gathering
 **Example:**
+
 ```javascript
 // src/milestone/requirements.js
 import * as github from "@actions/github";
@@ -178,23 +189,25 @@ import * as github from "@actions/github";
  * @param {number} lastProcessedId - ID of last processed comment
  * @returns {Promise<Array>} New comments
  */
-export async function getNewComments(owner, repo, issueNumber, lastProcessedId = 0) {
+export async function getNewComments(
+  owner,
+  repo,
+  issueNumber,
+  lastProcessedId = 0,
+) {
   const token = core.getInput("token") || process.env.GITHUB_TOKEN;
   const octokit = github.getOctokit(token);
 
   // Get all comments using pagination
-  const comments = await octokit.paginate(
-    octokit.rest.issues.listComments,
-    {
-      owner,
-      repo,
-      issue_number: issueNumber,
-      per_page: 100
-    }
-  );
+  const comments = await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: issueNumber,
+    per_page: 100,
+  });
 
   // Filter to only new comments (higher ID = newer)
-  const newComments = comments.filter(c => c.id > lastProcessedId);
+  const newComments = comments.filter((c) => c.id > lastProcessedId);
 
   // Sort by ID ascending (oldest first)
   return newComments.sort((a, b) => a.id - b.id);
@@ -214,8 +227,10 @@ export function parseUserAnswers(comments) {
 
   for (const comment of comments) {
     // Skip bot comments (comments from github-actions[bot])
-    if (comment.user.type === "Bot" ||
-        comment.user.login === "github-actions[bot]") {
+    if (
+      comment.user.type === "Bot" ||
+      comment.user.login === "github-actions[bot]"
+    ) {
       continue;
     }
 
@@ -225,7 +240,7 @@ export function parseUserAnswers(comments) {
       commentId: comment.id,
       user: comment.user.login,
       body: body,
-      timestamp: comment.created_at
+      timestamp: comment.created_at,
     };
 
     answers.push(answer);
@@ -236,9 +251,11 @@ export function parseUserAnswers(comments) {
 ```
 
 ### Pattern 3: Requirements Questions and Answer Parsing
+
 **What:** Post structured questions and parse user answers
 **When to use:** Initial requirements gathering and subsequent answer collection
 **Example:**
+
 ```javascript
 // src/milestone/requirements.js
 const DEFAULT_QUESTIONS = [
@@ -246,26 +263,26 @@ const DEFAULT_QUESTIONS = [
     id: "scope",
     question: "What is the primary goal of this milestone?",
     format: "freeform",
-    required: true
+    required: true,
   },
   {
     id: "features",
     question: "What are the key features or deliverables?",
     format: "list",
-    required: true
+    required: true,
   },
   {
     id: "constraints",
     question: "Are there any technical constraints or requirements?",
     format: "freeform",
-    required: false
+    required: false,
   },
   {
     id: "timeline",
     question: "What is the expected timeline?",
     format: "freeform",
-    required: false
-  }
+    required: false,
+  },
 ];
 
 /**
@@ -315,20 +332,20 @@ export function parseAnswersFromResponse(body, questions) {
   const answers = {};
 
   // Split body into paragraphs/lines
-  const lines = body.split(/\n+/).filter(line => line.trim());
+  const lines = body.split(/\n+/).filter((line) => line.trim());
 
   // Try to match Q: or Question # patterns
-  const questionPatterns = questions.map(q => ({
+  const questionPatterns = questions.map((q) => ({
     id: q.id,
     patterns: [
-      new RegExp(`(?:Q${q.id}|Question\\s*${q.id}|${q.id}[:\\s]*)`, 'i'),
-      new RegExp(`(?:Q\\s*${q.id}|${q.id}[:\\s]*)`, 'i')
-    ]
+      new RegExp(`(?:Q${q.id}|Question\\s*${q.id}|${q.id}[:\\s]*)`, "i"),
+      new RegExp(`(?:Q\\s*${q.id}|${q.id}[:\\s]*)`, "i"),
+    ],
   }));
 
   // Simple parsing: assume each paragraph answers the next pending question
   let currentQuestionIndex = 0;
-  const pendingQuestions = questions.filter(q => !answers[q.id]);
+  const pendingQuestions = questions.filter((q) => !answers[q.id]);
 
   for (const line of lines) {
     // Skip empty lines
@@ -344,11 +361,12 @@ export function parseAnswersFromResponse(body, questions) {
       const q = pendingQuestions[currentQuestionIndex];
 
       // Check if line starts with this question's ID pattern
-      for (const pattern of questionPatterns.find(p => p.id === q.id)?.patterns || []) {
+      for (const pattern of questionPatterns.find((p) => p.id === q.id)
+        ?.patterns || []) {
         const match = line.match(pattern);
         if (match) {
           // Remove the question prefix from the answer
-          const answer = line.replace(pattern, '').trim();
+          const answer = line.replace(pattern, "").trim();
           if (answer) {
             answers[q.id] = answer;
           }
@@ -374,9 +392,11 @@ export function parseAnswersFromResponse(body, questions) {
 ```
 
 ### Pattern 4: Create Planning Documents
+
 **What:** Create PROJECT.md, STATE.md, and ROADMAP.md files
 **When to use:** Initial milestone creation workflow
 **Example:**
+
 ```javascript
 // src/milestone/planning-docs.js
 import fs from "node:fs/promises";
@@ -441,7 +461,7 @@ ${scope || "To be defined during requirements gathering."}
 
 ## Key Features
 
-${features ? features.map(f => `- ${f}`).join('\n') : "- To be defined"}
+${features ? features.map((f) => `- ${f}`).join("\n") : "- To be defined"}
 
 ## Requirements Summary
 
@@ -468,7 +488,7 @@ function generateStateMarkdown(data) {
 
 | Phase | Name | Status |
 |-------|------|--------|
-${phases ? phases.map((p, i) => `| ${String(i + 1).padStart(2, '0')} | ${p.name} | ${p.status || "pending"} |`).join('\n') : "|   | (none defined) | pending |"}
+${phases ? phases.map((p, i) => `| ${String(i + 1).padStart(2, "0")} | ${p.name} | ${p.status || "pending"} |`).join("\n") : "|   | (none defined) | pending |"}
 
 ## Requirements Gathering
 
@@ -495,16 +515,24 @@ function generateRoadmapMarkdown(data) {
 
   return `# Milestone ${milestoneNumber} Roadmap
 
-**Total Phases:** ${totalPhases || (phases?.length || 0)}
+**Total Phases:** ${totalPhases || phases?.length || 0}
 
 ## Phase Structure
 
-${phases ? phases.map((p, i) => `### Phase ${i + 1}: ${p.name}
+${
+  phases
+    ? phases
+        .map(
+          (p, i) => `### Phase ${i + 1}: ${p.name}
 
 - **Status:** ${p.status || "pending"}
 - **Goal:** ${p.goal || "To be defined"}
 - **Dependencies:** ${p.dependencies || "None"}
-`).join('\n') : "Phases will be defined during planning."}
+`,
+        )
+        .join("\n")
+    : "Phases will be defined during planning."
+}
 
 ## Execution Order
 
@@ -526,9 +554,11 @@ ${phases ? phases.map((p, i) => `### Phase ${i + 1}: ${p.name}
 ```
 
 ### Pattern 5: Commit All Planning Docs
+
 **What:** Commit all created files to the milestone branch
 **When to use:** After creating all planning documents
 **Example:**
+
 ```javascript
 // src/milestone/index.js
 import { runGitCommand, configureGitIdentity } from "../git/git.js";
@@ -541,11 +571,15 @@ import * as core from "@actions/core";
  * @param {Array} filePaths - Array of file paths to commit
  * @param {string} commitMessage - Commit message
  */
-export async function commitPlanningDocs(milestoneNumber, filePaths, commitMessage) {
+export async function commitPlanningDocs(
+  milestoneNumber,
+  filePaths,
+  commitMessage,
+) {
   // Ensure git identity is configured
   await configureGitIdentity(
     "github-actions[bot]",
-    "41898282+github-actions[bot]@users.noreply.github.com"
+    "41898282+github-actions[bot]@users.noreply.github.com",
   );
 
   // Create milestone branch if it doesn't exist
@@ -560,14 +594,18 @@ export async function commitPlanningDocs(milestoneNumber, filePaths, commitMessa
   // Commit
   await runGitCommand(`git commit -m "${commitMessage}"`);
 
-  core.info(`Committed ${filePaths.length} planning files to gsd/${milestoneNumber}`);
+  core.info(
+    `Committed ${filePaths.length} planning files to gsd/${milestoneNumber}`,
+  );
 }
 ```
 
 ### Pattern 6: Summary Comment with Next Steps
+
 **What:** Post summary of created files and next steps
 **When to use:** After completing milestone initialization
 **Example:**
+
 ```javascript
 // src/milestone/summarizer.js
 
@@ -587,18 +625,19 @@ export function generateMilestoneSummary(data) {
 
 | File | Purpose |
 |------|---------|
-${files ? files.map(f => `| \`${f.path}\` | ${f.purpose} |`).join('\n') : "| (none) | |"}
+${files ? files.map((f) => `| \`${f.path}\` | ${f.purpose} |`).join("\n") : "| (none) | |"}
 
 ### Requirements Status
 
-${requirements?.complete
-  ? ":white_check_mark: All requirements gathered"
-  : `:hourglass: ${requirements?.pending?.length || "Some"} questions pending`
+${
+  requirements?.complete
+    ? ":white_check_mark: All requirements gathered"
+    : `:hourglass: ${requirements?.pending?.length || "Some"} questions pending`
 }
 
 ### Next Steps
 
-${nextSteps ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n') : "1. Answer requirements questions in comments\n2. I'll continue planning once all questions are answered"}
+${nextSteps ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join("\n") : "1. Answer requirements questions in comments\n2. I'll continue planning once all questions are answered"}
 
 ---
 
@@ -611,6 +650,7 @@ ${nextSteps ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n') : "1. A
 ```
 
 ### Anti-Patterns to Avoid
+
 - **Storing state in workflow variables:** Workflow variables don't persist between runs; use file-based state in the repository
 - **Using comment timestamps for ordering:** Timestamps can have precision issues; use comment IDs which are monotonically increasing
 - **Posting questions one at a time:** Post all pending questions in bulk to minimize workflow runs
@@ -622,50 +662,56 @@ ${nextSteps ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n') : "1. A
 
 Problems that look simple but have existing solutions:
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Pagination for comment list | Custom fetch loop with page params | `octokit.paginate()` | Handles all edge cases, rate limits, and is official recommendation |
-| Base64 encoding for API | Custom implementation | `Buffer.from(content).toString('base64')` | Node.js built-in, handles encoding correctly |
-| File create/update with SHA | Conditional logic for create vs update | `createOrUpdateFileContents` API | Handles both cases; just pass sha for update |
-| Comment ordering | Timestamp comparison | Comment ID comparison | IDs are monotonically increasing integers |
-| State persistence between runs | External database | Repository files (STATE.md) | Matches "All state stored in repository files" decision |
-| Multi-line text in JSON | Manual escaping | JSON.stringify with proper options | Handles all edge cases |
+| Problem                        | Don't Build                            | Use Instead                               | Why                                                                 |
+| ------------------------------ | -------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------- |
+| Pagination for comment list    | Custom fetch loop with page params     | `octokit.paginate()`                      | Handles all edge cases, rate limits, and is official recommendation |
+| Base64 encoding for API        | Custom implementation                  | `Buffer.from(content).toString('base64')` | Node.js built-in, handles encoding correctly                        |
+| File create/update with SHA    | Conditional logic for create vs update | `createOrUpdateFileContents` API          | Handles both cases; just pass sha for update                        |
+| Comment ordering               | Timestamp comparison                   | Comment ID comparison                     | IDs are monotonically increasing integers                           |
+| State persistence between runs | External database                      | Repository files (STATE.md)               | Matches "All state stored in repository files" decision             |
+| Multi-line text in JSON        | Manual escaping                        | JSON.stringify with proper options        | Handles all edge cases                                              |
 
 **Key insight:** GitHub's REST API (octokit) and Node.js built-ins (Buffer, fs) provide robust solutions for all file and API operations. Custom implementations miss edge cases around pagination, encoding, and state management.
 
 ## Common Pitfalls
 
 ### Pitfall 1: State Not Persisting Between Runs
+
 **What goes wrong:** Requirements gathering progress is lost between workflow runs
 **Why it happens:** GitHub Actions doesn't have built-in state persistence; workflow runs are isolated
 **How to avoid:** Store all state in repository files (STATE.md) that are committed alongside planning docs
 **Warning signs:** Requirements start from scratch on each run, "questions already answered" are shown again
 
 ### Pitfall 2: Reading Bot Comments as User Answers
+
 **What goes wrong:** Bot's own comments are parsed as user answers, causing infinite loops
 **Why it happens:** Not filtering comments by user type or ID
 **How to avoid:** Skip comments from github-actions[bot] or comments with ID <= last processed ID
 **Warning signs:** Bot responding to itself, escalating requirements status incorrectly
 
 ### Pitfall 3: Comment Order Issues
+
 **What goes wrong:** New comments are processed in wrong order, causing answers to map to wrong questions
 **Why it happens:** Relying on timestamps which can have precision issues or be affected by timezones
 **How to avoid:** Use comment IDs which are monotonically increasing; store last processed ID in state
 **Warning signs:** Answers mapping to wrong questions, duplicate processing of comments
 
 ### Pitfall 4: File Encoding Issues
+
 **What goes wrong:** Files created via Contents API have encoding issues or are rejected
 **Why it happens:** Not properly encoding content as base64, or encoding multiple times
 **How to avoid:** Use `Buffer.from(content).toString('base64')` exactly once
 **Warning signs:** API errors about content encoding, files with garbled content
 
 ### Pitfall 5: Large Comment Thread Performance
+
 **What goes wrong:** Slow performance when issue has many comments
 **Why it happens:** Fetching all comments on each run without filtering
 **How to avoid:** Use `since` parameter to filter by date, or track last processed ID to only fetch new comments
 **Warning signs:** Long workflow execution times, rate limit warnings
 
 ### Pitfall 6: Branch Conflict on Re-run
+
 **What goes wrong:** Workflow fails when re-running because branch already exists
 **Why it happens:** `git switch -c` fails if branch exists
 **How to avoid:** Check if branch exists first, or use `git switch` (without -c) to switch to existing branch
@@ -674,6 +720,7 @@ Problems that look simple but have existing solutions:
 ## Code Examples
 
 ### Complete Milestone Workflow Orchestrator
+
 ```javascript
 // src/milestone/index.js
 import * as core from "@actions/core";
@@ -683,7 +730,11 @@ import { formatErrorComment } from "../errors/formatter.js";
 import { createMilestoneBranch } from "../git/branches.js";
 import { loadState, saveState } from "./state.js";
 import { createPlanningDocs } from "./planning-docs.js";
-import { formatRequirementsQuestions, parseUserAnswers, parseAnswersFromResponse } from "./requirements.js";
+import {
+  formatRequirementsQuestions,
+  parseUserAnswers,
+  parseAnswersFromResponse,
+} from "./requirements.js";
 import { generateMilestoneSummary } from "./summarizer.js";
 
 /**
@@ -707,7 +758,12 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
 
   // Get new user comments since last run
   const lastProcessedId = state.workflow.lastCommentId || 0;
-  const newComments = await getNewComments(owner, repo, issueNumber, lastProcessedId);
+  const newComments = await getNewComments(
+    owner,
+    repo,
+    issueNumber,
+    lastProcessedId,
+  );
 
   // Parse user answers from new comments
   const userAnswers = parseUserAnswers(newComments);
@@ -715,12 +771,17 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
   if (userAnswers.length > 0) {
     // Merge new answers into state
     for (const answer of userAnswers) {
-      const parsedAnswers = parseAnswersFromResponse(answer.body, DEFAULT_QUESTIONS);
+      const parsedAnswers = parseAnswersFromResponse(
+        answer.body,
+        DEFAULT_QUESTIONS,
+      );
       Object.assign(state.requirements.answered, parsedAnswers);
 
       // Update pending/answered lists
       for (const [qId, answerText] of Object.entries(parsedAnswers)) {
-        state.requirements.pending = state.requirements.pending.filter(q => q !== qId);
+        state.requirements.pending = state.requirements.pending.filter(
+          (q) => q !== qId,
+        );
         if (!state.requirements.answered.includes(qId)) {
           state.requirements.answered.push(qId);
         }
@@ -732,15 +793,15 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
   }
 
   // Check if requirements gathering is complete
-  const allRequiredAnswered = DEFAULT_QUESTIONS
-    .filter(q => q.required)
-    .every(q => state.requirements.answered.includes(q.id));
+  const allRequiredAnswered = DEFAULT_QUESTIONS.filter((q) => q.required).every(
+    (q) => state.requirements.answered.includes(q.id),
+  );
 
   if (!allRequiredAnswered) {
     // Post pending questions
     const questionsMarkdown = formatRequirementsQuestions(
       DEFAULT_QUESTIONS,
-      state.requirements.answered
+      state.requirements.answered,
     );
 
     await postComment(owner, repo, issueNumber, questionsMarkdown);
@@ -751,7 +812,7 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
     return {
       complete: false,
       phase: "requirements-gathering",
-      message: "Waiting for user answers"
+      message: "Waiting for user answers",
     };
   }
 
@@ -763,10 +824,10 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
     milestoneNumber,
     title: state.requirements.answered.title || `Milestone ${milestoneNumber}`,
     goal: state.requirements.answered.scope,
-    features: state.requirements.answered.features?.split('\n'),
+    features: state.requirements.answered.features?.split("\n"),
     scope: state.requirements.answered.constraints,
     requirements: state,
-    phases: generatePhasesFromRequirements(state.requirements.answered)
+    phases: generatePhasesFromRequirements(state.requirements.answered),
   };
 
   // Create planning documents
@@ -774,15 +835,18 @@ export async function executeMilestoneWorkflow(context, commandArgs) {
 
   // Commit to branch
   await createMilestoneBranch(milestoneNumber);
-  const filePaths = Object.values(files).map(f => f.path);
-  await commitPlanningDocs(milestoneNumber, filePaths,
+  const filePaths = Object.values(files).map((f) => f.path);
+  await commitPlanningDocs(
+    milestoneNumber,
+    filePaths,
     `docs(m${milestoneNumber}): Create initial planning documents
 
 - PROJECT.md: Milestone context and goals
 - STATE.md: Milestone status tracking
 - ROADMAP.md: Phase structure
 
-Generated by GSD Bot`);
+Generated by GSD Bot`,
+  );
 
   // Save final state
   await saveState(owner, repo, milestoneNumber, state);
@@ -794,13 +858,13 @@ Generated by GSD Bot`);
     requirements: {
       complete: true,
       answered: state.requirements.answered,
-      pending: []
+      pending: [],
     },
     nextSteps: [
       "Review planning documents",
       "Use `@gsd-bot plan-phase` to plan each phase",
-      "Use `@gsd-bot execute-phase` to execute planned work"
-    ]
+      "Use `@gsd-bot execute-phase` to execute planned work",
+    ],
   });
 
   await postComment(owner, repo, issueNumber, summary);
@@ -808,12 +872,13 @@ Generated by GSD Bot`);
   return {
     complete: true,
     phase: "milestone-created",
-    files: Object.keys(files)
+    files: Object.keys(files),
   };
 }
 ```
 
 ### State File Format (STATE.md)
+
 ```markdown
 # Milestone 1 State
 
@@ -828,11 +893,11 @@ Generated by GSD Bot`);
 
 ### Answer Details
 
-| Question ID | Answer |
-|-------------|--------|
-| scope | Build user authentication system |
-| features | Login, logout, session management, password reset |
-| constraints | Use existing database schema |
+| Question ID | Answer                                            |
+| ----------- | ------------------------------------------------- |
+| scope       | Build user authentication system                  |
+| features    | Login, logout, session management, password reset |
+| constraints | Use existing database schema                      |
 
 ## Workflow
 
@@ -843,23 +908,24 @@ Generated by GSD Bot`);
 
 ## Phase Status
 
-| Phase | Name | Status |
-|-------|------|--------|
-| 01 | Foundation | pending |
-| 02 | Core Auth | pending |
-| 03 | Sessions | pending |
+| Phase | Name       | Status  |
+| ----- | ---------- | ------- |
+| 01    | Foundation | pending |
+| 02    | Core Auth  | pending |
+| 03    | Sessions   | pending |
 ```
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| External database for state | File-based state (STATE.md) | v1 (this phase) | Simpler architecture, no external dependencies |
-| Single-run requirements | Multi-run with state file | v1 (this phase) | Better user experience, no pressure to answer all at once |
-| Comments API without pagination | octokit.paginate | v1 (this phase) | Handles large comment threads correctly |
-| Git checkout for branches | Git switch | Git 2.23 (2019) | Safer branch operations |
+| Old Approach                    | Current Approach            | When Changed    | Impact                                                    |
+| ------------------------------- | --------------------------- | --------------- | --------------------------------------------------------- |
+| External database for state     | File-based state (STATE.md) | v1 (this phase) | Simpler architecture, no external dependencies            |
+| Single-run requirements         | Multi-run with state file   | v1 (this phase) | Better user experience, no pressure to answer all at once |
+| Comments API without pagination | octokit.paginate            | v1 (this phase) | Handles large comment threads correctly                   |
+| Git checkout for branches       | Git switch                  | Git 2.23 (2019) | Safer branch operations                                   |
 
 **Deprecated/outdated:**
+
 - **Global state storage:** Use repository files only for v1
 - **Single-pass comment parsing:** Use ID-based tracking for multi-run workflows
 - **Hardcoded requirements:** Make questions configurable via config file
@@ -889,6 +955,7 @@ Generated by GSD Bot`);
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [Octokit REST API Documentation](https://octokit.github.io/rest.js/v20) - Issues and comments API
 - [GitHub REST API: Contents](https://docs.github.com/en/rest/repos/contents) - File creation/update
 - [GitHub Actions Events: issue_comment](https://docs.github.com/en/actions/learn-github-actions/events-that-trigger-workflows) - Event triggering
@@ -896,15 +963,18 @@ Generated by GSD Bot`);
 - [GitHub Actions Concurrency](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#concurrency) - Concurrency groups
 
 ### Secondary (MEDIUM confidence)
+
 - [Node.js Buffer Documentation](https://nodejs.org/api/buffer.html) - Base64 encoding
 - [Git Documentation: git-branch](https://git-scm.com/docs/git-branch) - Branch creation
 
 ### Tertiary (LOW confidence)
+
 - Community patterns for multi-turn GitHub Actions workflows (no single authoritative source)
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - All from official GitHub documentation and Node.js built-ins
 - Architecture: HIGH - Patterns verified with official API docs
 - Pitfalls: HIGH - Common GitHub Actions patterns documented
@@ -915,6 +985,7 @@ Generated by GSD Bot`);
 **Valid until:** 2026-02-21 (30 days - GitHub REST API and Actions are stable)
 
 **Key decisions made in this research:**
+
 1. Use STATE.md file for multi-run state persistence
 2. Track comment IDs to distinguish new user comments from bot comments
 3. Post all pending questions in bulk format

@@ -16,6 +16,7 @@ Initialize a new project through unified flow: questioning → research (optiona
 This is the most leveraged moment in any project. Deep questioning here means better plans, better execution, better outcomes. One command takes you from idea to ready-for-planning.
 
 **Creates:**
+
 - `.planning/PROJECT.md` — project context
 - `.planning/config.json` — workflow preferences
 - `.planning/research/` — domain research (optional)
@@ -43,11 +44,13 @@ This is the most leveraged moment in any project. Deep questioning here means be
 **MANDATORY FIRST STEP — Execute these checks before ANY user interaction:**
 
 1. **Abort if project exists:**
+
    ```bash
    [ -f .planning/PROJECT.md ] && echo "ERROR: Project already initialized. Use /gsd:progress" && exit 1
    ```
 
 2. **Initialize git repo in THIS directory** (required even if inside a parent repo):
+
    ```bash
    if [ -d .git ] || [ -f .git ]; then
        echo "Git repo exists in current directory"
@@ -58,6 +61,7 @@ This is the most leveraged moment in any project. Deep questioning here means be
    ```
 
 3. **Detect existing code (brownfield detection):**
+
    ```bash
    CODE_FILES=$(find . -name "*.ts" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.swift" -o -name "*.java" 2>/dev/null | grep -v node_modules | grep -v .git | head -20)
    HAS_PACKAGE=$([ -f package.json ] || [ -f requirements.txt ] || [ -f Cargo.toml ] || [ -f go.mod ] || [ -f Package.swift ] && echo "yes")
@@ -71,10 +75,12 @@ This is the most leveraged moment in any project. Deep questioning here means be
 **If existing code detected and .planning/codebase/ doesn't exist:**
 
 Check the results from setup step:
+
 - If `CODE_FILES` is non-empty OR `HAS_PACKAGE` is "yes"
 - AND `HAS_CODEBASE_MAP` is NOT "yes"
 
 Use AskUserQuestion:
+
 - header: "Existing Code"
 - question: "I detected existing code in this directory. Would you like to map the codebase first?"
 - options:
@@ -82,9 +88,11 @@ Use AskUserQuestion:
   - "Skip mapping" — Proceed with project initialization
 
 **If "Map codebase first":**
+
 ```
 Run `/gsd:map-codebase` first, then return to `/gsd:new-project`
 ```
+
 Exit command.
 
 **If "Skip mapping":** Continue to Phase 3.
@@ -114,6 +122,7 @@ Wait for their response. This gives you the context needed to ask intelligent fo
 Based on what they said, ask follow-up questions that dig into their response. Use AskUserQuestion with options that probe what they mentioned — interpretations, clarifications, concrete examples.
 
 Keep following threads. Each answer opens new threads to explore. Ask about:
+
 - What excited them
 - What problem sparked this
 - What they mean by vague terms
@@ -121,6 +130,7 @@ Keep following threads. Each answer opens new threads to explore. Ask about:
 - What's already decided
 
 Consult `questioning.md` for techniques:
+
 - Challenge vagueness
 - Make abstract concrete
 - Surface assumptions
@@ -208,16 +218,17 @@ Initialize with any decisions made during questioning:
 ```markdown
 ## Key Decisions
 
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| [Choice from questioning] | [Why] | — Pending |
+| Decision                  | Rationale | Outcome   |
+| ------------------------- | --------- | --------- |
+| [Choice from questioning] | [Why]     | — Pending |
 ```
 
 **Last updated footer:**
 
 ```markdown
 ---
-*Last updated: [date] after initialization*
+
+_Last updated: [date] after initialization_
 ```
 
 Do not compress. Capture everything gathered.
@@ -285,11 +296,11 @@ questions: [
 
 These spawn additional agents during planning/execution. They add tokens and time but improve quality.
 
-| Agent | When it runs | What it does |
-|-------|--------------|--------------|
-| **Researcher** | Before planning each phase | Investigates domain, finds patterns, surfaces gotchas |
-| **Plan Checker** | After plan is created | Verifies plan actually achieves the phase goal |
-| **Verifier** | After phase execution | Confirms must-haves were delivered |
+| Agent            | When it runs               | What it does                                          |
+| ---------------- | -------------------------- | ----------------------------------------------------- |
+| **Researcher**   | Before planning each phase | Investigates domain, finds patterns, surfaces gotchas |
+| **Plan Checker** | After plan is created      | Verifies plan actually achieves the phase goal        |
+| **Verifier**     | After phase execution      | Confirms must-haves were delivered                    |
 
 All recommended for important projects. Skip for quick experiments.
 
@@ -353,10 +364,12 @@ Create `.planning/config.json` with all settings:
 ```
 
 **If commit_docs = No:**
+
 - Set `commit_docs: false` in config.json
 - Add `.planning/` to `.gitignore` (create if needed)
 
 **If commit_docs = Yes:**
+
 - No additional gitignore entries needed
 
 **Commit config.json:**
@@ -388,17 +401,18 @@ Default to "balanced" if not set.
 
 **Model lookup table:**
 
-| Agent | quality | balanced | budget |
-|-------|---------|----------|--------|
-| gsd-project-researcher | opus | sonnet | haiku |
-| gsd-research-synthesizer | sonnet | sonnet | haiku |
-| gsd-roadmapper | opus | sonnet | sonnet |
+| Agent                    | quality | balanced | budget |
+| ------------------------ | ------- | -------- | ------ |
+| gsd-project-researcher   | opus    | sonnet   | haiku  |
+| gsd-research-synthesizer | sonnet  | sonnet   | haiku  |
+| gsd-roadmapper           | opus    | sonnet   | sonnet |
 
 Store resolved models for use in Task calls below.
 
 ## Phase 6: Research Decision
 
 Use AskUserQuestion:
+
 - header: "Research"
 - question: "Research the domain ecosystem before defining requirements?"
 - options:
@@ -408,6 +422,7 @@ Use AskUserQuestion:
 **If "Research first":**
 
 Display stage banner:
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► RESEARCHING
@@ -417,6 +432,7 @@ Researching [domain] ecosystem...
 ```
 
 Create research directory:
+
 ```bash
 mkdir -p .planning/research
 ```
@@ -424,10 +440,12 @@ mkdir -p .planning/research
 **Determine milestone context:**
 
 Check if this is greenfield or subsequent milestone:
+
 - If no "Validated" requirements in PROJECT.md → Greenfield (building from scratch)
 - If "Validated" requirements exist → Subsequent milestone (adding to existing app)
 
 Display spawning indicator:
+
 ```
 ◆ Spawning 4 researchers in parallel...
   → Stack research
@@ -625,6 +643,7 @@ Commit after writing.
 ```
 
 Display research complete banner and key findings:
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► RESEARCH COMPLETE ✓
@@ -644,6 +663,7 @@ Files: `.planning/research/`
 ## Phase 7: Define Requirements
 
 Display stage banner:
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► DEFINING REQUIREMENTS
@@ -653,6 +673,7 @@ Display stage banner:
 **Load context:**
 
 Read PROJECT.md and extract:
+
 - Core value (the ONE thing that must work)
 - Stated constraints (budget, timeline, tech limitations)
 - Any explicit scope boundaries
@@ -689,6 +710,7 @@ Here are the features for [domain]:
 Ask: "What are the main things users need to be able to do?"
 
 For each capability mentioned:
+
 - Ask clarifying questions to make it specific
 - Probe for related capabilities
 - Group into categories
@@ -707,6 +729,7 @@ For each category, use AskUserQuestion:
   - "None for v1" — Defer entire category
 
 Track responses:
+
 - Selected features → v1 requirements
 - Unselected table stakes → v2 (users expect these)
 - Unselected differentiators → out of scope
@@ -714,6 +737,7 @@ Track responses:
 **Identify gaps:**
 
 Use AskUserQuestion:
+
 - header: "Additions"
 - question: "Any requirements research missed? (Features specific to your vision)"
 - options:
@@ -727,6 +751,7 @@ Cross-check requirements against Core Value from PROJECT.md. If gaps detected, s
 **Generate REQUIREMENTS.md:**
 
 Create `.planning/REQUIREMENTS.md` with:
+
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - v2 Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
@@ -737,12 +762,14 @@ Create `.planning/REQUIREMENTS.md` with:
 **Requirement quality criteria:**
 
 Good requirements are:
+
 - **Specific and testable:** "User can reset password via email link" (not "Handle password reset")
 - **User-centric:** "User can X" (not "System does Y")
 - **Atomic:** One capability per requirement (not "User can login and manage profile")
 - **Independent:** Minimal dependencies on other requirements
 
 Reject vague requirements. Push for specificity:
+
 - "Handle authentication" → "User can log in with email/password and stay logged in across sessions"
 - "Support sharing" → "User can share post via link that opens in recipient's browser"
 
@@ -787,6 +814,7 @@ EOF
 ## Phase 8: Create Roadmap
 
 Display stage banner:
+
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  GSD ► CREATING ROADMAP
@@ -832,6 +860,7 @@ Write files first, then return. This ensures artifacts persist even if context i
 **Handle roadmapper return:**
 
 **If `## ROADMAP BLOCKED`:**
+
 - Present blocker information
 - Work with user to resolve
 - Re-spawn when resolved
@@ -879,6 +908,7 @@ Success criteria:
 **CRITICAL: Ask for approval before committing:**
 
 Use AskUserQuestion:
+
 - header: "Roadmap"
 - question: "Does this roadmap structure work for you?"
 - options:
@@ -889,8 +919,10 @@ Use AskUserQuestion:
 **If "Approve":** Continue to commit.
 
 **If "Adjust phases":**
+
 - Get user's adjustment notes
 - Re-spawn roadmapper with revision context:
+
   ```
   Task(prompt="
   <revision>
@@ -904,6 +936,7 @@ Use AskUserQuestion:
   </revision>
   ", subagent_type="gsd-roadmapper", model="{roadmapper_model}", description="Revise roadmap")
   ```
+
 - Present revised roadmap
 - Loop until user approves
 

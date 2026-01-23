@@ -9,6 +9,7 @@
 Wire GSD's built-in `plan-phase` command into the GitHub Action with exit detection, output capture, and error handling.
 
 **Flow:**
+
 1. Run: `echo "/gsd:plan-phase 7" | ccr code --print > output.txt`
 2. Wait for agent exit (process completion)
 3. Read output.txt
@@ -21,6 +22,7 @@ Wire GSD's built-in `plan-phase` command into the GitHub Action with exit detect
 ## Implementation Decisions
 
 ### File Detection (Agent Exit)
+
 - **Detection method:** Wait for process exit, not file polling
 - **Timeout:** Per-command configurable in `config.json`
   - Some commands take 1 minute, others 1 hour
@@ -28,11 +30,13 @@ Wire GSD's built-in `plan-phase` command into the GitHub Action with exit detect
 - **Exit detection:** Check child process exit code
 
 ### Argument Format
+
 - **Phase number format:** Just the number
   - `/gsd:plan-phase 7` (not `--phase 7`)
   - Follows pattern from existing `new-milestone` command
 
 ### Error Validation
+
 - **Detection method:** Both pattern matching AND exit code
 - **Error patterns to detect:**
   - Auth errors: "Permission Denied", "Authorization failed", "not authorized"
@@ -44,6 +48,7 @@ Wire GSD's built-in `plan-phase` command into the GitHub Action with exit detect
   - Not full raw output
 
 ### Claude's Discretion
+
 - Exact exit detection implementation (child_process handling)
 - Config structure for per-command timeouts
 - Error pattern regex details
@@ -55,6 +60,7 @@ Wire GSD's built-in `plan-phase` command into the GitHub Action with exit detect
 ## Specific Ideas
 
 **Command execution pattern:**
+
 ```
 const { exec } = require('child_process');
 exec(`echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > output.txt`,
@@ -65,9 +71,11 @@ exec(`echo "/gsd:plan-phase ${phaseNumber}" | ccr code --print > output.txt`,
 ```
 
 **Error detection:**
+
 ```javascript
 function validateOutput(output, exitCode) {
-  const isError = exitCode !== 0 ||
+  const isError =
+    exitCode !== 0 ||
     /Permission Denied|Authorization failed|not authorized/i.test(output) ||
     /Error:|Something went wrong|failed/i.test(output) ||
     /Unknown command|invalid arguments|validation failed/i.test(output);
@@ -90,5 +98,5 @@ None — discussion stayed within phase scope.
 
 ---
 
-*Phase: 07-phase-planning-command*
-*Context gathered: 2026-01-22*
+_Phase: 07-phase-planning-command_
+_Context gathered: 2026-01-22_

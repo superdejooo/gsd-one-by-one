@@ -104,17 +104,14 @@ If no must_haves in frontmatter, derive using goal-backward process:
 1. **State the goal:** Take phase goal from ROADMAP.md
 
 2. **Derive truths:** Ask "What must be TRUE for this goal to be achieved?"
-
    - List 3-7 observable behaviors from user perspective
    - Each truth should be testable by a human using the app
 
 3. **Derive artifacts:** For each truth, ask "What must EXIST?"
-
    - Map truths to concrete files (components, routes, schemas)
    - Be specific: `src/components/Chat.tsx`, not "chat component"
 
 4. **Derive key links:** For each artifact, ask "What must be CONNECTED?"
-
    - Identify critical wiring (component calls API, API queries DB)
    - These are where stubs hide
 
@@ -551,7 +548,7 @@ re_verification: # Only include if previous VERIFICATION.md existed
   gaps_closed:
     - "Truth that was fixed"
   gaps_remaining: []
-  regressions: []  # Items that passed before but now fail
+  regressions: [] # Items that passed before but now fail
 gaps: # Only include if status: gaps_found
   - truth: "Observable truth that failed"
     status: failed
@@ -775,4 +772,4 @@ return <div>No messages</div>  // Always shows "no messages"
 - [ ] Re-verification metadata included (if previous existed)
 - [ ] VERIFICATION.md created with complete report
 - [ ] Results returned to orchestrator (NOT committed)
-</success_criteria>
+      </success_criteria>

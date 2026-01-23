@@ -48,7 +48,9 @@ export async function getProject(owner, projectNumber, isOrg = true) {
       number: projectNumber,
     });
 
-    const project = isOrg ? result.organization?.projectV2 : result.user?.projectV2;
+    const project = isOrg
+      ? result.organization?.projectV2
+      : result.user?.projectV2;
 
     if (!project) {
       core.warning(`Project #${projectNumber} not found for ${owner}`);
@@ -60,7 +62,7 @@ export async function getProject(owner, projectNumber, isOrg = true) {
   } catch (error) {
     if (error.status === 404 || error.status === 403) {
       core.warning(
-        `Project #${projectNumber} not found or no permission. Error: ${error.message}`
+        `Project #${projectNumber} not found or no permission. Error: ${error.message}`,
       );
       return null;
     }
@@ -130,7 +132,12 @@ export async function getIterations(projectId) {
  * @param {boolean} isOrg - True for organization projects, false for user projects
  * @returns {Promise<{id: string, title: string, startDate: string}|null>} Iteration if found, null otherwise
  */
-export async function findIteration(owner, projectNumber, iterationTitle, isOrg = true) {
+export async function findIteration(
+  owner,
+  projectNumber,
+  iterationTitle,
+  isOrg = true,
+) {
   // Get project
   const project = await getProject(owner, projectNumber, isOrg);
   if (!project) {
@@ -145,13 +152,15 @@ export async function findIteration(owner, projectNumber, iterationTitle, isOrg 
 
   // Find by title (case-insensitive)
   const iteration = iterations.find(
-    (i) => i.title.toLowerCase() === iterationTitle.toLowerCase()
+    (i) => i.title.toLowerCase() === iterationTitle.toLowerCase(),
   );
 
   if (iteration) {
     core.info(`Found iteration: ${iteration.title}`);
   } else {
-    core.warning(`Iteration "${iterationTitle}" not found in project #${projectNumber}`);
+    core.warning(
+      `Iteration "${iterationTitle}" not found in project #${projectNumber}`,
+    );
   }
 
   return iteration || null;

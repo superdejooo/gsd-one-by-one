@@ -6,10 +6,22 @@ import { octokit } from "./github.js";
  * These labels drive GitHub Project board automations
  */
 export const STATUS_LABELS = [
-  { name: 'status:pending', color: 'd4c5f9', description: 'Task is queued, not yet started' },
-  { name: 'status:in-progress', color: 'fbca04', description: 'Task is actively being worked on' },
-  { name: 'status:complete', color: '0e8a16', description: 'Task is finished' },
-  { name: 'status:blocked', color: 'd93f0b', description: 'Task cannot proceed' }
+  {
+    name: "status:pending",
+    color: "d4c5f9",
+    description: "Task is queued, not yet started",
+  },
+  {
+    name: "status:in-progress",
+    color: "fbca04",
+    description: "Task is actively being worked on",
+  },
+  { name: "status:complete", color: "0e8a16", description: "Task is finished" },
+  {
+    name: "status:blocked",
+    color: "d93f0b",
+    description: "Task cannot proceed",
+  },
 ];
 
 /**
@@ -23,10 +35,10 @@ export async function ensureLabelsExist(owner, repo, labels) {
   const existingLabels = await octokit.rest.issues.listLabelsForRepo({
     owner,
     repo,
-    per_page: 100
+    per_page: 100,
   });
 
-  const existingNames = new Set(existingLabels.data.map(l => l.name));
+  const existingNames = new Set(existingLabels.data.map((l) => l.name));
 
   // Create missing labels
   for (const label of labels) {
@@ -37,7 +49,7 @@ export async function ensureLabelsExist(owner, repo, labels) {
           repo,
           name: label.name,
           color: label.color,
-          description: label.description
+          description: label.description,
         });
         core.info(`Created label: ${label.name}`);
       } catch (error) {
@@ -66,9 +78,9 @@ export async function applyLabels(owner, repo, issueNumber, labels) {
     owner,
     repo,
     issue_number: issueNumber,
-    labels
+    labels,
   });
-  core.info(`Applied labels to issue #${issueNumber}: ${labels.join(', ')}`);
+  core.info(`Applied labels to issue #${issueNumber}: ${labels.join(", ")}`);
 }
 
 /**
@@ -81,29 +93,31 @@ export async function applyLabels(owner, repo, issueNumber, labels) {
  */
 export async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
   // Validate status
-  const validStatuses = ['pending', 'in-progress', 'complete', 'blocked'];
+  const validStatuses = ["pending", "in-progress", "complete", "blocked"];
   if (!validStatuses.includes(newStatus)) {
-    throw new Error(`Invalid status: ${newStatus}. Must be one of: ${validStatuses.join(', ')}`);
+    throw new Error(
+      `Invalid status: ${newStatus}. Must be one of: ${validStatuses.join(", ")}`,
+    );
   }
 
   // Fetch current labels
   const currentLabels = await octokit.rest.issues.listLabelsOnIssue({
     owner,
     repo,
-    issue_number: issueNumber
+    issue_number: issueNumber,
   });
 
   // Filter out existing status labels, keep all others
   const nonStatusLabels = currentLabels.data
-    .filter(l => !l.name.startsWith('status:'))
-    .map(l => l.name);
+    .filter((l) => !l.name.startsWith("status:"))
+    .map((l) => l.name);
 
   // Replace labels: all non-status labels + new status label
   await octokit.rest.issues.setLabels({
     owner,
     repo,
     issue_number: issueNumber,
-    labels: [...nonStatusLabels, `status:${newStatus}`]
+    labels: [...nonStatusLabels, `status:${newStatus}`],
   });
 
   core.info(`Updated issue #${issueNumber} status to: status:${newStatus}`);

@@ -60,14 +60,15 @@ Update formatCcrCommand to accept optional second parameter `prompt`:
 - Pattern without prompt: `ccr code --print "{gsdCommand} /github-actions-testing"` (unchanged)
 
 Update formatCcrCommandWithOutput to accept optional third parameter `prompt`:
+
 - Function signature: `formatCcrCommandWithOutput(gsdCommand, outputPath, prompt = null)`
 - Pass prompt through to formatCcrCommand call
 - Pattern: `formatCcrCommand(gsdCommand, prompt)`
 
 Update JSDoc comments for both functions to document the new parameter.
-  </action>
-  <verify>File saved, syntax valid: `node --check src/llm/ccr-command.js`</verify>
-  <done>Both functions accept optional prompt parameter, appending it to command string when provided</done>
+</action>
+<verify>File saved, syntax valid: `node --check src/llm/ccr-command.js`</verify>
+<done>Both functions accept optional prompt parameter, appending it to command string when provided</done>
 </task>
 
 <task type="auto">
@@ -79,10 +80,12 @@ Add tests to formatCcrCommand describe block:
 2. Test 'handles prompt with null value' - verify null prompt behaves same as no prompt (backward compatibility)
 
 Add tests to formatCcrCommandWithOutput describe block:
+
 1. Test 'passes prompt to formatCcrCommand' - verify prompt appears in final command string
 2. Test 'works without prompt parameter' - verify existing behavior unchanged (backward compatibility)
 
 Example expected outputs:
+
 - With prompt: `ccr code --print "/gsd:new-milestone Create a login system" /github-actions-testing"`
   Wait, re-reading requirements... Pattern is `/gsd:{command} /github-actions-testing {prompt}`
 - With prompt: `ccr code --print "/gsd:new-milestone /github-actions-testing Create a login system" > output.txt 2>&1`
@@ -90,7 +93,7 @@ Example expected outputs:
   </action>
   <verify>Run tests: `npm test -- src/llm/ccr-command.test.js` - all tests pass</verify>
   <done>New tests for prompt parameter pass, existing tests still pass (no regressions)</done>
-</task>
+  </task>
 
 </tasks>
 
@@ -100,10 +103,13 @@ Example expected outputs:
 node --check src/llm/ccr-command.js
 
 # Run specific tests
+
 npm test -- src/llm/ccr-command.test.js
 
 # Run full test suite to ensure no regressions
+
 npm test
+
 ```
 </verification>
 
@@ -118,3 +124,4 @@ npm test
 <output>
 After completion, create `.planning/quick/005-add-prompt-parameter-to-formatccrcommand/005-SUMMARY.md`
 </output>
+```

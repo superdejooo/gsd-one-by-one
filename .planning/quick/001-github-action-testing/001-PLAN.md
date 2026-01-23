@@ -44,10 +44,11 @@ Output: Passing build and test suite, ready-to-deploy dist/index.js
 This is a verification task for an existing GitHub Actions project. The workflow at `.github/workflows/test.yml` runs on push/PR, but we want to verify locally first.
 
 Key files:
+
 - `src/index.js` — Action entry point (bundled to dist/)
 - `package.json` — Contains build and test scripts
 - `.github/workflows/test.yml` — CI test workflow
-</context>
+  </context>
 
 <tasks>
 
@@ -62,6 +63,7 @@ Key files:
     - licenses.txt — License attribution file (required by GitHub Marketplace)
 
     The build command is: `ncc build src/index.js --license licenses.txt && rm -f dist/package.json`
+
   </action>
   <verify>
     Command: `npm run build && ls -la dist/index.js licenses.txt`
@@ -79,6 +81,7 @@ Key files:
     Run `npm run test:ci` to execute the full vitest test suite with coverage.
 
     This runs all tests in `src/**/*.test.js` files and generates coverage report.
+
   </action>
   <verify>
     Command: `npm run test:ci`
@@ -99,11 +102,12 @@ After both tasks complete:
 </verification>
 
 <success_criteria>
+
 - Build completes without errors
 - dist/index.js is generated (ready for GitHub Actions)
 - All tests pass with coverage report generated
 - No lint or build warnings
-</success_criteria>
+  </success_criteria>
 
 <output>
 After completion, create `.planning/quick/001-github-action-testing/001-SUMMARY.md`

@@ -17,12 +17,14 @@ The implementation relies on GitHub's REST API endpoint `GET /repos/{owner}/{rep
 The established libraries and patterns for GitHub Action authorization:
 
 ### Core
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@actions/github` | ^7.0.0 | Webhook context, repository info, sender identification | Official GitHub Actions toolkit, provides context.payload access |
-| `@octokit/plugin-throttling` | ^11.0.3 | Rate-limited API calls | Already in project dependencies, handles GitHub API rate limits |
+
+| Library                      | Version | Purpose                                                 | Why Standard                                                     |
+| ---------------------------- | ------- | ------------------------------------------------------- | ---------------------------------------------------------------- |
+| `@actions/github`            | ^7.0.0  | Webhook context, repository info, sender identification | Official GitHub Actions toolkit, provides context.payload access |
+| `@octokit/plugin-throttling` | ^11.0.3 | Rate-limited API calls                                  | Already in project dependencies, handles GitHub API rate limits  |
 
 ### Authorization Flow
+
 ```
 issue_comment webhook
   -> github.context.payload.sender.login (triggering user)
@@ -32,21 +34,24 @@ issue_comment webhook
 ```
 
 ### API Endpoint for Permission Check
-| Endpoint | Purpose | Required Permission |
-|----------|---------|---------------------|
-| `GET /repos/{owner}/{repo}/collaborators/{username}/permission` | Check user permission level | `Metadata: read` |
+
+| Endpoint                                                        | Purpose                     | Required Permission |
+| --------------------------------------------------------------- | --------------------------- | ------------------- |
+| `GET /repos/{owner}/{repo}/collaborators/{username}/permission` | Check user permission level | `Metadata: read`    |
 
 ### Permission Level Mapping
-| Permission Value | Has Write Access | Notes |
-|------------------|------------------|-------|
-| `admin` | YES | Full write access including admin features |
-| `write` | YES | Standard write access |
-| `maintain` | YES | Maps to write access |
-| `read` | NO | Read-only access |
-| `triage` | NO | Maps to read access |
-| `none` | NO | No access |
+
+| Permission Value | Has Write Access | Notes                                      |
+| ---------------- | ---------------- | ------------------------------------------ |
+| `admin`          | YES              | Full write access including admin features |
+| `write`          | YES              | Standard write access                      |
+| `maintain`       | YES              | Maps to write access                       |
+| `read`           | NO               | Read-only access                           |
+| `triage`         | NO               | Maps to read access                        |
+| `none`           | NO               | No access                                  |
 
 **Installation:**
+
 ```bash
 # Dependencies already in package.json
 npm install @actions/github @octokit/plugin-throttling
@@ -55,6 +60,7 @@ npm install @actions/github @octokit/plugin-throttling
 ## Architecture Patterns
 
 ### Recommended Project Structure
+
 ```
 src/
 ├── auth/
@@ -65,9 +71,11 @@ src/
 ```
 
 ### Pattern 1: Authorization Module
+
 **What:** Standalone module that validates user permissions before command execution
 **When to use:** At the entry point of command processing, after parsing but before any operations
 **Example:**
+
 ```javascript
 // Source: GitHub REST API documentation
 import * as github from "@actions/github";
@@ -119,9 +127,11 @@ export function getAuthContext() {
 ```
 
 ### Pattern 2: Authorization Error with User Feedback
+
 **What:** Specialized error type for authorization failures with markdown-formatted messages
 **When to use:** When permission check fails, before any state-modifying operations
 **Example:**
+
 ```javascript
 /**
  * Authorization error with user-friendly message
@@ -165,11 +175,17 @@ To trigger the GSD milestone workflow, you need:
 ```
 
 ### Pattern 3: Integration with Existing Error Handler
+
 **What:** Extend the existing `withErrorHandling` to support authorization-specific error handling
 **When to use:** In the main action entry point
 **Example:**
+
 ```javascript
-import { hasWriteAccess, getAuthContext, AuthorizationError } from "./auth/validator.js";
+import {
+  hasWriteAccess,
+  getAuthContext,
+  AuthorizationError,
+} from "./auth/validator.js";
 import { formatAuthorizationError } from "./auth/errors.js";
 import { postComment } from "./lib/github.js";
 
@@ -184,13 +200,13 @@ export async function validateAuthorization(octokit, context) {
     octokit,
     context.owner,
     context.repo,
-    context.username
+    context.username,
   );
 
   if (!hasAccess) {
     throw new AuthorizationError(
       `User ${context.username} lacks write access to ${context.owner}/${context.repo}`,
-      `You do not have write access to this repository.`
+      `You do not have write access to this repository.`,
     );
   }
 }
@@ -214,31 +230,34 @@ await validateAuthorization(octokit, authContext);
 
 Problems that look simple but have existing solutions:
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Permission level determination | Custom logic mapping roles to access levels | API's `permission` field values | The API already maps maintain/triage roles correctly |
-| Rate limit handling for permission API | Custom retry logic | Existing `@octokit/plugin-throttling` | Already configured in `octokit` instance |
-| Authorization error formatting | Build custom markdown from scratch | `formatAuthorizationError()` pattern | Consistent with existing error formatting |
-| Sender identification from webhook | Parse raw webhook payload | `github.context.payload.sender` | Official @actions/github library provides typed access |
-| User-friendly permission errors | Generic "access denied" | Specific message explaining how to get access | Reduces support burden, improves UX |
+| Problem                                | Don't Build                                 | Use Instead                                   | Why                                                    |
+| -------------------------------------- | ------------------------------------------- | --------------------------------------------- | ------------------------------------------------------ |
+| Permission level determination         | Custom logic mapping roles to access levels | API's `permission` field values               | The API already maps maintain/triage roles correctly   |
+| Rate limit handling for permission API | Custom retry logic                          | Existing `@octokit/plugin-throttling`         | Already configured in `octokit` instance               |
+| Authorization error formatting         | Build custom markdown from scratch          | `formatAuthorizationError()` pattern          | Consistent with existing error formatting              |
+| Sender identification from webhook     | Parse raw webhook payload                   | `github.context.payload.sender`               | Official @actions/github library provides typed access |
+| User-friendly permission errors        | Generic "access denied"                     | Specific message explaining how to get access | Reduces support burden, improves UX                    |
 
 **Key insight:** The GitHub API's permission endpoint is the authoritative source for access levels. Building custom logic to determine "write access" from other endpoints (like listing repository contributors) would be incomplete and potentially incorrect.
 
 ## Common Pitfalls
 
 ### Pitfall 1: Using GITHUB_TOKEN Permissions Instead of User Permissions
-**What goes wrong:** The action runs with the GITHUB_TOKEN's permissions, but authorization should check if the *triggering user* has write access. The token is either bot-owned or app-owned, not the user.
+
+**What goes wrong:** The action runs with the GITHUB*TOKEN's permissions, but authorization should check if the \_triggering user* has write access. The token is either bot-owned or app-owned, not the user.
 
 **Why it happens:** Confusing token authorization (what the action can do) with user authorization (what the user is allowed to trigger).
 
 **How to avoid:** Always call `repos.getCollaboratorPermissionLevel` for the `sender.login` from the webhook payload, not the token's permissions.
 
 **Warning signs:**
+
 - Action responds to all users regardless of their actual repository access
 - "I can trigger the bot but it fails later" complaints
 - Logs show successful execution when user should be blocked
 
 ### Pitfall 2: Authorization After Git Operations
+
 **What goes wrong:** Checking permissions after creating branches or other git operations, resulting in partial state changes from unauthorized users.
 
 **Why it happens:** Placing authorization checks too late in the execution flow, after command parsing and git setup.
@@ -246,11 +265,13 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Validate authorization immediately after command parsing, before any `createBranch`, `configureGitIdentity`, or other state-modifying calls.
 
 **Warning signs:**
+
 - Ghost branches created by unauthorized users
 - Partial workflow state left behind after authorization failure
 - Need to clean up after authorization failures
 
 ### Pitfall 3: Ignoring 404 Responses
+
 **What goes wrong:** Treating a 404 from the permission endpoint as an error rather than "no access."
 
 **Why it happens:** 404 means "user is not a collaborator" which is a valid authorization state (just not authorized).
@@ -258,10 +279,12 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Explicitly check for 404 status in permission check and return `false` (no write access) rather than throwing.
 
 **Warning signs:**
+
 - Authorization errors in logs for users not in the collaborator list
 - Generic error messages instead of helpful "request access" guidance
 
 ### Pitfall 4: Not Explaining How to Get Access
+
 **What goes wrong:** Authorization errors say "permission denied" without explaining what permissions are needed or how to obtain them.
 
 **Why it happens:** Generic error handling that doesn't consider the user experience for authorization failures.
@@ -269,10 +292,12 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Include specific guidance in authorization error messages about required access levels and how to request them.
 
 **Warning signs:**
+
 - Users opening support issues asking "why can't I use this?"
 - Confusion about what "write access" means in the GitHub context
 
 ### Pitfall 5: Caching Permission Results Incorrectly
+
 **What goes wrong:** Caching permission checks across different users or workflow runs, leading to authorization bypass.
 
 **Why it happens:** Reusing permission check results inappropriately, especially in workflows with multiple commands.
@@ -280,12 +305,14 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Always check permissions for the current `sender.login` fresh, don't cache across users or long time periods.
 
 **Warning signs:**
+
 - Authorization working for one user but another user gets their permissions
 - Permission checks seem to return stale results
 
 ## Code Examples
 
 ### Authorization Validation Flow
+
 ```javascript
 // Source: GitHub REST API + @actions/github context pattern
 import * as github from "@actions/github";
@@ -343,6 +370,7 @@ export async function checkAuthorization(octokit) {
 ```
 
 ### Integration with Main Entry Point
+
 ```javascript
 // Source: Based on existing index.js pattern
 import { checkAuthorization } from "./auth/validator.js";
@@ -357,7 +385,7 @@ async function main() {
     const errorMessage = formatAuthorizationError(
       authResult.username || "unknown",
       `${github.context.repo.owner}/${github.context.repo.repo}`,
-      workflowUrl
+      workflowUrl,
     );
 
     // Post clear error to the issue
@@ -365,20 +393,23 @@ async function main() {
       github.context.repo.owner,
       github.context.repo.repo,
       github.context.issue?.number,
-      errorMessage
+      errorMessage,
     );
 
     core.setFailed(`Authorization failed: ${authResult.reason}`);
     return;
   }
 
-  core.info(`Authorization verified: ${authResult.username} has ${authResult.permission} access`);
+  core.info(
+    `Authorization verified: ${authResult.username} has ${authResult.permission} access`,
+  );
 
   // Continue with command execution...
 }
 ```
 
 ### Error Message Format
+
 ```markdown
 ## Permission Denied
 
@@ -387,6 +418,7 @@ async function main() {
 ### Required Permissions
 
 To trigger the GSD milestone workflow, you need:
+
 - **Write** access to `owner/repo`, or
 - **Maintain** role, or
 - **Admin** role
@@ -402,19 +434,21 @@ To trigger the GSD milestone workflow, you need:
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| No authorization check | Explicit permission validation | GSD for GitHub Phase 6 | Only authorized users can trigger workflow |
-| GITHUB_TOKEN used for auth | User permission checked via API | GSD for GitHub Phase 6 | Prevents unauthorized users from executing |
-| Generic error messages | User-friendly permission guidance | GSD for GitHub Phase 6 | Reduces support burden |
+| Old Approach               | Current Approach                  | When Changed           | Impact                                     |
+| -------------------------- | --------------------------------- | ---------------------- | ------------------------------------------ |
+| No authorization check     | Explicit permission validation    | GSD for GitHub Phase 6 | Only authorized users can trigger workflow |
+| GITHUB_TOKEN used for auth | User permission checked via API   | GSD for GitHub Phase 6 | Prevents unauthorized users from executing |
+| Generic error messages     | User-friendly permission guidance | GSD for GitHub Phase 6 | Reduces support burden                     |
 
 **OWASP Security Guidelines Applied:**
+
 - **Principle of least privilege:** GITHUB_TOKEN permissions scoped to minimum required
 - **Access control verification:** `repos.getCollaboratorPermissionLevel` validates user access
 - **Input validation:** Shell metacharacters sanitized (per prior decisions)
 - **Config allowlist validation:** Per OWASP guidelines (per prior decisions)
 
 **Deprecated/outdated:**
+
 - Relying on repository visibility alone (public repos can have unauthorized commenters)
 - Checking only whether user is organization member (org members may lack repo access)
 
@@ -438,21 +472,25 @@ To trigger the GSD milestone workflow, you need:
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [GitHub REST API - Collaborators](https://docs.github.com/en/rest/collaborators/collaborators) - Permission checking endpoint documentation
 - [GitHub REST API - Repos](https://docs.github.com/en/rest/repos/repos) - Repository permission response format
 - [GitHub Webhook Events - issue_comment](https://docs.github.com/en/webhooks/webhook-events-and-payloads#issue_comment) - Webhook payload structure with sender object
 - [@actions/github Toolkit](https://github.com/actions/toolkit/tree/main/packages/github) - Context access patterns
 
 ### Secondary (MEDIUM confidence)
+
 - [OWASP IDOR Prevention Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html) - Access control verification patterns
 - [GitHub Security Hardening for Actions](https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions) - Token permissions and least privilege
 
 ### Tertiary (LOW confidence)
+
 - [Octokit REST.js](https://github.com/octokit/rest.js) - Library documentation (general usage, specific methods from API docs)
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard Stack: HIGH - GitHub API and @actions/github are authoritative sources
 - Architecture: HIGH - Patterns derived from official documentation and GitHub Actions best practices
 - Pitfalls: HIGH - Common authorization mistakes documented in security hardening guides
@@ -461,6 +499,7 @@ To trigger the GSD milestone workflow, you need:
 **Valid until:** 2026-07-22 (6 months - GitHub API is stable)
 
 **Existing codebase integration points:**
+
 - Uses existing `octokit` instance from `src/lib/github.js`
 - Integrates with `formatErrorComment` pattern from `src/errors/formatter.js`
 - Uses `withErrorHandling` pattern from `src/errors/handler.js`

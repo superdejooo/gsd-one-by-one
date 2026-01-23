@@ -22,15 +22,29 @@ export async function withErrorHandling(operation, context) {
     if (error.isAuthorizationError === true) {
       core.info("Authorization error detected - posting user-friendly message");
       if (context.issueNumber) {
-        await postComment(context.owner, context.repo, context.issueNumber, error.userMessage);
+        await postComment(
+          context.owner,
+          context.repo,
+          context.issueNumber,
+          error.userMessage,
+        );
       }
-      return { success: false, error: error.message, isAuthorizationError: true };
+      return {
+        success: false,
+        error: error.message,
+        isAuthorizationError: true,
+      };
     }
 
     // Post formatted error to issue/PR for technical errors
     if (context.issueNumber) {
       const errorComment = formatErrorComment(error, workflowUrl);
-      await postComment(context.owner, context.repo, context.issueNumber, errorComment);
+      await postComment(
+        context.owner,
+        context.repo,
+        context.issueNumber,
+        errorComment,
+      );
     }
 
     return { success: false, error: error.message };

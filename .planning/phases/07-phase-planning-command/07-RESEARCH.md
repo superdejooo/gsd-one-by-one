@@ -9,6 +9,7 @@
 Phase 7 implements the `gsd:plan-phase` command that parses phase numbers and creates detailed execution plans. This extends the existing milestone creation workflow pattern to support phase-level planning, enabling users to plan individual phases through GitHub issue comments.
 
 The implementation leverages existing patterns from the milestone workflow (Phase 5) including the orchestrator pattern, planning document generation, and GitHub API integration. Key new work includes:
+
 1. Extending the command allowlist to include `plan-phase`
 2. Creating a phase-specific number parser (mirroring `parseMilestoneNumber`)
 3. Building a phase planner module that generates PLAN.md files with tasks, dependencies, and wave groupings
@@ -21,19 +22,22 @@ The implementation leverages existing patterns from the milestone workflow (Phas
 The established libraries and patterns for phase planning:
 
 ### Core
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@actions/github` | ^7.0.0 | Webhook context, repository info, GitHub API | Official GitHub Actions toolkit |
-| `@actions/core` | ^1.11.1 | Action outputs, logging, inputs | Official GitHub Actions toolkit |
-| `node:fs/promises` | Node.js built-in | File system operations | Native ES module support |
-| `@octokit/plugin-throttling` | ^11.0.3 | Rate-limited API calls | Already in project dependencies |
+
+| Library                      | Version          | Purpose                                      | Why Standard                    |
+| ---------------------------- | ---------------- | -------------------------------------------- | ------------------------------- |
+| `@actions/github`            | ^7.0.0           | Webhook context, repository info, GitHub API | Official GitHub Actions toolkit |
+| `@actions/core`              | ^1.11.1          | Action outputs, logging, inputs              | Official GitHub Actions toolkit |
+| `node:fs/promises`           | Node.js built-in | File system operations                       | Native ES module support        |
+| `@octokit/plugin-throttling` | ^11.0.3          | Rate-limited API calls                       | Already in project dependencies |
 
 ### Command Processing Pipeline
+
 ```
 parseComment(commentBody) -> validateCommand(command) -> sanitizeArguments(args) -> executePhaseWorkflow()
 ```
 
 ### File Structure Pattern (from existing code)
+
 ```
 src/
 ├── index.js                          # Entry point, command dispatch
@@ -52,6 +56,7 @@ src/
 ```
 
 **Installation:**
+
 ```bash
 # No new dependencies - uses existing @actions/github, @actions/core, and node:fs
 ```
@@ -59,6 +64,7 @@ src/
 ## Architecture Patterns
 
 ### Recommended Project Structure
+
 ```
 src/
 ├── milestone/
@@ -68,9 +74,11 @@ src/
 ```
 
 ### Pattern 1: Phase Number Parsing
+
 **What:** Extract phase number from command arguments using established pattern
 **When to use:** At the start of phase planning workflow
 **Example:**
+
 ```javascript
 // Based on parseMilestoneNumber pattern from src/milestone/index.js
 
@@ -109,14 +117,18 @@ export function parsePhaseNumber(commandArgs) {
     return parseInt(standaloneMatch[1], 10);
   }
 
-  throw new Error("Could not parse phase number from arguments. Use '--phase N' or provide the number directly.");
+  throw new Error(
+    "Could not parse phase number from arguments. Use '--phase N' or provide the number directly.",
+  );
 }
 ```
 
 ### Pattern 2: Phase Planning Orchestrator
+
 **What:** Orchestrate the complete phase planning workflow
 **When to use:** When `gsd:plan-phase` command is dispatched
 **Example:**
+
 ```javascript
 // Based on executeMilestoneWorkflow pattern from src/milestone/index.js
 
@@ -126,8 +138,16 @@ import { postComment, getWorkflowRunUrl } from "../lib/github.js";
 import { formatErrorComment } from "../errors/formatter.js";
 import { createPhaseBranch, branchExists } from "../git/branches.js";
 import { runGitCommand, configureGitIdentity } from "../git/git.js";
-import { loadPhaseState, savePhaseState, createPhaseState, updatePhaseWorkflowRun } from "./state.js";
-import { createPhasePlanDocs, generatePhasePlanMarkdown } from "./planning-docs.js";
+import {
+  loadPhaseState,
+  savePhaseState,
+  createPhaseState,
+  updatePhaseWorkflowRun,
+} from "./state.js";
+import {
+  createPhasePlanDocs,
+  generatePhasePlanMarkdown,
+} from "./planning-docs.js";
 import { generatePhasePlanningSummary } from "./summarizer.js";
 
 /**
@@ -152,7 +172,9 @@ export async function executePhaseWorkflow(context, commandArgs) {
   const { owner, repo, issueNumber } = context;
   const workflowUrl = getWorkflowRunUrl();
 
-  core.info(`Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`);
+  core.info(
+    `Starting phase planning workflow for ${owner}/${repo}#${issueNumber}`,
+  );
 
   try {
     // Step 1: Parse phase number
@@ -169,8 +191,10 @@ export async function executePhaseWorkflow(context, commandArgs) {
       owner,
       repo,
       issueNumber,
-      goal: milestoneData.phases?.[phaseNumber - 1]?.goal || `Phase ${phaseNumber}`,
-      dependencies: milestoneData.phases?.[phaseNumber - 1]?.dependencies || "None",
+      goal:
+        milestoneData.phases?.[phaseNumber - 1]?.goal || `Phase ${phaseNumber}`,
+      dependencies:
+        milestoneData.phases?.[phaseNumber - 1]?.dependencies || "None",
       // Wave grouping: tasks organized by dependency level
       waves: [
         {
@@ -180,9 +204,9 @@ export async function executePhaseWorkflow(context, commandArgs) {
               id: "7-01",
               description: "Initial setup and foundation",
               verification: "Files created, tests passing",
-              dependsOn: []
-            }
-          ]
+              dependsOn: [],
+            },
+          ],
         },
         {
           wave: 2,
@@ -191,11 +215,11 @@ export async function executePhaseWorkflow(context, commandArgs) {
               id: "7-02",
               description: "Core implementation",
               verification: "Integration tests passing",
-              dependsOn: ["7-01"]
-            }
-          ]
-        }
-      ]
+              dependsOn: ["7-01"],
+            },
+          ],
+        },
+      ],
     };
 
     // Step 4: Create plan documents
@@ -206,22 +230,30 @@ export async function executePhaseWorkflow(context, commandArgs) {
     const files = [];
     for (const wave of phaseData.waves) {
       const planContent = generatePhasePlanMarkdown(phaseData, wave);
-      const planPath = `${phaseDir}${String(phaseNumber).padStart(2, '0')}-${String(wave.wave).padStart(2, '0')}-PLAN.md`;
+      const planPath = `${phaseDir}${String(phaseNumber).padStart(2, "0")}-${String(wave.wave).padStart(2, "0")}-PLAN.md`;
       await fs.writeFile(planPath, planContent);
-      files.push({ path: planPath, purpose: `Wave ${wave.wave} plan`, wave: wave.wave });
+      files.push({
+        path: planPath,
+        purpose: `Wave ${wave.wave} plan`,
+        wave: wave.wave,
+      });
     }
 
     // Step 5: Commit to phase branch
     const branchName = `gsd/${milestoneData.milestoneNumber}-${phaseNumber}`;
     await configureGitIdentity(
       "github-actions[bot]",
-      "41898282+github-actions[bot]@users.noreply.github.com"
+      "41898282+github-actions[bot]@users.noreply.github.com",
     );
 
     // Create or switch to phase branch
     const exists = await branchExists(branchName);
     if (!exists) {
-      await createPhaseBranch(milestoneData.milestoneNumber, phaseNumber, `phase-${phaseNumber}`);
+      await createPhaseBranch(
+        milestoneData.milestoneNumber,
+        phaseNumber,
+        `phase-${phaseNumber}`,
+      );
     } else {
       await runGitCommand(`git switch ${branchName}`);
     }
@@ -232,7 +264,7 @@ export async function executePhaseWorkflow(context, commandArgs) {
     }
     await runGitCommand(`git commit -m "docs(phase-${phaseNumber}): Create phase planning documents
 
-- ${files.map(f => f.path.split('/').pop()).join(', ')}
+- ${files.map((f) => f.path.split("/").pop()).join(", ")}
 
 Generated by GSD Bot"`);
 
@@ -242,7 +274,7 @@ Generated by GSD Bot"`);
       milestoneNumber: milestoneData.milestoneNumber,
       files,
       waves: phaseData.waves.length,
-      branch: branchName
+      branch: branchName,
     });
 
     await postComment(owner, repo, issueNumber, summary);
@@ -251,11 +283,10 @@ Generated by GSD Bot"`);
       complete: true,
       phase: "phase-planned",
       phaseNumber,
-      files: files.map(f => f.path),
+      files: files.map((f) => f.path),
       branch: branchName,
-      message: `Phase ${phaseNumber} planning complete`
+      message: `Phase ${phaseNumber} planning complete`,
     };
-
   } catch (error) {
     core.error(`Phase planning error: ${error.message}`);
 
@@ -268,9 +299,11 @@ Generated by GSD Bot"`);
 ```
 
 ### Pattern 3: Phase Plan Document Generation
+
 **What:** Generate structured PLAN.md files with tasks, dependencies, and verification
 **When to use:** During phase plan document creation
 **Example:**
+
 ```javascript
 // Based on generateProjectMarkdown pattern
 
@@ -284,12 +317,15 @@ export function generatePhasePlanMarkdown(phaseData, wave) {
   const { phaseNumber, milestoneNumber, goal, dependencies } = phaseData;
   const { wave: waveNum, tasks } = wave;
 
-  const tasksTable = tasks.map(task => {
-    const depStr = task.dependsOn.length > 0
-      ? task.dependsOn.map(d => `\`${d}\``).join(', ')
-      : "None";
-    return `| \`${task.id}\` | ${task.description} | ${depStr} | ${task.verification} |`;
-  }).join('\n');
+  const tasksTable = tasks
+    .map((task) => {
+      const depStr =
+        task.dependsOn.length > 0
+          ? task.dependsOn.map((d) => `\`${d}\``).join(", ")
+          : "None";
+      return `| \`${task.id}\` | ${task.description} | ${depStr} | ${task.verification} |`;
+    })
+    .join("\n");
 
   return `# Phase ${phaseNumber}: Wave ${waveNum} Plan
 
@@ -315,7 +351,7 @@ ${tasksTable}
 ## Wave Summary
 
 **Total Tasks:** ${tasks.length}
-**Parallelizable:** ${tasks.filter(t => t.dependsOn.length === 0).length}
+**Parallelizable:** ${tasks.filter((t) => t.dependsOn.length === 0).length}
 
 ## Next Steps
 
@@ -330,9 +366,11 @@ ${tasksTable}
 ```
 
 ### Pattern 4: Command Dispatch Extension
+
 **What:** Extend existing command dispatch to handle `plan-phase`
 **When to use:** In `src/index.js` main entry point
 **Example:**
+
 ```javascript
 // Based on existing new-milestone dispatch pattern
 
@@ -343,8 +381,12 @@ const ALLOWED_COMMANDS = ["new-milestone", "plan-phase"];
 if (parsed.command === "new-milestone") {
   // Existing milestone workflow
   const result = await executeMilestoneWorkflow(
-    { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-    sanitizedArgs
+    {
+      owner: repoOwner,
+      repo: repoName,
+      issueNumber: github.context.issue?.number,
+    },
+    sanitizedArgs,
   );
   return { commandFound: true, command: parsed.command, ...result };
 }
@@ -353,8 +395,12 @@ if (parsed.command === "plan-phase") {
   // New phase planning workflow
   core.info("Dispatching to phase planning workflow");
   const result = await executePhaseWorkflow(
-    { owner: repoOwner, repo: repoName, issueNumber: github.context.issue?.number },
-    sanitizedArgs
+    {
+      owner: repoOwner,
+      repo: repoName,
+      issueNumber: github.context.issue?.number,
+    },
+    sanitizedArgs,
   );
   core.setOutput("phase-planned", result.complete);
   core.setOutput("phase-number", result.phaseNumber);
@@ -363,9 +409,11 @@ if (parsed.command === "plan-phase") {
 ```
 
 ### Pattern 5: Phase Summary Generation
+
 **What:** Generate summary comment for phase planning completion
 **When to use:** After phase plan documents are created
 **Example:**
+
 ```javascript
 // Based on generateMilestoneSummary pattern
 
@@ -377,9 +425,10 @@ if (parsed.command === "plan-phase") {
 export function generatePhasePlanningSummary(data) {
   const { phaseNumber, milestoneNumber, files, waves, branch } = data;
 
-  const filesTable = files.length > 0
-    ? files.map(f => `| \`${f.path}\` | Wave ${f.wave} plan |`).join('\n')
-    : "| (none) | |";
+  const filesTable =
+    files.length > 0
+      ? files.map((f) => `| \`${f.path}\` | Wave ${f.wave} plan |`).join("\n")
+      : "| (none) | |";
 
   return `## Phase ${phaseNumber} Planning Complete
 
@@ -416,19 +465,20 @@ ${filesTable}
 
 Problems that look simple but have existing solutions:
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Markdown document generation | Custom markdown builder | `generatePhasePlanMarkdown()` pattern | Consistent with existing `generateProjectMarkdown` pattern |
-| Phase branch naming | Custom naming logic | `createPhaseBranch(milestone, phase, name)` | Existing pattern in `src/git/branches.js` handles slugification |
-| Git commit with planning docs | Custom git commands | `commitPlanningDocs()` pattern | Existing handles identity config and error cases |
-| Summary comment formatting | Custom markdown from scratch | `generatePhasePlanningSummary()` | Consistent with `generateMilestoneSummary` |
-| File path construction | Manual string concatenation | Path templates with template literals | Prevents path traversal issues |
+| Problem                       | Don't Build                  | Use Instead                                 | Why                                                             |
+| ----------------------------- | ---------------------------- | ------------------------------------------- | --------------------------------------------------------------- |
+| Markdown document generation  | Custom markdown builder      | `generatePhasePlanMarkdown()` pattern       | Consistent with existing `generateProjectMarkdown` pattern      |
+| Phase branch naming           | Custom naming logic          | `createPhaseBranch(milestone, phase, name)` | Existing pattern in `src/git/branches.js` handles slugification |
+| Git commit with planning docs | Custom git commands          | `commitPlanningDocs()` pattern              | Existing handles identity config and error cases                |
+| Summary comment formatting    | Custom markdown from scratch | `generatePhasePlanningSummary()`            | Consistent with `generateMilestoneSummary`                      |
+| File path construction        | Manual string concatenation  | Path templates with template literals       | Prevents path traversal issues                                  |
 
 **Key insight:** The existing milestone workflow provides a complete template for phase planning. Adapt patterns rather than building custom solutions.
 
 ## Common Pitfalls
 
 ### Pitfall 1: Not Loading Milestone Context First
+
 **What goes wrong:** Phase plans lack context about milestone goals, scope, and existing phases
 
 **Why it happens:** Phase planning depends on milestone-level documents that may not exist or be outdated
@@ -436,10 +486,12 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Always load milestone context from `.planning/milestones/{n}/` before generating phase plans
 
 **Warning signs:**
+
 - Generated plans reference "undefined" milestone
 - Phase goals don't match milestone ROADMAP.md
 
 ### Pitfall 2: Circular Dependencies in Task Planning
+
 **What goes wrong:** Task A depends on B, task B depends on A, causing infinite wave loop
 
 **Why it happens:** Manual task dependency specification without validation
@@ -447,10 +499,12 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Validate no circular dependencies exist before generating plan; throw error if cycle detected
 
 **Warning signs:**
+
 - More waves than tasks
 - Phase execution hangs on task ordering
 
 ### Pitfall 3: Not Using Phase Branch
+
 **What goes wrong:** Plan files committed to milestone branch instead of phase-specific branch
 
 **Why it happens:** Reusing `commitPlanningDocs` without adapting for phase branches
@@ -458,10 +512,12 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Use `createPhaseBranch()` for phase plans, not `createMilestoneBranch()`
 
 **Warning signs:**
+
 - All phase plans on same branch
 - Merge conflicts when planning multiple phases
 
 ### Pitfall 4: Missing Verification Criteria
+
 **What goes wrong:** Tasks have descriptions but no verification, making execution status unclear
 
 **Why it happens:** Generating tasks without requiring verification criteria
@@ -469,12 +525,14 @@ Problems that look simple but have existing solutions:
 **How to avoid:** Make verification field required in task definition; reject tasks without it
 
 **Warning signs:**
+
 - Tasks marked "complete" without actual verification
 - Users asking "how do I know this is done?"
 
 ## Code Examples
 
 ### Phase State Management
+
 ```javascript
 // Based on src/milestone/state.js pattern
 
@@ -493,8 +551,8 @@ export function createPhaseState(phaseNumber, milestoneNumber) {
     workflow: {
       startedAt: new Date().toISOString(),
       lastRunAt: null,
-      runCount: 0
-    }
+      runCount: 0,
+    },
   };
 }
 
@@ -504,6 +562,7 @@ export async function loadPhaseState(owner, repo, phaseNumber) {
 ```
 
 ### Task Dependency Analysis
+
 ```javascript
 /**
  * Analyze task dependencies and group into waves
@@ -516,14 +575,14 @@ export async function loadPhaseState(owner, repo, phaseNumber) {
 export function groupTasksIntoWaves(tasks) {
   const waves = [];
   const assigned = new Set();
-  const taskMap = new Map(tasks.map(t => [t.id, t]));
+  const taskMap = new Map(tasks.map((t) => [t.id, t]));
 
   let waveNum = 1;
   while (assigned.size < tasks.length) {
-    const waveTasks = tasks.filter(task => {
+    const waveTasks = tasks.filter((task) => {
       // Task is ready if all dependencies are assigned
       const deps = task.dependsOn || [];
-      const depsAssigned = deps.every(d => assigned.has(d));
+      const depsAssigned = deps.every((d) => assigned.has(d));
       return !assigned.has(task.id) && depsAssigned;
     });
 
@@ -532,7 +591,7 @@ export function groupTasksIntoWaves(tasks) {
     }
 
     waves.push({ wave: waveNum, tasks: waveTasks });
-    waveTasks.forEach(t => assigned.add(t.id));
+    waveTasks.forEach((t) => assigned.add(t.id));
     waveNum++;
   }
 
@@ -541,6 +600,7 @@ export function groupTasksIntoWaves(tasks) {
 ```
 
 ### Reading Milestone Context
+
 ```javascript
 /**
  * Load milestone context from planning documents
@@ -558,12 +618,14 @@ async function loadMilestoneContext(owner, repo) {
     const response = await octokit.rest.repos.getContent({
       owner,
       repo,
-      path: ".planning/milestones/1/ROADMAP.md" // milestone number from STATE.md
+      path: ".planning/milestones/1/ROADMAP.md", // milestone number from STATE.md
     });
     roadmap = Buffer.from(response.data.content, "base64").toString("utf-8");
   } catch (error) {
     if (error.status === 404) {
-      throw new Error("Milestone ROADMAP.md not found. Create milestone first with @gsd-bot new-milestone");
+      throw new Error(
+        "Milestone ROADMAP.md not found. Create milestone first with @gsd-bot new-milestone",
+      );
     }
     throw error;
   }
@@ -574,21 +636,22 @@ async function loadMilestoneContext(owner, repo) {
   return {
     milestoneNumber: 1, // Would come from STATE.md
     phases,
-    roadmap
+    roadmap,
   };
 }
 ```
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| No phase planning | Dedicated phase planner module | Phase 7 | Users can plan individual phases |
-| Milestone-level only | Phase-level with wave grouping | Phase 7 | Granular task planning |
-| No task dependencies | Dependency-aware wave grouping | Phase 7 | Safe parallel execution |
-| Direct commit to main | Phase branch per plan | Phase 7 | Reviewable, mergeable plans |
+| Old Approach          | Current Approach               | When Changed | Impact                           |
+| --------------------- | ------------------------------ | ------------ | -------------------------------- |
+| No phase planning     | Dedicated phase planner module | Phase 7      | Users can plan individual phases |
+| Milestone-level only  | Phase-level with wave grouping | Phase 7      | Granular task planning           |
+| No task dependencies  | Dependency-aware wave grouping | Phase 7      | Safe parallel execution          |
+| Direct commit to main | Phase branch per plan          | Phase 7      | Reviewable, mergeable plans      |
 
 **Key Design Decisions:**
+
 - Phase plans live in `.planning/phases/{n}/` (separate from milestone docs)
 - Each wave gets its own PLAN.md file for focused execution
 - Tasks include explicit dependencies and verification criteria
@@ -614,21 +677,25 @@ async function loadMilestoneContext(owner, repo) {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - [GitHub Actions JavaScript Action - Setting up](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions) - Action structure and ES modules
 - [GitHub REST API - Repos get content](https://docs.github.com/en/rest/repos/repos#get-content) - Reading planning documents
 - [GitHub REST API - Repos create or update file contents](https://docs.github.com/en/rest/repos/repos#create-or-update-file-contents) - Committing plan files
 - Existing codebase patterns from `src/milestone/index.js`, `src/milestone/planning-docs.js`
 
 ### Secondary (MEDIUM confidence)
+
 - [Node.js fs/promises documentation](https://nodejs.org/api/fs.html) - ES module file operations
 - [ES Modules in Node.js](https://nodejs.org/api/esm.html) - Import/export syntax
 
 ### Tertiary (LOW confidence)
+
 - Community patterns for GitHub Action document generation (inferred from existing code)
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard Stack: HIGH - Uses existing project dependencies and established patterns
 - Architecture: HIGH - Adapts existing milestone workflow patterns to phase context
 - Pitfalls: HIGH - Based on known issues from milestone workflow implementation
@@ -637,6 +704,7 @@ async function loadMilestoneContext(owner, repo) {
 **Valid until:** 2026-07-22 (6 months - GitHub Actions ES modules are stable)
 
 **Existing codebase integration points:**
+
 - Extends `src/lib/validator.js` ALLOWLIST
 - Adds new `src/milestone/phase-planner.js` module
 - Uses existing `src/git/branches.js` for phase branch creation

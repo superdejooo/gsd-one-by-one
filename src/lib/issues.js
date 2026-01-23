@@ -11,14 +11,15 @@ export function extractTasksFromPlan(planContent) {
   const tasks = [];
 
   // Match XML-style task blocks with type, name, files, action, verify, done
-  const taskPattern = /<task\s+type="(auto|checkpoint:[^"]+)">\s*<name>([\s\S]*?)<\/name>\s*<files>([\s\S]*?)<\/files>\s*<action>([\s\S]*?)<\/action>\s*<verify>([\s\S]*?)<\/verify>\s*<done>([\s\S]*?)<\/done>\s*<\/task>/g;
+  const taskPattern =
+    /<task\s+type="(auto|checkpoint:[^"]+)">\s*<name>([\s\S]*?)<\/name>\s*<files>([\s\S]*?)<\/files>\s*<action>([\s\S]*?)<\/action>\s*<verify>([\s\S]*?)<\/verify>\s*<done>([\s\S]*?)<\/done>\s*<\/task>/g;
 
   let match;
   while ((match = taskPattern.exec(planContent)) !== null) {
     const taskName = match[2].trim();
 
     // Remove "Task N:" prefix if present
-    const cleanedName = taskName.replace(/^Task\s+\d+:\s*/i, '');
+    const cleanedName = taskName.replace(/^Task\s+\d+:\s*/i, "");
 
     tasks.push({
       type: match[1].trim(),
@@ -26,7 +27,7 @@ export function extractTasksFromPlan(planContent) {
       files: match[3].trim(),
       action: match[4].trim(),
       verify: match[5].trim(),
-      done: match[6].trim()
+      done: match[6].trim(),
     });
   }
 
@@ -66,7 +67,7 @@ ${task.done}
 
   // Truncate if exceeds GitHub's 65536 char limit (use 65000 for safety)
   if (body.length > 65000) {
-    body = body.substring(0, 64997) + '...';
+    body = body.substring(0, 64997) + "...";
   }
 
   return body;
@@ -82,7 +83,7 @@ function truncateTitle(title, maxLength) {
   if (title.length <= maxLength) {
     return title;
   }
-  return title.substring(0, maxLength - 3) + '...';
+  return title.substring(0, maxLength - 3) + "...";
 }
 
 /**
@@ -94,12 +95,18 @@ function truncateTitle(title, maxLength) {
  * @param {string} phaseName - Phase name
  * @returns {Promise<Array<{number: number, url: string, taskName: string}>>}
  */
-export async function createIssuesForTasks(owner, repo, tasks, phaseNumber, phaseName) {
+export async function createIssuesForTasks(
+  owner,
+  repo,
+  tasks,
+  phaseNumber,
+  phaseName,
+) {
   // Ensure phase label exists
   const phaseLabel = {
     name: `phase-${phaseNumber}`,
-    color: '1d76db',  // Blue
-    description: `Phase ${phaseNumber} tasks`
+    color: "1d76db", // Blue
+    description: `Phase ${phaseNumber} tasks`,
   };
 
   // Ensure all labels exist (phase label + status labels)
@@ -110,25 +117,30 @@ export async function createIssuesForTasks(owner, repo, tasks, phaseNumber, phas
   // Create issues sequentially (throttling plugin handles rate limiting)
   for (const task of tasks) {
     try {
-      const cleanTaskName = task.name.replace(/^Task\s+\d+:\s*/i, '');
-      const issueTitle = truncateTitle(`${String(phaseNumber).padStart(2, '0')}: ${cleanTaskName}`, 240);
+      const cleanTaskName = task.name.replace(/^Task\s+\d+:\s*/i, "");
+      const issueTitle = truncateTitle(
+        `${String(phaseNumber).padStart(2, "0")}: ${cleanTaskName}`,
+        240,
+      );
 
       const issue = await octokit.rest.issues.create({
         owner,
         repo,
         title: issueTitle,
         body: formatIssueBody(task, phaseNumber, phaseName),
-        labels: ['status:pending', `phase-${phaseNumber}`]
+        labels: ["status:pending", `phase-${phaseNumber}`],
       });
 
       core.info(`Created issue #${issue.data.number}: ${cleanTaskName}`);
       createdIssues.push({
         number: issue.data.number,
         url: issue.data.html_url,
-        taskName: cleanTaskName
+        taskName: cleanTaskName,
       });
     } catch (error) {
-      core.warning(`Failed to create issue for "${task.name}": ${error.message}`);
+      core.warning(
+        `Failed to create issue for "${task.name}": ${error.message}`,
+      );
       // Continue creating other issues
     }
   }
@@ -148,20 +160,20 @@ export async function getPhaseIssues(owner, repo, phaseNumber) {
     owner,
     repo,
     labels: `phase-${phaseNumber}`,
-    state: 'all',
-    per_page: 100
+    state: "all",
+    per_page: 100,
   });
 
-  return issues.map(issue => {
+  return issues.map((issue) => {
     // Extract status from status: label
-    const statusLabel = issue.labels.find(l => l.name.startsWith('status:'));
-    const status = statusLabel ? statusLabel.name : 'unknown';
+    const statusLabel = issue.labels.find((l) => l.name.startsWith("status:"));
+    const status = statusLabel ? statusLabel.name : "unknown";
 
     return {
       number: issue.number,
       title: issue.title,
       status,
-      url: issue.html_url
+      url: issue.html_url,
     };
   });
 }

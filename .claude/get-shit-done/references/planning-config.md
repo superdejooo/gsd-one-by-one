@@ -3,6 +3,7 @@
 Configuration options for `.planning/` directory behavior.
 
 <config_schema>
+
 ```json
 "planning": {
   "commit_docs": true,
@@ -10,20 +11,23 @@ Configuration options for `.planning/` directory behavior.
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `commit_docs` | `true` | Whether to commit planning artifacts to git |
-| `search_gitignored` | `false` | Add `--no-ignore` to broad rg searches |
+| Option              | Default | Description                                 |
+| ------------------- | ------- | ------------------------------------------- |
+| `commit_docs`       | `true`  | Whether to commit planning artifacts to git |
+| `search_gitignored` | `false` | Add `--no-ignore` to broad rg searches      |
+
 </config_schema>
 
 <commit_docs_behavior>
 
 **When `commit_docs: true` (default):**
+
 - Planning files committed normally
 - SUMMARY.md, STATE.md, ROADMAP.md tracked in git
 - Full history of planning decisions preserved
 
 **When `commit_docs: false`:**
+
 - Skip all `git add`/`git commit` for `.planning/` files
 - User must add `.planning/` to `.gitignore`
 - Useful for: OSS contributions, client projects, keeping planning private
@@ -54,11 +58,13 @@ fi
 <search_behavior>
 
 **When `search_gitignored: false` (default):**
+
 - Standard rg behavior (respects .gitignore)
 - Direct path searches work: `rg "pattern" .planning/` finds files
 - Broad searches skip gitignored: `rg "pattern"` skips `.planning/`
 
 **When `search_gitignored: true`:**
+
 - Add `--no-ignore` to broad rg searches that should include `.planning/`
 - Only needed when searching entire repo and expecting `.planning/` matches
 
@@ -71,6 +77,7 @@ fi
 To use uncommitted mode:
 
 1. **Set config:**
+
    ```json
    "planning": {
      "commit_docs": false,
@@ -79,6 +86,7 @@ To use uncommitted mode:
    ```
 
 2. **Add to .gitignore:**
+
    ```
    .planning/
    ```

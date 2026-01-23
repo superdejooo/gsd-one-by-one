@@ -209,6 +209,7 @@ Wait for user selection.
 Based on user selection, route to appropriate workflow:
 
 - **Execute plan** → Show command for user to run after clearing:
+
   ```
   ---
 
@@ -222,7 +223,9 @@ Based on user selection, route to appropriate workflow:
 
   ---
   ```
+
 - **Plan phase** → Show command for user to run after clearing:
+
   ```
   ---
 
@@ -242,11 +245,12 @@ Based on user selection, route to appropriate workflow:
 
   ---
   ```
+
 - **Transition** → ./transition.md
 - **Check todos** → Read .planning/todos/pending/, present summary
 - **Review alignment** → Read PROJECT.md, compare to current state
 - **Something else** → Ask what they need
-</step>
+  </step>
 
 <step name="update_session">
 Before proceeding to routed workflow, update session continuity:
@@ -288,6 +292,7 @@ This handles cases where:
 
 <quick_resume>
 If user says "continue" or "go":
+
 - Load state silently
 - Determine primary action
 - Execute immediately without presenting options

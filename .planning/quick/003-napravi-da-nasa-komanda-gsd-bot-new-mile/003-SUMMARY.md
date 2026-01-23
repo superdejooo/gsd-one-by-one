@@ -51,6 +51,7 @@ Update `@gsd-bot new-milestone` to require a mandatory description parameter ins
 ## What Was Changed
 
 ### Task 1: Parser Enhancement
+
 - Added `parseDescriptionArg()` helper function in `src/lib/parser.js`
 - Extracts full description text from command args
 - Returns null for empty/whitespace-only input
@@ -58,12 +59,14 @@ Update `@gsd-bot new-milestone` to require a mandatory description parameter ins
 - Added 9 comprehensive tests
 
 **Files modified:**
+
 - `src/lib/parser.js` - Added parseDescriptionArg function
 - `src/lib/parser.test.js` - Added 9 tests for description parsing
 
 **Commit:** `e2f1489`
 
 ### Task 2: Validator Update
+
 - Updated `sanitizeArguments()` in `src/lib/validator.js`
 - Special handling for `description` key: allows up to 50000 chars
 - Other arguments maintain 500 char limit
@@ -71,12 +74,14 @@ Update `@gsd-bot new-milestone` to require a mandatory description parameter ins
 - Added 6 comprehensive tests for description handling
 
 **Files modified:**
+
 - `src/lib/validator.js` - Updated length validation logic
 - `src/lib/validator.test.js` - Added 6 tests for description validation
 
 **Commit:** `8bfe05e`
 
 ### Task 3: Milestone Workflow Update
+
 - Added `parseMilestoneDescription()` function to extract and validate description
 - Updated `executeMilestoneWorkflow()` to skip Q&A and use description directly
 - Description populates both `scope` and `features` in requirements object
@@ -86,6 +91,7 @@ Update `@gsd-bot new-milestone` to require a mandatory description parameter ins
 - Updated existing workflow tests for new behavior
 
 **Files modified:**
+
 - `src/milestone/index.js` - Added parseMilestoneDescription, updated workflow
 - `src/milestone/index.test.js` - Added tests and updated existing tests
 - `src/index.js` - Updated to pass raw args string
@@ -98,6 +104,7 @@ Update `@gsd-bot new-milestone` to require a mandatory description parameter ins
 ### Command Formats Supported
 
 All these formats work:
+
 ```bash
 @gsd-bot new-milestone Build authentication system with login and signup
 @gsd-bot new-milestone 1 Build authentication system with login and signup
@@ -117,11 +124,13 @@ All these formats work:
 ### Error Handling
 
 Missing description triggers clear error:
+
 ```
 Error: Milestone description is required. Provide a description of your milestone goals and features.
 ```
 
 This error occurs when:
+
 - No description provided: `@gsd-bot new-milestone 1`
 - Only milestone flag: `@gsd-bot new-milestone --milestone 1`
 - Empty/whitespace only text
@@ -129,6 +138,7 @@ This error occurs when:
 ## Testing
 
 ### Test Coverage
+
 - Added 25 new tests across 4 test files
 - All 388 tests passing
 - Parser: 29 tests (9 new)
@@ -137,6 +147,7 @@ This error occurs when:
 - Index dispatch: 12 tests (1 updated)
 
 ### Test Scenarios Covered
+
 - Description extraction with various formats
 - Long descriptions (5000+, 10000+ chars)
 - Description length validation (50000 char limit)
@@ -151,11 +162,11 @@ None - plan executed exactly as written.
 
 ## Commits
 
-| Task | Commit | Files Changed | Tests Added |
-|------|--------|---------------|-------------|
-| 1. Parser enhancement | e2f1489 | 2 files | 9 tests |
-| 2. Validator update | 8bfe05e | 2 files | 6 tests |
-| 3. Workflow update | 124f83d | 5 files | 10 tests |
+| Task                  | Commit  | Files Changed | Tests Added |
+| --------------------- | ------- | ------------- | ----------- |
+| 1. Parser enhancement | e2f1489 | 2 files       | 9 tests     |
+| 2. Validator update   | 8bfe05e | 2 files       | 6 tests     |
+| 3. Workflow update    | 124f83d | 5 files       | 10 tests    |
 
 ## Verification
 
@@ -169,16 +180,19 @@ None - plan executed exactly as written.
 ## Impact
 
 **User Experience:**
+
 - 🚀 Faster workflow - no multi-turn Q&A needed
 - ✅ Single command creates milestone with description
 - 📝 Clear error messages when description missing
 
 **Implementation:**
+
 - Backward incompatible change - old usage without description now fails
 - Existing Q&A code paths remain for potential future use
 - Requirements gathering module still exists but bypassed
 
 **Future Considerations:**
+
 - May want to add optional Q&A mode via flag (e.g., `--interactive`)
 - Could support both description and additional Q&A refinement
 - Consider adding description templates or examples in error message

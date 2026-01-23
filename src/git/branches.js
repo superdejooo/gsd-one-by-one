@@ -33,7 +33,12 @@ export async function createMilestoneBranch(milestoneNumber) {
  * @param {string} phaseName - Phase name to slugify
  * @param {string} [startPoint] - Optional start point (default: current HEAD)
  */
-export async function createPhaseBranch(milestoneNumber, phaseNumber, phaseName, startPoint = null) {
+export async function createPhaseBranch(
+  milestoneNumber,
+  phaseNumber,
+  phaseName,
+  startPoint = null,
+) {
   const slug = slugify(phaseName);
   const branchName = `gsd/${milestoneNumber}-${phaseNumber}-${slug}`;
   await createAndSwitchBranch(branchName, startPoint);

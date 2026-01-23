@@ -33,27 +33,30 @@ export function generateMilestoneSummary(data) {
     status = "Requirements Gathering",
     files = [],
     requirements = {},
-    nextSteps = []
+    nextSteps = [],
   } = data;
 
   // Build files table
-  const filesTable = files.length > 0
-    ? files.map(f => `| \`${f.path}\` | ${f.purpose} |`).join('\n')
-    : "| (none) | |";
+  const filesTable =
+    files.length > 0
+      ? files.map((f) => `| \`${f.path}\` | ${f.purpose} |`).join("\n")
+      : "| (none) | |";
 
   // Build requirements status
   const reqStatus = requirements.complete
     ? ":white_check_mark: All requirements gathered"
     : `:hourglass: ${requirements.pending?.length || "Some"} question(s) pending`;
 
-  const answeredList = requirements.answered?.length > 0
-    ? `Answered: ${requirements.answered.map(q => `\`${q}\``).join(', ')}`
-    : "None yet";
+  const answeredList =
+    requirements.answered?.length > 0
+      ? `Answered: ${requirements.answered.map((q) => `\`${q}\``).join(", ")}`
+      : "None yet";
 
   // Build next steps
-  const nextStepsList = nextSteps.length > 0
-    ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join('\n')
-    : "1. Answer remaining requirements questions in comments\n2. I'll continue planning once all questions are answered";
+  const nextStepsList =
+    nextSteps.length > 0
+      ? nextSteps.map((step, i) => `${i + 1}. ${step}`).join("\n")
+      : "1. Answer remaining requirements questions in comments\n2. I'll continue planning once all questions are answered";
 
   const branchName = `gsd/${milestoneNumber}`;
 
@@ -93,10 +96,15 @@ ${nextStepsList}
  * @param {Array<string>} pendingQuestions - List of pending question IDs
  * @returns {string} Markdown summary for partial completion
  */
-export function generatePartialSummary(milestoneNumber, requirements, pendingQuestions) {
-  const questionsText = pendingQuestions.length > 0
-    ? pendingQuestions.map(q => `- ${q}`).join('\n')
-    : "- (all answered, awaiting confirmation)";
+export function generatePartialSummary(
+  milestoneNumber,
+  requirements,
+  pendingQuestions,
+) {
+  const questionsText =
+    pendingQuestions.length > 0
+      ? pendingQuestions.map((q) => `- ${q}`).join("\n")
+      : "- (all answered, awaiting confirmation)";
 
   return `## Milestone ${milestoneNumber}: Requirements Gathering
 

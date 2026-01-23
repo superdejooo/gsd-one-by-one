@@ -29,18 +29,18 @@ export function parseStateMarkdown(content) {
     requirements: {
       complete: false,
       answered: {},
-      pending: []
+      pending: [],
     },
-    phases: []
+    phases: [],
   };
 
-  const lines = content.split('\n');
-  let currentSection = '';
+  const lines = content.split("\n");
+  let currentSection = "";
 
   for (const line of lines) {
     // Detect section headers
-    if (line.startsWith('## ')) {
-      currentSection = line.replace('## ', '').trim();
+    if (line.startsWith("## ")) {
+      currentSection = line.replace("## ", "").trim();
       continue;
     }
 
@@ -51,34 +51,34 @@ export function parseStateMarkdown(content) {
       const value = keyValueMatch[2].trim();
 
       switch (key) {
-        case 'Milestone':
+        case "Milestone":
           state.milestone = parseInt(value, 10);
           break;
-        case 'Status':
+        case "Status":
           state.status = value;
           break;
-        case 'Started':
+        case "Started":
           state.createdAt = value;
           break;
-        case 'Last Run':
+        case "Last Run":
           state.lastRunAt = value;
           break;
-        case 'Run Count':
+        case "Run Count":
           state.runCount = parseInt(value, 10) || 0;
           break;
-        case 'Last Comment ID':
+        case "Last Comment ID":
           state.lastCommentId = parseInt(value, 10) || 0;
           break;
       }
     }
 
     // Parse requirements status in Requirements Gathering section
-    if (currentSection === 'Requirements Gathering') {
-      if (line.startsWith('**Status:**')) {
-        const statusText = line.replace('**Status:**', '').trim();
-        state.requirements.complete = statusText === 'Complete';
+    if (currentSection === "Requirements Gathering") {
+      if (line.startsWith("**Status:**")) {
+        const statusText = line.replace("**Status:**", "").trim();
+        state.requirements.complete = statusText === "Complete";
       }
-      if (line.startsWith('**Questions Answered:**')) {
+      if (line.startsWith("**Questions Answered:**")) {
         // Parse answered count - we'll need to update answered array from elsewhere
       }
     }
@@ -95,23 +95,20 @@ export function parseStateMarkdown(content) {
  * @returns {string} Markdown content
  */
 export function generateStateMarkdown(state, phases = []) {
-  const {
-    milestone,
-    status,
-    createdAt,
-    lastRunAt,
-    runCount,
-    requirements
-  } = state;
+  const { milestone, status, createdAt, lastRunAt, runCount, requirements } =
+    state;
 
-  const phaseRows = phases.length > 0
-    ? phases.map((p, i) => {
-        const phaseNum = String(i + 1).padStart(2, '0');
-        const phaseName = p.name || "Unnamed Phase";
-        const phaseStatus = p.status || "pending";
-        return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
-      }).join('\n')
-    : "|   | (none defined) | pending |";
+  const phaseRows =
+    phases.length > 0
+      ? phases
+          .map((p, i) => {
+            const phaseNum = String(i + 1).padStart(2, "0");
+            const phaseName = p.name || "Unnamed Phase";
+            const phaseStatus = p.status || "pending";
+            return `| ${phaseNum} | ${phaseName} | ${phaseStatus} |`;
+          })
+          .join("\n")
+      : "|   | (none defined) | pending |";
 
   const reqStatus = requirements?.complete ? "Complete" : "In Progress";
   const answeredCount = Object.keys(requirements?.answered || {}).length;
@@ -164,15 +161,15 @@ export function createInitialState(milestoneNumber) {
     requirements: {
       complete: false,
       answered: {},
-      pending: []
+      pending: [],
     },
     workflow: {
       startedAt: now,
       lastRunAt: null,
       runCount: 0,
-      lastCommentId: 0
+      lastCommentId: 0,
     },
-    phases: []
+    phases: [],
   };
 }
 
@@ -192,17 +189,21 @@ export async function loadState(owner, repo, milestoneNumber) {
     const response = await octokit.rest.repos.getContent({
       owner,
       repo,
-      path
+      path,
     });
 
-    const content = Buffer.from(response.data.content, "base64").toString("utf-8");
+    const content = Buffer.from(response.data.content, "base64").toString(
+      "utf-8",
+    );
     const state = parseStateMarkdown(content);
 
     core.info(`Loaded state for milestone ${milestoneNumber} from ${path}`);
     return state;
   } catch (error) {
     if (error.status === 404) {
-      core.info(`State file not found for milestone ${milestoneNumber}, creating initial state`);
+      core.info(
+        `State file not found for milestone ${milestoneNumber}, creating initial state`,
+      );
       return createInitialState(milestoneNumber);
     }
     throw error;
@@ -218,7 +219,13 @@ export async function loadState(owner, repo, milestoneNumber) {
  * @param {Array} phases - Phase definitions (optional)
  * @returns {Promise<void>}
  */
-export async function saveState(owner, repo, milestoneNumber, state, phases = []) {
+export async function saveState(
+  owner,
+  repo,
+  milestoneNumber,
+  state,
+  phases = [],
+) {
   const token = core.getInput("token") || process.env.GITHUB_TOKEN;
   const octokit = github.getOctokit(token);
   const path = STATE_FILE.replace("{n}", milestoneNumber);
@@ -231,7 +238,7 @@ export async function saveState(owner, repo, milestoneNumber, state, phases = []
     const existing = await octokit.rest.repos.getContent({
       owner,
       repo,
-      path
+      path,
     });
     sha = existing.data.sha;
   } catch (error) {
@@ -245,7 +252,7 @@ export async function saveState(owner, repo, milestoneNumber, state, phases = []
     path,
     message: `chore: Update milestone ${milestoneNumber} state`,
     content: encodedContent,
-    sha: sha // Omit for create, include for update
+    sha: sha, // Omit for create, include for update
   });
 
   core.info(`State saved to ${path}`);
@@ -266,8 +273,8 @@ export function isRequirementsComplete(state, questions) {
   }
 
   // Check if all required questions have answers
-  const requiredQuestions = questions.filter(q => q.required);
-  const allRequiredAnswered = requiredQuestions.every(q => answered[q.id]);
+  const requiredQuestions = questions.filter((q) => q.required);
+  const allRequiredAnswered = requiredQuestions.every((q) => answered[q.id]);
 
   return allRequiredAnswered;
 }
@@ -285,7 +292,9 @@ export function updateRequirementsAnswer(state, questionId, answer, commentId) {
   state.requirements.answered[questionId] = answer;
 
   // Remove from pending if present
-  state.requirements.pending = state.requirements.pending.filter(q => q !== questionId);
+  state.requirements.pending = state.requirements.pending.filter(
+    (q) => q !== questionId,
+  );
 
   // Update last comment ID
   state.workflow.lastCommentId = commentId;
@@ -300,7 +309,7 @@ export function updateRequirementsAnswer(state, questionId, answer, commentId) {
  * @returns {object} Updated state
  */
 export function initializePendingQuestions(state, questions) {
-  state.requirements.pending = questions.map(q => q.id);
+  state.requirements.pending = questions.map((q) => q.id);
   return state;
 }
 
@@ -314,7 +323,7 @@ export function updateWorkflowRun(state) {
     startedAt: state.createdAt,
     runCount: 0,
     lastRunAt: null,
-    lastCommentId: state.lastCommentId || 0
+    lastCommentId: state.lastCommentId || 0,
   };
 
   state.workflow.runCount++;

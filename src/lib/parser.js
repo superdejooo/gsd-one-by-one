@@ -9,7 +9,7 @@
  * See: .github/workflows/gsd-command-handler.yml
  */
 
-const BOT_MENTION = '@gsd-bot';
+const BOT_MENTION = "@gsd-bot";
 
 /**
  * Parse comment body to extract @gsd-bot command
@@ -18,7 +18,10 @@ const BOT_MENTION = '@gsd-bot';
  */
 export function parseComment(commentBody) {
   // Trim whitespace and normalize line breaks
-  const normalizedBody = commentBody.trim().replace(/\r\n/g, ' ').replace(/\n/g, ' ');
+  const normalizedBody = commentBody
+    .trim()
+    .replace(/\r\n/g, " ")
+    .replace(/\n/g, " ");
 
   // Check if bot is mentioned (case-insensitive)
   const normalizedForMention = normalizedBody.toLowerCase();
@@ -27,7 +30,10 @@ export function parseComment(commentBody) {
   }
 
   // Extract command - pattern: @gsd-bot command-name [args...]
-  const commandPattern = new RegExp(`${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`, 'i');
+  const commandPattern = new RegExp(
+    `${BOT_MENTION}\\s+(\\S+)(?:\\s+(.*))?$`,
+    "i",
+  );
   const match = normalizedBody.match(commandPattern);
 
   if (!match) {
@@ -37,7 +43,7 @@ export function parseComment(commentBody) {
   return {
     botMention: match[0],
     command: match[1].toLowerCase(), // Normalize to lowercase
-    args: match[2] ? match[2].trim() : ''
+    args: match[2] ? match[2].trim() : "",
   };
 }
 
@@ -56,8 +62,10 @@ export function parseArguments(argsString) {
     let value = match[2];
 
     // Remove quotes if present
-    if ((value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))) {
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
       value = value.slice(1, -1);
     }
 
@@ -81,7 +89,7 @@ export function parseDescriptionArg(argsString) {
   return argsString.trim();
 }
 
-import { SKILL_COMMAND_MAP } from './validator.js';
+import { SKILL_COMMAND_MAP } from "./validator.js";
 
 /**
  * Valid skill names from SKILL_COMMAND_MAP

@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "20.x"
 
       - name: Install dependencies
         run: npm ci
@@ -110,6 +110,7 @@ jobs:
 ### 2. Add Your API Key
 
 Go to **Settings → Secrets and variables → Actions** and add:
+
 - `ANTHROPIC_API_KEY` — Your Anthropic API key
 
 ### 3. Start Using
@@ -124,11 +125,11 @@ The bot will respond and guide you through requirements gathering.
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
+| Command                    | Description                                              |
+| -------------------------- | -------------------------------------------------------- |
 | `@gsd-bot new-milestone N` | Start a new milestone, gather requirements interactively |
-| `@gsd-bot plan-phase N` | Create detailed execution plan for phase N |
-| `@gsd-bot execute-phase N` | Execute the plan for phase N with atomic commits |
+| `@gsd-bot plan-phase N`    | Create detailed execution plan for phase N               |
+| `@gsd-bot execute-phase N` | Execute the plan for phase N with atomic commits         |
 
 ## How It Works
 
@@ -151,7 +152,7 @@ Planning docs created in .planning/ folder
 1. **new-milestone** — Define what you want to build (multi-turn conversation)
 2. **plan-phase** — Research and plan implementation for each phase
 3. **execute-phase** — AI implements the plan with atomic commits
-4. **verify-work** — Validate features work as expected *(coming soon)*
+4. **verify-work** — Validate features work as expected _(coming soon)_
 
 ## Documentation
 

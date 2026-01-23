@@ -1,31 +1,31 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock fs module using factory function
-vi.mock('fs', () => ({
+vi.mock("fs", () => ({
   default: {
     existsSync: vi.fn(),
     mkdirSync: vi.fn(),
-    writeFileSync: vi.fn()
-  }
+    writeFileSync: vi.fn(),
+  },
 }));
 
 // Mock os module using factory function
-vi.mock('os', () => ({
+vi.mock("os", () => ({
   default: {
-    homedir: vi.fn(() => '/mock/home')
-  }
+    homedir: vi.fn(() => "/mock/home"),
+  },
 }));
 
 // Import after mocks
-import { generateCCRConfig } from './config-generator.js';
-import fs from 'fs';
-import os from 'os';
+import { generateCCRConfig } from "./config-generator.js";
+import fs from "fs";
+import os from "os";
 
-describe('generateCCRConfig', () => {
+describe("generateCCRConfig", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.OPENROUTER_API_KEY = 'test-key';
-    process.env.CCR_DEFAULT_MODEL = 'test-model';
+    process.env.OPENROUTER_API_KEY = "test-key";
+    process.env.CCR_DEFAULT_MODEL = "test-model";
   });
 
   afterEach(() => {
@@ -33,27 +33,30 @@ describe('generateCCRConfig', () => {
     delete process.env.CCR_DEFAULT_MODEL;
   });
 
-  it('creates config directory if not exists', () => {
+  it("creates config directory if not exists", () => {
     vi.mocked(fs.existsSync).mockReturnValue(false);
 
     generateCCRConfig();
 
-    expect(fs.mkdirSync).toHaveBeenCalledWith('/mock/home/.claude-code-router', { recursive: true });
+    expect(fs.mkdirSync).toHaveBeenCalledWith(
+      "/mock/home/.claude-code-router",
+      { recursive: true },
+    );
   });
 
-  it('writes config.json to ~/.claude-code-router/', () => {
+  it("writes config.json to ~/.claude-code-router/", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
-      '/mock/home/.claude-code-router/config.json',
+      "/mock/home/.claude-code-router/config.json",
       expect.any(String),
-      'utf8'
+      "utf8",
     );
   });
 
-  it('includes NON_INTERACTIVE_MODE: true', () => {
+  it("includes NON_INTERACTIVE_MODE: true", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
@@ -65,7 +68,7 @@ describe('generateCCRConfig', () => {
     expect(config.NON_INTERACTIVE_MODE).toBe(true);
   });
 
-  it('includes Providers array with openrouter', () => {
+  it("includes Providers array with openrouter", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
@@ -76,11 +79,11 @@ describe('generateCCRConfig', () => {
 
     expect(config.Providers).toBeInstanceOf(Array);
     expect(config.Providers.length).toBeGreaterThan(0);
-    expect(config.Providers[0].name).toBe('openrouter');
-    expect(config.Providers[0].api_key).toBe('test-key');
+    expect(config.Providers[0].name).toBe("openrouter");
+    expect(config.Providers[0].api_key).toBe("test-key");
   });
 
-  it('includes Router with default model', () => {
+  it("includes Router with default model", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
@@ -90,18 +93,20 @@ describe('generateCCRConfig', () => {
     const config = JSON.parse(configContent);
 
     expect(config.Router).toBeDefined();
-    expect(config.Router.default).toContain('test-model');
+    expect(config.Router.default).toContain("test-model");
   });
 
-  it('throws if OPENROUTER_API_KEY not set', () => {
+  it("throws if OPENROUTER_API_KEY not set", () => {
     delete process.env.OPENROUTER_API_KEY;
 
-    expect(() => generateCCRConfig()).toThrow('OPENROUTER_API_KEY environment variable is required');
+    expect(() => generateCCRConfig()).toThrow(
+      "OPENROUTER_API_KEY environment variable is required",
+    );
   });
 
-  it('uses CCR_DEFAULT_MODEL env var when provided', () => {
+  it("uses CCR_DEFAULT_MODEL env var when provided", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
-    process.env.CCR_DEFAULT_MODEL = 'custom-model';
+    process.env.CCR_DEFAULT_MODEL = "custom-model";
 
     generateCCRConfig();
 
@@ -109,10 +114,10 @@ describe('generateCCRConfig', () => {
     const configContent = writeCall[1];
     const config = JSON.parse(configContent);
 
-    expect(config.Router.default).toBe('openrouter,custom-model');
+    expect(config.Router.default).toBe("openrouter,custom-model");
   });
 
-  it('defaults to z-ai/glm-4.7 when CCR_DEFAULT_MODEL not set', () => {
+  it("defaults to z-ai/glm-4.7 when CCR_DEFAULT_MODEL not set", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
     delete process.env.CCR_DEFAULT_MODEL;
 
@@ -122,10 +127,10 @@ describe('generateCCRConfig', () => {
     const configContent = writeCall[1];
     const config = JSON.parse(configContent);
 
-    expect(config.Router.default).toBe('openrouter,z-ai/glm-4.7');
+    expect(config.Router.default).toBe("openrouter,z-ai/glm-4.7");
   });
 
-  it('skips directory creation if directory exists', () => {
+  it("skips directory creation if directory exists", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
@@ -133,7 +138,7 @@ describe('generateCCRConfig', () => {
     expect(fs.mkdirSync).not.toHaveBeenCalled();
   });
 
-  it('includes full CCR config structure', () => {
+  it("includes full CCR config structure", () => {
     vi.mocked(fs.existsSync).mockReturnValue(true);
 
     generateCCRConfig();
@@ -142,13 +147,13 @@ describe('generateCCRConfig', () => {
     const configContent = writeCall[1];
     const config = JSON.parse(configContent);
 
-    expect(config).toHaveProperty('NON_INTERACTIVE_MODE');
-    expect(config).toHaveProperty('LOG');
-    expect(config).toHaveProperty('LOG_LEVEL');
-    expect(config).toHaveProperty('HOST');
-    expect(config).toHaveProperty('PORT');
-    expect(config).toHaveProperty('Providers');
-    expect(config).toHaveProperty('Router');
-    expect(config).toHaveProperty('StatusLine');
+    expect(config).toHaveProperty("NON_INTERACTIVE_MODE");
+    expect(config).toHaveProperty("LOG");
+    expect(config).toHaveProperty("LOG_LEVEL");
+    expect(config).toHaveProperty("HOST");
+    expect(config).toHaveProperty("PORT");
+    expect(config).toHaveProperty("Providers");
+    expect(config).toHaveProperty("Router");
+    expect(config).toHaveProperty("StatusLine");
   });
 });

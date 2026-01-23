@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -6,31 +6,31 @@ export default defineConfig({
     globals: false,
 
     // Node.js environment (not jsdom - this is a CLI tool)
-    environment: 'node',
+    environment: "node",
 
     // Coverage configuration
     coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      provider: "v8",
+      reporter: ["text", "json", "html", "lcov"],
       exclude: [
-        'node_modules/**',
-        'dist/**',
-        '**/*.test.js',
-        '**/*.config.js',
-        'test/**'
+        "node_modules/**",
+        "dist/**",
+        "**/*.test.js",
+        "**/*.config.js",
+        "test/**",
       ],
       thresholds: {
         lines: 80,
         functions: 80,
         branches: 79,
-        statements: 80
-      }
+        statements: 80,
+      },
     },
 
     // Global test setup with fetch mocking
-    setupFiles: ['./test/setup.js'],
+    setupFiles: ["./test/setup.js"],
 
     // Colocated tests in src/
-    include: ['src/**/*.test.js']
-  }
+    include: ["src/**/*.test.js"],
+  },
 });

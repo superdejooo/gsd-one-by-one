@@ -38,11 +38,13 @@ Follow these steps to create your GitHub Project board:
 ### Step 1: Navigate to Projects
 
 **For Organization Projects (Recommended):**
+
 1. Go to your organization's main page (e.g., `github.com/your-org`)
 2. Click the **Projects** tab in the top navigation
 3. Click **New project**
 
 **For Repository Projects:**
+
 1. Go to your repository (e.g., `github.com/your-org/your-repo`)
 2. Click the **Projects** tab
 3. Click **New project**
@@ -105,6 +107,7 @@ If the project doesn't already have an Iteration field:
 6. Repeat for each milestone you're planning
 
 **Example iterations:**
+
 - `v1` — Start: 2026-01-01, End: 2026-02-01
 - `v1.1` — Start: 2026-02-01, End: 2026-02-15
 - `v2` — Start: 2026-03-01, End: 2026-04-01
@@ -150,6 +153,7 @@ When items are added, set their initial status:
 Configure automations to move cards when status labels change:
 
 **For "status:pending" → Todo column:**
+
 1. Click **+ New workflow**
 2. Select **Item edited**
 3. Add condition: **Label added** = `status:pending`
@@ -157,18 +161,21 @@ Configure automations to move cards when status labels change:
 5. Save the workflow
 
 **For "status:in-progress" → In Progress column:**
+
 1. Create new workflow (Item edited)
 2. Condition: **Label added** = `status:in-progress`
 3. Action: **Set status** = `In Progress`
 4. Save
 
 **For "status:complete" → Done column:**
+
 1. Create new workflow (Item edited)
 2. Condition: **Label added** = `status:complete`
 3. Action: **Set status** = `Done`
 4. Save
 
 **For "status:blocked" → Blocked column (optional):**
+
 1. Create new workflow (Item edited)
 2. Condition: **Label added** = `status:blocked`
 3. Action: **Set status** = `Blocked`
@@ -181,12 +188,12 @@ These automations ensure that when GSD (or you manually) adds a status label to 
 
 GSD automatically creates these status labels when needed, so **no manual label creation is required**:
 
-| Label | Color | Description | Column |
-|-------|-------|-------------|---------|
-| `status:pending` | Purple (`d4c5f9`) | Task is queued, not yet started | Todo |
+| Label                | Color             | Description                      | Column      |
+| -------------------- | ----------------- | -------------------------------- | ----------- |
+| `status:pending`     | Purple (`d4c5f9`) | Task is queued, not yet started  | Todo        |
 | `status:in-progress` | Yellow (`fbca04`) | Task is actively being worked on | In Progress |
-| `status:complete` | Green (`0e8a16`) | Task is finished | Done |
-| `status:blocked` | Red (`d93f0b`) | Task cannot proceed | Blocked |
+| `status:complete`    | Green (`0e8a16`)  | Task is finished                 | Done        |
+| `status:blocked`     | Red (`d93f0b`)    | Task cannot proceed              | Blocked     |
 
 The GSD Action will create these labels in your repository the first time they're needed. The colors follow GitHub's standard palette for semantic meaning.
 
@@ -228,6 +235,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 ```
 
 **Configuration options:**
+
 - `number` — The project number from the URL (e.g., `github.com/orgs/your-org/projects/1` → number is `1`)
 - `isOrg` — Set to `true` for organization projects, `false` for user-owned projects
 
@@ -240,6 +248,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 **Cause:** The iteration for the milestone doesn't exist in the project board.
 
 **Fix:**
+
 1. Go to your project Settings
 2. Navigate to the Iteration field
 3. Click "Add iteration"
@@ -251,6 +260,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 **Cause:** Label-based workflow automations are not configured.
 
 **Fix:**
+
 1. Go to project Settings → Workflows
 2. Verify automations exist for each status label
 3. Check that conditions use exact label names: `status:pending`, `status:in-progress`, etc.
@@ -262,6 +272,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 **Cause:** Missing required permissions in workflow file.
 
 **Fix:**
+
 1. Open `.github/workflows/gsd.yml`
 2. Verify the `permissions:` section includes:
    ```yaml
@@ -278,6 +289,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 **Cause:** Iterations created after issues were added, or manual assignment needed.
 
 **Fix:**
+
 1. Open an issue in the project board
 2. Click on the issue card
 3. In the side panel, find the "Iteration" field
@@ -291,6 +303,7 @@ If you want to explicitly configure which project GSD uses, create or update `.g
 **Cause:** Auto-add workflow not enabled.
 
 **Fix:**
+
 1. Go to project Settings → Workflows
 2. Find "Auto-add to project"
 3. Toggle it ON

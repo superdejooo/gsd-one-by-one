@@ -72,6 +72,7 @@ Full implementation of skill parameter support for @gsd-bot commands. Skills are
 ### Valid Skill Values
 
 Documented in JSDoc for future reference:
+
 - `github-actions-templates`
 - `github-actions-testing`
 - `github-project-management`
@@ -107,6 +108,7 @@ Total tests: 13 (up from 9)
 ### Backward Compatibility
 
 Completely backward compatible:
+
 - Default parameter values mean existing calls work unchanged
 - No behavior change - skill parameter ignored in command generation
 - All 396 project tests pass
@@ -114,6 +116,7 @@ Completely backward compatible:
 ### Pattern Threading
 
 This follows a "thread early" pattern:
+
 - Add parameter now while codebase is small
 - All call sites updated together
 - Future feature activation only requires changing one function (formatCcrCommand)
@@ -122,6 +125,7 @@ This follows a "thread early" pattern:
 ### Why Not Use It Yet?
 
 Skill selection requires additional work:
+
 - Config to map commands to appropriate skills
 - Validation logic for valid skill names
 - Testing with multiple skills
@@ -163,13 +167,13 @@ This enhancement enables future skill selection features. When implementing skil
 
 ## Files Modified
 
-| File | Changes | Lines |
-|------|---------|-------|
-| src/llm/ccr-command.js | Added skill parameter, updated JSDoc | +12 -3 |
-| src/llm/ccr-command.test.js | Added 4 new tests | +21 -0 |
-| src/milestone/phase-planner.js | Pass skill=null explicitly | +1 -1 |
-| src/milestone/phase-executor.js | Pass skill=null explicitly | +1 -1 |
-| src/milestone/milestone-completer.js | Pass skill=null explicitly | +1 -1 |
+| File                                 | Changes                              | Lines  |
+| ------------------------------------ | ------------------------------------ | ------ |
+| src/llm/ccr-command.js               | Added skill parameter, updated JSDoc | +12 -3 |
+| src/llm/ccr-command.test.js          | Added 4 new tests                    | +21 -0 |
+| src/milestone/phase-planner.js       | Pass skill=null explicitly           | +1 -1  |
+| src/milestone/phase-executor.js      | Pass skill=null explicitly           | +1 -1  |
+| src/milestone/milestone-completer.js | Pass skill=null explicitly           | +1 -1  |
 
 ## Commits
 

@@ -5,37 +5,38 @@
 ### 1. Business Logic in Components
 
 **Problem:**
+
 ```php
 // Bad: Business logic directly in Livewire component
 class CreatePost extends Component
 {
     public $title;
     public $content;
-    
+
     public function save()
     {
         $this->validate([
             'title' => 'required|max:255',
             'content' => 'required',
         ]);
-        
+
         $post = Post::create([
             'title' => $this->title,
             'content' => $this->content,
             'user_id' => auth()->id(),
             'slug' => Str::slug($this->title),
         ]);
-        
+
         // Generate thumbnail
         $thumbnail = ImageProcessor::process($post->featured_image);
         $post->update(['thumbnail' => $thumbnail]);
-        
+
         // Send notifications
         Notification::send(
             User::where('subscribed', true)->get(),
             new NewPostNotification($post)
         );
-        
+
         session()->flash('message', 'Post created!');
         return redirect()->route('posts.index');
     }
@@ -43,22 +44,23 @@ class CreatePost extends Component
 ```
 
 **Solution: Delegate to Actions/Services**
+
 ```php
 // Good: Thin component, business logic in action
 class CreatePost extends Component
 {
     public $title;
     public $content;
-    
+
     public function save(CreatePostAction $action)
     {
         $validated = $this->validate([
             'title' => 'required|max:255',
             'content' => 'required',
         ]);
-        
+
         $post = $action->execute($validated);
-        
+
         session()->flash('message', 'Post created!');
         return redirect()->route('posts.index');
     }
@@ -68,12 +70,13 @@ class CreatePost extends Component
 ### 2. Improper Property Binding
 
 **Problem:**
+
 ```php
 // Bad: Binding entire model (security risk)
 class EditUser extends Component
 {
     public User $user;
-    
+
     public function mount(User $user)
     {
         $this->user = $user;
@@ -86,6 +89,7 @@ class EditUser extends Component
 ```
 
 **Solution: Bind Specific Properties**
+
 ```php
 // Good: Bind only necessary properties
 class EditUser extends Component
@@ -93,9 +97,9 @@ class EditUser extends Component
     public $name;
     public $email;
     public $bio;
-    
+
     private User $user;
-    
+
     public function mount(User $user)
     {
         $this->user = $user;
@@ -103,7 +107,7 @@ class EditUser extends Component
         $this->email = $user->email;
         $this->bio = $user->bio;
     }
-    
+
     public function save()
     {
         $validated = $this->validate([
@@ -111,7 +115,7 @@ class EditUser extends Component
             'email' => 'required|email',
             'bio' => 'nullable',
         ]);
-        
+
         $this->user->update($validated);
     }
 }
@@ -120,12 +124,13 @@ class EditUser extends Component
 ### 3. Missing Real-Time Validation
 
 **Problem:**
+
 ```php
 // Bad: Validation only on submit
 class UserForm extends Component
 {
     public $email;
-    
+
     public function submit()
     {
         $this->validate(['email' => 'required|email|unique:users']);
@@ -134,21 +139,22 @@ class UserForm extends Component
 ```
 
 **Solution: Real-Time Validation**
+
 ```php
 // Good: Validate as user types
 class UserForm extends Component
 {
     public $email;
-    
+
     protected $rules = [
         'email' => 'required|email|unique:users',
     ];
-    
+
     public function updated($propertyName)
     {
         $this->validateOnly($propertyName);
     }
-    
+
     public function submit()
     {
         $this->validate();
@@ -160,6 +166,7 @@ class UserForm extends Component
 ### 4. Inefficient Computed Properties
 
 **Problem:**
+
 ```php
 // Bad: Query runs every render
 class ShowPosts extends Component
@@ -177,12 +184,13 @@ class ShowPosts extends Component
 ```
 
 **Solution: Use Computed Properties**
+
 ```php
 // Good: Cache computed properties
 class ShowPosts extends Component
 {
     use WithCaching;
-    
+
     #[Computed]
     public function posts()
     {
@@ -191,7 +199,7 @@ class ShowPosts extends Component
             ->latest()
             ->get();
     }
-    
+
     public function render()
     {
         return view('livewire.show-posts');
@@ -207,6 +215,7 @@ class ShowPosts extends Component
 ### 5. Not Using Livewire Forms (Livewire 3)
 
 **Problem:**
+
 ```php
 // Bad: Manual property management
 class ContactForm extends Component
@@ -214,13 +223,13 @@ class ContactForm extends Component
     public $name;
     public $email;
     public $message;
-    
+
     protected $rules = [
         'name' => 'required',
         'email' => 'required|email',
         'message' => 'required',
     ];
-    
+
     public function submit()
     {
         $validated = $this->validate();
@@ -231,6 +240,7 @@ class ContactForm extends Component
 ```
 
 **Solution: Use Form Objects (Livewire 3)**
+
 ```php
 // Good: Form objects
 use Livewire\Form;
@@ -240,7 +250,7 @@ class ContactForm extends Form
     public $name = '';
     public $email = '';
     public $message = '';
-    
+
     public function rules()
     {
         return [
@@ -249,7 +259,7 @@ class ContactForm extends Form
             'message' => 'required',
         ];
     }
-    
+
     public function submit()
     {
         $this->validate();
@@ -261,7 +271,7 @@ class ContactForm extends Form
 class Contact extends Component
 {
     public ContactForm $form;
-    
+
     public function save()
     {
         $this->form->submit();
@@ -272,6 +282,7 @@ class Contact extends Component
 ### 6. Missing Loading States
 
 **Problem:**
+
 ```php
 <!-- Bad: No loading feedback -->
 <button wire:click="save">
@@ -280,10 +291,11 @@ class Contact extends Component
 ```
 
 **Solution: Add Loading States**
+
 ```php
 <!-- Good: Loading indicators -->
-<button 
-    wire:click="save" 
+<button
+    wire:click="save"
     wire:loading.attr="disabled"
     wire:loading.class="opacity-50"
 >
@@ -306,6 +318,7 @@ class Contact extends Component
 ### 7. Not Using Events for Component Communication
 
 **Problem:**
+
 ```php
 // Bad: Tight coupling between components
 class ParentComponent extends Component
@@ -323,6 +336,7 @@ class ChildComponent extends Component
 ```
 
 **Solution: Use Livewire Events**
+
 ```php
 // Good: Event-driven communication
 class ParentComponent extends Component
@@ -346,12 +360,13 @@ class ChildComponent extends Component
 ### 8. Polling Without Conditionals
 
 **Problem:**
+
 ```php
 // Bad: Always polling, even when not needed
 class Dashboard extends Component
 {
     use WithPolling;
-    
+
     public function render()
     {
         return view('livewire.dashboard', [
@@ -362,12 +377,13 @@ class Dashboard extends Component
 ```
 
 **Solution: Conditional Polling**
+
 ```php
 // Good: Poll only when necessary
 class Dashboard extends Component
 {
     public $isActive = false;
-    
+
     public function render()
     {
         return view('livewire.dashboard', [
@@ -385,12 +401,13 @@ class Dashboard extends Component
 ### 9. File Upload Without Progress
 
 **Problem:**
+
 ```php
 // Bad: No upload feedback
 class UploadDocument extends Component
 {
     public $document;
-    
+
     public function save()
     {
         $this->validate(['document' => 'required|file|max:10240']);
@@ -400,18 +417,19 @@ class UploadDocument extends Component
 ```
 
 **Solution: Upload with Progress**
+
 ```php
 // Good: Progress indicators
 class UploadDocument extends Component
 {
     public $document;
     public $uploadProgress = 0;
-    
+
     public function updatedDocument()
     {
         $this->validate(['document' => 'required|file|max:10240']);
     }
-    
+
     public function save()
     {
         $path = $this->document->store('documents');
@@ -420,8 +438,8 @@ class UploadDocument extends Component
 }
 
 <!-- View -->
-<input 
-    type="file" 
+<input
+    type="file"
     wire:model="document"
     x-on:livewire-upload-start="uploading = true"
     x-on:livewire-upload-finish="uploading = false"
@@ -436,6 +454,7 @@ class UploadDocument extends Component
 ### 10. Not Lazy Loading Components
 
 **Problem:**
+
 ```php
 <!-- Bad: Heavy component loads immediately -->
 <livewire:analytics-dashboard />
@@ -444,13 +463,14 @@ class UploadDocument extends Component
 ```
 
 **Solution: Lazy Load Heavy Components**
+
 ```php
 <!-- Good: Lazy loading with placeholders -->
 <livewire:analytics-dashboard lazy />
 
-<livewire:user-activity-chart 
-    lazy 
-    placeholder="<div class='animate-pulse bg-gray-200 h-64'></div>" 
+<livewire:user-activity-chart
+    lazy
+    placeholder="<div class='animate-pulse bg-gray-200 h-64'></div>"
 />
 
 <!-- Or using wire:init for manual control -->
@@ -466,6 +486,7 @@ class UploadDocument extends Component
 ## Livewire 3 Migration Patterns
 
 ### Property Declarations
+
 ```php
 // Livewire 2
 class Counter extends Component
@@ -483,6 +504,7 @@ class Counter extends Component
 ```
 
 ### Lifecycle Hooks
+
 ```php
 // Livewire 2
 public function mount() { }
@@ -498,6 +520,7 @@ public function onHydrate() { }
 ```
 
 ### Computed Properties
+
 ```php
 // Livewire 2
 public function getPostsProperty()
@@ -516,6 +539,7 @@ public function posts()
 ```
 
 ### Validation
+
 ```php
 // Livewire 2
 protected $rules = ['email' => 'required|email'];
@@ -531,6 +555,7 @@ public ContactForm $form;
 ## Performance Optimization Patterns
 
 ### 1. Reduce Component Nesting
+
 ```php
 // Bad: Deep nesting causes many roundtrips
 <livewire:parent>
@@ -546,6 +571,7 @@ public ContactForm $form;
 ```
 
 ### 2. Use wire:model.lazy for Non-Critical Fields
+
 ```php
 <!-- Bad: Updates on every keystroke -->
 <textarea wire:model="description"></textarea>
@@ -558,6 +584,7 @@ public ContactForm $form;
 ```
 
 ### 3. Batch Related Operations
+
 ```php
 // Bad: Multiple server roundtrips
 public function updateQuantity($itemId, $quantity)
@@ -581,6 +608,7 @@ public function updated($property)
 ```
 
 ### 4. Defer Loading
+
 ```php
 // Bad: Everything loads immediately
 class Dashboard extends Component
@@ -588,7 +616,7 @@ class Dashboard extends Component
     public $stats;
     public $charts;
     public $users;
-    
+
     public function mount()
     {
         $this->stats = $this->getStats(); // Slow
@@ -602,13 +630,13 @@ class Dashboard extends Component
 {
     public $statsLoaded = false;
     public $chartsLoaded = false;
-    
+
     public function loadStats()
     {
         $this->stats = $this->getStats();
         $this->statsLoaded = true;
     }
-    
+
     public function loadCharts()
     {
         $this->charts = $this->getCharts();

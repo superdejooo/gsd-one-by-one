@@ -23,24 +23,27 @@ Create the authorization module that validates user permissions before command e
 
 ## Deliverables
 
-| File | Purpose | Exports |
-|------|---------|---------|
-| `src/auth/validator.js` | Permission validation logic | hasWriteAccess, getAuthContext, checkAuthorization |
-| `src/auth/errors.js` | Authorization-specific error types | AuthorizationError, formatAuthorizationError |
-| `src/auth/index.js` | Public API for auth module | All functions re-exported |
+| File                    | Purpose                            | Exports                                            |
+| ----------------------- | ---------------------------------- | -------------------------------------------------- |
+| `src/auth/validator.js` | Permission validation logic        | hasWriteAccess, getAuthContext, checkAuthorization |
+| `src/auth/errors.js`    | Authorization-specific error types | AuthorizationError, formatAuthorizationError       |
+| `src/auth/index.js`     | Public API for auth module         | All functions re-exported                          |
 
 ## Key Files Created
 
 **src/auth/validator.js** (99 lines)
+
 - `hasWriteAccess(octokit, owner, repo, username)` - Calls getCollaboratorPermissionLevel, checks admin/write/maintain
 - `getAuthContext()` - Extracts username, owner, repo, issueNumber from webhook payload
 - `checkAuthorization(octokit)` - Returns {authorized, username, permission, reason} object
 
 **src/auth/errors.js** (44 lines)
+
 - `AuthorizationError` - Error class with userMessage property for GitHub comments
 - `formatAuthorizationError(username, repo, workflowUrl)` - Markdown-formatted error with permission guidance
 
 **src/auth/index.js** (6 lines)
+
 - Single import point re-exporting all auth functions
 
 ## Decisions Made
@@ -66,6 +69,7 @@ None encountered during this plan.
 ## Next Phase Readiness
 
 Authorization module is ready for integration into `src/index.js`:
+
 - Import checkAuthorization from auth/index.js
 - Call after command parsing, before any git operations
 - On authorization failure, use formatAuthorizationError and post to issue
@@ -77,11 +81,14 @@ Authorization module is ready for integration into `src/index.js`:
 ## Dependency Graph
 
 **Requires:**
+
 - Phase 2 (Parser & Config) - Command parsing context
 - Phase 3 (CCR Integration) - octokit instance
 
 **Provides:**
+
 - Authorization module for Phase 6 plans 2+
 
 **Affects:**
+
 - Future plans requiring permission validation before operations

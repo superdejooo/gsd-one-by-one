@@ -33,20 +33,22 @@ function matchTaskToIssue(taskName, issues) {
   // Normalize for comparison: lowercase, remove "Task N:" prefix
   const normalizedTask = taskName
     .toLowerCase()
-    .replace(/^task\s*\d+:\s*/i, '')
+    .replace(/^task\s*\d+:\s*/i, "")
     .trim();
 
-  return issues.find(issue => {
+  return issues.find((issue) => {
     // Issue title format: "09: Task Name"
     const issueTaskName = issue.title
-      .replace(/^\d+:\s*/, '')  // Remove "09: " prefix
+      .replace(/^\d+:\s*/, "") // Remove "09: " prefix
       .toLowerCase()
-      .replace(/^task\s*\d+:\s*/i, '')  // Remove any "Task N:" in title
+      .replace(/^task\s*\d+:\s*/i, "") // Remove any "Task N:" in title
       .trim();
 
     // Check for substring match (task name contained in issue title or vice versa)
-    return issueTaskName.includes(normalizedTask) ||
-           normalizedTask.includes(issueTaskName);
+    return (
+      issueTaskName.includes(normalizedTask) ||
+      normalizedTask.includes(issueTaskName)
+    );
   });
 }
 
@@ -58,19 +60,26 @@ function matchTaskToIssue(taskName, issues) {
  * @param {Array<{number: number, title: string, status: string}>} issues - Phase issues
  * @returns {Promise<number>} Number of issues updated
  */
-async function updateIssuesForCompletedTasks(owner, repo, completedActions, issues) {
+async function updateIssuesForCompletedTasks(
+  owner,
+  repo,
+  completedActions,
+  issues,
+) {
   let updatedCount = 0;
 
   for (const taskName of completedActions) {
     const matchingIssue = matchTaskToIssue(taskName, issues);
 
-    if (matchingIssue && matchingIssue.status !== 'status:complete') {
+    if (matchingIssue && matchingIssue.status !== "status:complete") {
       try {
-        await updateIssueStatus(owner, repo, matchingIssue.number, 'complete');
+        await updateIssueStatus(owner, repo, matchingIssue.number, "complete");
         updatedCount++;
         core.info(`Marked issue #${matchingIssue.number} as complete`);
       } catch (error) {
-        core.warning(`Failed to update issue #${matchingIssue.number}: ${error.message}`);
+        core.warning(
+          `Failed to update issue #${matchingIssue.number}: ${error.message}`,
+        );
       }
     }
   }
@@ -128,7 +137,7 @@ function parseExecutionOutput(output) {
     nextSteps: [],
     questions: [],
     hasQuestions: false,
-    gsdStatus: null
+    gsdStatus: null,
   };
 
   // Extract GSD status message (e.g., "GSD ► NO INCOMPLETE PLANS FOUND")
@@ -139,7 +148,7 @@ function parseExecutionOutput(output) {
 
   // Extract completed actions - only match explicit checkbox markers [x]
   // at the start of a line (with optional list marker)
-  const lines = output.split('\n');
+  const lines = output.split("\n");
   for (const line of lines) {
     const checkboxMatch = line.match(/^\s*[-*]?\s*\[x\]\s*(.+)/i);
     if (checkboxMatch) {
@@ -148,23 +157,31 @@ function parseExecutionOutput(output) {
   }
 
   // Extract next steps section
-  const nextStepsMatch = output.match(/(?:##?\s*)?next steps?:?\s*\n((?:[-*]\s*.+\n?)+)/i);
+  const nextStepsMatch = output.match(
+    /(?:##?\s*)?next steps?:?\s*\n((?:[-*]\s*.+\n?)+)/i,
+  );
   if (nextStepsMatch) {
     sections.nextSteps = nextStepsMatch[1]
-      .split('\n')
-      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
-      .map(line => line.replace(/^[-*]\s*/, '').trim())
-      .filter(line => line.length > 0);
+      .split("\n")
+      .filter(
+        (line) => line.trim().startsWith("-") || line.trim().startsWith("*"),
+      )
+      .map((line) => line.replace(/^[-*]\s*/, "").trim())
+      .filter((line) => line.length > 0);
   }
 
   // Extract questions (agent asking for input)
-  const questionsMatch = output.match(/(?:##?\s*)?questions?:?\s*\n((?:[-*]\s*.+\n?)+)/i);
+  const questionsMatch = output.match(
+    /(?:##?\s*)?questions?:?\s*\n((?:[-*]\s*.+\n?)+)/i,
+  );
   if (questionsMatch) {
     sections.questions = questionsMatch[1]
-      .split('\n')
-      .filter(line => line.trim().startsWith('-') || line.trim().startsWith('*'))
-      .map(line => line.replace(/^[-*]\s*/, '').trim())
-      .filter(line => line.length > 0);
+      .split("\n")
+      .filter(
+        (line) => line.trim().startsWith("-") || line.trim().startsWith("*"),
+      )
+      .map((line) => line.replace(/^[-*]\s*/, "").trim())
+      .filter((line) => line.length > 0);
     sections.hasQuestions = sections.questions.length > 0;
   }
 
@@ -178,14 +195,15 @@ function parseExecutionOutput(output) {
  * @returns {string} Clean output without CCR logs
  */
 function stripCcrLogs(output) {
-  const lines = output.split('\n');
-  const cleanLines = lines.filter(line => {
+  const lines = output.split("\n");
+  const cleanLines = lines.filter((line) => {
     // Skip CCR log lines
     if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
     if (/^response \d+ http:/.test(line)) return false;
     if (/ReadableStream \{/.test(line)) return false;
     if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
+      return false;
     // Skip JS object notation (key: value patterns from debug output)
     if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
     if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
@@ -193,7 +211,7 @@ function stripCcrLogs(output) {
     if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
     return true;
   });
-  return cleanLines.join('\n').trim();
+  return cleanLines.join("\n").trim();
 }
 
 /**
@@ -204,12 +222,12 @@ function stripCcrLogs(output) {
  * @returns {string} GSD block or last 80 lines
  */
 function extractGsdBlock(output) {
-  const lines = output.split('\n');
+  const lines = output.split("\n");
 
   // Find LAST occurrence of GSD ► (search from end)
   let gsdLineIndex = -1;
   for (let i = lines.length - 1; i >= 0; i--) {
-    if (lines[i].includes('GSD ►')) {
+    if (lines[i].includes("GSD ►")) {
       gsdLineIndex = i;
       break;
     }
@@ -218,12 +236,12 @@ function extractGsdBlock(output) {
   if (gsdLineIndex !== -1) {
     // Include line above (box drawing) and everything after
     const startIndex = Math.max(0, gsdLineIndex - 1);
-    return lines.slice(startIndex).join('\n');
+    return lines.slice(startIndex).join("\n");
   }
 
   // Fallback: return last 80 lines
   const tail = lines.slice(-80);
-  return tail.join('\n');
+  return tail.join("\n");
 }
 
 /**
@@ -252,7 +270,7 @@ function formatExecutionComment(parsed, rawOutput) {
 
   if (parsed.completedActions.length > 0) {
     comment += `### Completed\n\n`;
-    parsed.completedActions.forEach(action => {
+    parsed.completedActions.forEach((action) => {
       comment += `- [x] ${action}\n`;
     });
     comment += `\n`;
@@ -260,7 +278,7 @@ function formatExecutionComment(parsed, rawOutput) {
 
   if (parsed.nextSteps.length > 0) {
     comment += `### Next Steps\n\n`;
-    parsed.nextSteps.forEach(step => {
+    parsed.nextSteps.forEach((step) => {
       comment += `- ${step}\n`;
     });
     comment += `\n`;
@@ -268,7 +286,7 @@ function formatExecutionComment(parsed, rawOutput) {
 
   if (parsed.questions.length > 0) {
     comment += `### Questions\n\n`;
-    parsed.questions.forEach(question => {
+    parsed.questions.forEach((question) => {
       comment += `- ${question}\n`;
     });
     comment += `\n**Reply to this comment to answer these questions. The workflow will resume when you reply.**\n\n`;
@@ -299,22 +317,35 @@ function formatExecutionComment(parsed, rawOutput) {
  * @returns {Promise<object>} Workflow result
  * @throws {Error} If workflow cannot complete
  */
-export async function executePhaseExecutionWorkflow(context, commandArgs, skill = null) {
+export async function executePhaseExecutionWorkflow(
+  context,
+  commandArgs,
+  skill = null,
+) {
   const { owner, repo, issueNumber } = context;
 
-  core.info(`Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`);
+  core.info(
+    `Starting phase execution workflow for ${owner}/${repo}#${issueNumber}`,
+  );
   if (skill) core.info(`Using skill: ${skill}`);
 
   try {
     // Step 1: Parse phase number (optional - GSD skill can determine next phase)
     const phaseNumber = parsePhaseNumber(commandArgs);
-    core.info(`Parsed phase number: ${phaseNumber ?? '(auto - next phase)'}`);
+    core.info(`Parsed phase number: ${phaseNumber ?? "(auto - next phase)"}`);
 
     // Step 2: Execute GSD execute-phase via CCR
     // 30 minute timeout - execution takes longer than planning
     const outputPath = `output-${Date.now()}.txt`;
-    const gsdCommand = phaseNumber ? `/gsd:execute-phase ${phaseNumber}` : '/gsd:execute-phase';
-    const command = formatCcrCommandWithOutput(gsdCommand, outputPath, null, skill);
+    const gsdCommand = phaseNumber
+      ? `/gsd:execute-phase ${phaseNumber}`
+      : "/gsd:execute-phase";
+    const command = formatCcrCommandWithOutput(
+      gsdCommand,
+      outputPath,
+      null,
+      skill,
+    );
 
     core.info(`Executing: ${command}`);
 
@@ -330,7 +361,9 @@ export async function executePhaseExecutionWorkflow(context, commandArgs, skill 
     let output = "";
     try {
       output = await fs.readFile(outputPath, "utf-8");
-      core.info(`CCR output (${output.length} chars): ${output.substring(0, 500)}`);
+      core.info(
+        `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
+      );
     } catch (error) {
       output = "(No output captured)";
       core.warning(`Failed to read output file: ${error.message}`);
@@ -339,14 +372,23 @@ export async function executePhaseExecutionWorkflow(context, commandArgs, skill 
     // Step 4: Validate for errors (ignore warnings like ⚠️)
     // Filter out warning lines before checking for errors
     const outputWithoutWarnings = output
-      .split('\n')
-      .filter(line => !line.includes('⚠️') && !line.includes('Pre-flight check'))
-      .join('\n');
+      .split("\n")
+      .filter(
+        (line) => !line.includes("⚠️") && !line.includes("Pre-flight check"),
+      )
+      .join("\n");
 
-    const isError = exitCode !== 0 ||
-      /Permission Denied|Authorization failed|not authorized/i.test(outputWithoutWarnings) ||
-      /^Error:|Something went wrong|command failed/i.test(outputWithoutWarnings) ||
-      /Unknown command|invalid arguments|validation failed/i.test(outputWithoutWarnings);
+    const isError =
+      exitCode !== 0 ||
+      /Permission Denied|Authorization failed|not authorized/i.test(
+        outputWithoutWarnings,
+      ) ||
+      /^Error:|Something went wrong|command failed/i.test(
+        outputWithoutWarnings,
+      ) ||
+      /Unknown command|invalid arguments|validation failed/i.test(
+        outputWithoutWarnings,
+      );
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
@@ -365,19 +407,24 @@ export async function executePhaseExecutionWorkflow(context, commandArgs, skill 
       if (phaseIssues.length > 0 && parsed.completedActions.length > 0) {
         // Mark all phase issues as in-progress at start (if still pending)
         for (const issue of phaseIssues) {
-          if (issue.status === 'status:pending') {
+          if (issue.status === "status:pending") {
             try {
-              await updateIssueStatus(owner, repo, issue.number, 'in-progress');
+              await updateIssueStatus(owner, repo, issue.number, "in-progress");
               core.info(`Marked issue #${issue.number} as in-progress`);
             } catch (error) {
-              core.warning(`Failed to update issue #${issue.number}: ${error.message}`);
+              core.warning(
+                `Failed to update issue #${issue.number}: ${error.message}`,
+              );
             }
           }
         }
 
         // Mark completed tasks
         issuesUpdated = await updateIssuesForCompletedTasks(
-          owner, repo, parsed.completedActions, phaseIssues
+          owner,
+          repo,
+          parsed.completedActions,
+          phaseIssues,
         );
       }
     } catch (issueError) {
@@ -404,9 +451,8 @@ export async function executePhaseExecutionWorkflow(context, commandArgs, skill 
       issuesUpdated,
       message: parsed.hasQuestions
         ? "Phase execution paused - questions require user input"
-        : "Phase execution completed successfully"
+        : "Phase execution completed successfully",
     };
-
   } catch (error) {
     core.error(`Phase execution workflow error: ${error.message}`);
     throw error; // withErrorHandling will post the comment

@@ -24,6 +24,7 @@ This skill provides:
 ## When to Use This Skill
 
 Invoke this skill when:
+
 - Creating or modifying GitHub Actions workflows
 - Debugging workflow failures in CI
 - Setting up new repositories with CI/CD
@@ -39,6 +40,7 @@ Invoke this skill when:
 "Validate my GitHub Actions workflows before I push"
 
 I'll:
+
 1. Run actionlint on all workflow files
 2. Check for missing cache-dependency-path configurations
 3. Validate all working-directory paths exist
@@ -51,6 +53,7 @@ I'll:
 "My GitHub Actions workflow is failing with [error message]"
 
 I'll:
+
 1. Analyze the error message
 2. Identify the root cause
 3. Explain why local testing didn't catch it
@@ -62,6 +65,7 @@ I'll:
 "Set up GitHub Actions testing for my new project"
 
 I'll:
+
 1. Install required tools (act, actionlint, yamllint)
 2. Create validation scripts
 3. Set up pre-push hooks
@@ -78,12 +82,12 @@ I'll:
 # ❌ WRONG
 - uses: actions/setup-node@v4
   with:
-    cache: 'npm'
+    cache: "npm"
 
 # ✅ CORRECT
 - uses: actions/setup-node@v4
   with:
-    cache: 'npm'
+    cache: "npm"
     cache-dependency-path: package-lock.json
 ```
 
@@ -227,6 +231,7 @@ Before pushing workflow changes:
 **Why Local Works**: Previous builds exist in node_modules/
 
 **Fix**:
+
 ```yaml
 - name: Build @prpm/types
   run: npm run build --workspace=@prpm/types
@@ -241,11 +246,12 @@ Before pushing workflow changes:
 **Why act Doesn't Catch**: act skips caching entirely
 
 **Fix**:
+
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    cache: 'npm'
-    cache-dependency-path: package-lock.json  # Explicit!
+    cache: "npm"
+    cache-dependency-path: package-lock.json # Explicit!
 ```
 
 ### "npm ci requires package-lock.json"
@@ -255,6 +261,7 @@ Before pushing workflow changes:
 **Why Local Works**: May have workspace-specific package-lock.json
 
 **Fix**:
+
 ```yaml
 # Run from root
 - run: npm ci
@@ -270,6 +277,7 @@ Before pushing workflow changes:
 **Why Local Works**: docker-compose uses different container runtime
 
 **Fix**:
+
 ```yaml
 steps:
   - run: docker exec [container] sh -c "command &"
@@ -304,15 +312,17 @@ When you encounter a workflow failure:
 **Me**: This is a cache resolution error. You're using `cache: 'npm'` without specifying `cache-dependency-path`. GitHub Actions is trying to find package-lock.json but can't locate it.
 
 Here's the fix:
+
 ```yaml
 - uses: actions/setup-node@v4
   with:
-    node-version: '20'
-    cache: 'npm'
-    cache-dependency-path: package-lock.json  # Add this
+    node-version: "20"
+    cache: "npm"
+    cache-dependency-path: package-lock.json # Add this
 ```
 
 This wasn't caught by `act` because it skips caching entirely. To prevent this in the future, run:
+
 ```bash
 .github/scripts/validate-workflows.sh
 ```
@@ -326,6 +336,7 @@ This script checks for missing cache-dependency-path configurations.
 **Me**: This is a monorepo build order issue. Your local environment has previously built `@prpm/types`, but CI starts clean.
 
 Add this before your type check:
+
 ```yaml
 - name: Build @prpm/types
   run: npm run build --workspace=@prpm/types
@@ -334,6 +345,7 @@ Add this before your type check:
 Why local worked: You've previously run `npm run build` which compiled @prpm/types to dist/. That compiled output exists in your node_modules. CI doesn't have this.
 
 To test this scenario locally, delete your dist/ folders and try again:
+
 ```bash
 rm -rf packages/*/dist
 npx tsc --noEmit  # Should fail
@@ -361,6 +373,7 @@ After each workflow failure in CI:
 ## Summary
 
 This skill helps you:
+
 - ✅ Catch 90%+ of workflow failures before pushing
 - ✅ Understand why local testing didn't catch issues
 - ✅ Fix common GitHub Actions problems quickly

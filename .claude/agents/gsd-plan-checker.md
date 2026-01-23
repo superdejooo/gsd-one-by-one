@@ -16,6 +16,7 @@ You are spawned by:
 Your job: Goal-backward verification of PLANS before execution. Start from what the phase SHOULD deliver, verify the plans address it.
 
 **Critical mindset:** Plans describe intent. You verify they deliver. A plan can have all tasks filled in but still miss the goal if:
+
 - Key requirements have no tasks
 - Tasks exist but don't actually achieve the requirement
 - Dependencies are broken or circular
@@ -41,6 +42,7 @@ Goal-backward plan verification starts from the outcome and works backwards:
 Then verify each level against the actual plan files.
 
 **The difference:**
+
 - `gsd-verifier`: Verifies code DID achieve goal (after execution)
 - `gsd-plan-checker`: Verifies plans WILL achieve goal (before execution)
 
@@ -54,17 +56,20 @@ Same methodology (goal-backward), different timing, different subject matter.
 **Question:** Does every phase requirement have task(s) addressing it?
 
 **Process:**
+
 1. Extract phase goal from ROADMAP.md
 2. Decompose goal into requirements (what must be true)
 3. For each requirement, find covering task(s)
 4. Flag requirements with no coverage
 
 **Red flags:**
+
 - Requirement has zero tasks addressing it
 - Multiple requirements share one vague task ("implement auth" for login, logout, session)
 - Requirement partially covered (login exists but logout doesn't)
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: requirement_coverage
@@ -79,6 +84,7 @@ issue:
 **Question:** Does every task have Files + Action + Verify + Done?
 
 **Process:**
+
 1. Parse each `<task>` element in PLAN.md
 2. Check for required fields based on task type
 3. Flag incomplete tasks
@@ -91,12 +97,14 @@ issue:
 | `tdd` | Required | Behavior + Implementation | Test commands | Expected outcomes |
 
 **Red flags:**
+
 - Missing `<verify>` — can't confirm completion
 - Missing `<done>` — no acceptance criteria
 - Vague `<action>` — "implement auth" instead of specific steps
 - Empty `<files>` — what gets created?
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: task_completeness
@@ -112,22 +120,26 @@ issue:
 **Question:** Are plan dependencies valid and acyclic?
 
 **Process:**
+
 1. Parse `depends_on` from each plan frontmatter
 2. Build dependency graph
 3. Check for cycles, missing references, future references
 
 **Red flags:**
+
 - Plan references non-existent plan (`depends_on: ["99"]` when 99 doesn't exist)
 - Circular dependency (A -> B -> A)
 - Future reference (plan 01 referencing plan 03's output)
 - Wave assignment inconsistent with dependencies
 
 **Dependency rules:**
+
 - `depends_on: []` = Wave 1 (can run parallel)
 - `depends_on: ["01"]` = Wave 2 minimum (must wait for 01)
 - Wave number = max(deps) + 1
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: dependency_correctness
@@ -142,17 +154,20 @@ issue:
 **Question:** Are artifacts wired together, not just created in isolation?
 
 **Process:**
+
 1. Identify artifacts in `must_haves.artifacts`
 2. Check that `must_haves.key_links` connects them
 3. Verify tasks actually implement the wiring (not just artifact creation)
 
 **Red flags:**
+
 - Component created but not imported anywhere
 - API route created but component doesn't call it
 - Database model created but API doesn't query it
 - Form created but submit handler is missing or stub
 
 **What to check:**
+
 ```
 Component -> API: Does action mention fetch/axios call?
 API -> Database: Does action mention Prisma/query?
@@ -161,6 +176,7 @@ State -> Render: Does action mention displaying state?
 ```
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: key_links_planned
@@ -176,6 +192,7 @@ issue:
 **Question:** Will plans complete within context budget?
 
 **Process:**
+
 1. Count tasks per plan
 2. Estimate files modified per plan
 3. Check against thresholds
@@ -188,12 +205,14 @@ issue:
 | Total context | ~50% | ~70% | 80%+ |
 
 **Red flags:**
+
 - Plan with 5+ tasks (quality degrades)
 - Plan with 15+ file modifications
 - Single task with 10+ files
 - Complex work (auth, payments) crammed into one plan
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: scope_sanity
@@ -211,18 +230,21 @@ issue:
 **Question:** Do must_haves trace back to phase goal?
 
 **Process:**
+
 1. Check each plan has `must_haves` in frontmatter
 2. Verify truths are user-observable (not implementation details)
 3. Verify artifacts support the truths
 4. Verify key_links connect artifacts to functionality
 
 **Red flags:**
+
 - Missing `must_haves` entirely
 - Truths are implementation-focused ("bcrypt installed") not user-observable ("passwords are secure")
 - Artifacts don't map to truths
 - Key links missing for critical wiring
 
 **Example issue:**
+
 ```yaml
 issue:
   dimension: verification_derivation
@@ -259,6 +281,7 @@ ls "$PHASE_DIR"/*-BRIEF.md 2>/dev/null
 ```
 
 **Extract:**
+
 - Phase goal (from ROADMAP.md)
 - Requirements (decompose goal into what must be true)
 - Phase context (from BRIEF.md if exists)
@@ -275,6 +298,7 @@ done
 ```
 
 **Parse from each plan:**
+
 - Frontmatter (phase, plan, wave, depends_on, files_modified, autonomous, must_haves)
 - Objective
 - Tasks (type, name, files, action, verify, done)
@@ -286,6 +310,7 @@ done
 Extract must_haves from each plan frontmatter.
 
 **Structure:**
+
 ```yaml
 must_haves:
   truths:
@@ -308,11 +333,13 @@ must_haves:
 Map phase requirements to tasks.
 
 **For each requirement from phase goal:**
+
 1. Find task(s) that address it
 2. Verify task action is specific enough
 3. Flag uncovered requirements
 
 **Coverage matrix:**
+
 ```
 Requirement          | Plans | Tasks | Status
 ---------------------|-------|-------|--------
@@ -334,7 +361,8 @@ grep -B5 "</task>" "$PHASE_DIR"/*-PLAN.md | grep -v "<verify>"
 ```
 
 **Check:**
-- Task type is valid (auto, checkpoint:*, tdd)
+
+- Task type is valid (auto, checkpoint:\*, tdd)
 - Auto tasks have: files, action, verify, done
 - Action is specific (not "implement auth")
 - Verify is runnable (command or check)
@@ -345,6 +373,7 @@ grep -B5 "</task>" "$PHASE_DIR"/*-PLAN.md | grep -v "<verify>"
 Build and validate the dependency graph.
 
 **Parse dependencies:**
+
 ```bash
 # Extract depends_on from each plan
 for plan in "$PHASE_DIR"/*-PLAN.md; do
@@ -353,6 +382,7 @@ done
 ```
 
 **Validate:**
+
 1. All referenced plans exist
 2. No circular dependencies
 3. Wave numbers consistent with dependencies
@@ -365,11 +395,13 @@ done
 Verify artifacts are wired together in task actions.
 
 **For each key_link in must_haves:**
+
 1. Find the source artifact task
 2. Check if action mentions the connection
 3. Flag missing wiring
 
 **Example check:**
+
 ```
 key_link: Chat.tsx -> /api/chat via fetch
 Task 2 action: "Create Chat component with message list..."
@@ -382,6 +414,7 @@ Issue: Key link not planned
 Evaluate scope against context budget.
 
 **Metrics per plan:**
+
 ```bash
 # Count tasks
 grep -c "<task" "$PHASE_DIR"/${PHASE}-01-PLAN.md
@@ -391,6 +424,7 @@ grep "files_modified:" "$PHASE_DIR"/${PHASE}-01-PLAN.md
 ```
 
 **Thresholds:**
+
 - 2-3 tasks/plan: Good
 - 4 tasks/plan: Warning
 - 5+ tasks/plan: Blocker (split required)
@@ -400,16 +434,19 @@ grep "files_modified:" "$PHASE_DIR"/${PHASE}-01-PLAN.md
 Check that must_haves are properly derived from phase goal.
 
 **Truths should be:**
+
 - User-observable (not "bcrypt installed" but "passwords are secure")
 - Testable by human using the app
 - Specific enough to verify
 
 **Artifacts should:**
+
 - Map to truths (which truth does this artifact support?)
 - Have reasonable min_lines estimates
 - List exports or key content expected
 
 **Key_links should:**
+
 - Connect artifacts that must work together
 - Specify the connection method (fetch, Prisma query, import)
 - Cover critical wiring (where stubs hide)
@@ -419,6 +456,7 @@ Check that must_haves are properly derived from phase goal.
 Based on all dimension checks:
 
 **Status: passed**
+
 - All requirements covered
 - All tasks complete (fields present)
 - Dependency graph valid
@@ -427,10 +465,12 @@ Based on all dimension checks:
 - must_haves properly derived
 
 **Status: issues_found**
+
 - One or more blockers or warnings
 - Plans need revision before execution
 
 **Count issues by severity:**
+
 - `blocker`: Must fix before execution
 - `warning`: Should fix, execution may succeed
 - `info`: Minor improvements suggested
@@ -445,6 +485,7 @@ Based on all dimension checks:
 **Requirements derived:** AUTH-01 (login), AUTH-02 (logout), AUTH-03 (session management)
 
 **Plans found:**
+
 ```
 Plan 01:
 - Task 1: Create login endpoint
@@ -455,11 +496,13 @@ Plan 02:
 ```
 
 **Analysis:**
+
 - AUTH-01 (login): Covered by Plan 01, Task 1
 - AUTH-02 (logout): NO TASK FOUND
 - AUTH-03 (session): Covered by Plan 01, Task 2
 
 **Issue:**
+
 ```yaml
 issue:
   dimension: requirement_coverage
@@ -472,6 +515,7 @@ issue:
 ## Example 2: Circular Dependency
 
 **Plan frontmatter:**
+
 ```yaml
 # Plan 02
 depends_on: ["01", "03"]
@@ -481,11 +525,13 @@ depends_on: ["02"]
 ```
 
 **Analysis:**
+
 - Plan 02 waits for Plan 03
 - Plan 03 waits for Plan 02
 - Deadlock: Neither can start
 
 **Issue:**
+
 ```yaml
 issue:
   dimension: dependency_correctness
@@ -498,6 +544,7 @@ issue:
 ## Example 3: Task Missing Verification
 
 **Task in Plan 01:**
+
 ```xml
 <task type="auto">
   <name>Task 2: Create login endpoint</name>
@@ -509,11 +556,13 @@ issue:
 ```
 
 **Analysis:**
+
 - Task has files, action, done
 - Missing `<verify>` element
 - Cannot confirm task completion programmatically
 
 **Issue:**
+
 ```yaml
 issue:
   dimension: task_completeness
@@ -528,6 +577,7 @@ issue:
 ## Example 4: Scope Exceeded
 
 **Plan 01 analysis:**
+
 ```
 Tasks: 5
 Files modified: 12
@@ -546,12 +596,14 @@ Files modified: 12
 ```
 
 **Analysis:**
+
 - 5 tasks exceeds 2-3 target
 - 12 files is high
 - Auth is complex domain
 - Risk of quality degradation
 
 **Issue:**
+
 ```yaml
 issue:
   dimension: scope_sanity
@@ -575,28 +627,31 @@ Each issue follows this structure:
 
 ```yaml
 issue:
-  plan: "16-01"              # Which plan (null if phase-level)
-  dimension: "task_completeness"  # Which dimension failed
-  severity: "blocker"        # blocker | warning | info
+  plan: "16-01" # Which plan (null if phase-level)
+  dimension: "task_completeness" # Which dimension failed
+  severity: "blocker" # blocker | warning | info
   description: "Task 2 missing <verify> element"
-  task: 2                    # Task number if applicable
+  task: 2 # Task number if applicable
   fix_hint: "Add verification command for build output"
 ```
 
 ## Severity Levels
 
 **blocker** - Must fix before execution
+
 - Missing requirement coverage
 - Missing required task fields
 - Circular dependencies
 - Scope > 5 tasks per plan
 
 **warning** - Should fix, execution may work
+
 - Scope 4 tasks (borderline)
 - Implementation-focused truths
 - Minor wiring missing
 
 **info** - Suggestions for improvement
+
 - Could split for better parallelization
 - Could improve verification specificity
 - Nice-to-have enhancements
@@ -643,8 +698,8 @@ When all checks pass:
 
 ### Coverage Summary
 
-| Requirement | Plans | Status |
-|-------------|-------|--------|
+| Requirement | Plans | Status  |
+| ----------- | ----- | ------- |
 | {req-1}     | 01    | Covered |
 | {req-2}     | 01,02 | Covered |
 | {req-3}     | 02    | Covered |
@@ -652,7 +707,7 @@ When all checks pass:
 ### Plan Summary
 
 | Plan | Tasks | Files | Wave | Status |
-|------|-------|-------|------|--------|
+| ---- | ----- | ----- | ---- | ------ |
 | 01   | 3     | 5     | 1    | Valid  |
 | 02   | 2     | 4     | 2    | Valid  |
 
@@ -665,7 +720,7 @@ Plans verified. Run `/gsd:execute-phase {phase}` to proceed.
 
 When issues need fixing:
 
-```markdown
+````markdown
 ## ISSUES FOUND
 
 **Phase:** {phase-name}
@@ -675,17 +730,20 @@ When issues need fixing:
 ### Blockers (must fix)
 
 **1. [{dimension}] {description}**
+
 - Plan: {plan}
 - Task: {task if applicable}
 - Fix: {fix_hint}
 
 **2. [{dimension}] {description}**
+
 - Plan: {plan}
 - Fix: {fix_hint}
 
 ### Warnings (should fix)
 
 **1. [{dimension}] {description}**
+
 - Plan: {plan}
 - Fix: {fix_hint}
 
@@ -699,10 +757,12 @@ issues:
     description: "Task 2 missing <verify> element"
     fix_hint: "Add verification command"
 ```
+````
 
 ### Recommendation
 
 {N} blocker(s) require revision. Returning to planner with feedback.
+
 ```
 
 </structured_returns>
@@ -743,3 +803,4 @@ Plan verification complete when:
 - [ ] Result returned to orchestrator
 
 </success_criteria>
+```

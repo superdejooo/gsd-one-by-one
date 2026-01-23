@@ -14,24 +14,28 @@ Implement `gsd:execute-phase` command that executes planned actions with resume 
 ## Implementation Decisions
 
 ### Progress Reporting
+
 - Summary comment at end of each workflow run (not real-time edits)
 - Parsed summary format: extract completed actions, next steps, questions from GSD output
 - GSD already outputs actionable items in list format with "next step" guidance
 - Bot parses GSD output and structures it for GitHub comment
 
 ### Resume Behavior
+
 - Auto-resume without confirmation — GSD tracks progress in `.planning/` folder
 - Bot just invokes GSD; GSD knows where it left off
 - On unrecoverable error: post error details and stop (no retry suggestion)
 - GSD handles all commits internally — bot only posts comments
 
 ### Parallel Execution
+
 - Parallelization happens inside single workflow run
 - GSD handles wave-based parallelization internally
 - Bot doesn't orchestrate parallel actions — just invokes GSD
 - Timeout configured in config, not user-controlled
 
 ### Claude's Discretion
+
 - Exact parsing logic for GSD output sections
 - Comment formatting and markdown structure
 - Error message formatting
@@ -58,5 +62,5 @@ Implement `gsd:execute-phase` command that executes planned actions with resume 
 
 ---
 
-*Phase: 08-phase-execution-command*
-*Context gathered: 2026-01-22*
+_Phase: 08-phase-execution-command_
+_Context gathered: 2026-01-22_

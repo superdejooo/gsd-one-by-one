@@ -7,53 +7,53 @@
 
 ### Core Framework
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| GitHub Actions | Current | CI/CD execution platform | Native GitHub integration, triggers on webhook events, free for public repos, built-in authentication via GITHUB_TOKEN |
-| Node.js | 24.x (Krypton) | gsd-github skill runtime | Current Active LTS (as of 2025), matches latest GitHub Actions action versions, long-term support until 2027 |
-| GitHub CLI (gh) | Latest | GitHub API interactions | Pre-installed on GitHub Actions runners, simpler than direct REST API calls, automatic authentication via environment variables |
+| Technology      | Version        | Purpose                  | Why                                                                                                                             |
+| --------------- | -------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Actions  | Current        | CI/CD execution platform | Native GitHub integration, triggers on webhook events, free for public repos, built-in authentication via GITHUB_TOKEN          |
+| Node.js         | 24.x (Krypton) | gsd-github skill runtime | Current Active LTS (as of 2025), matches latest GitHub Actions action versions, long-term support until 2027                    |
+| GitHub CLI (gh) | Latest         | GitHub API interactions  | Pre-installed on GitHub Actions runners, simpler than direct REST API calls, automatic authentication via environment variables |
 
 ### Database / State
 
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Git Repository | N/A | Primary state storage | Files stored in `.github/planning/` directory, committed to repo, part of project history, no external database needed |
-| GitHub Issues | N/A | Tracking and communication | Native GitHub feature for milestone tracking, comments serve as bidirectional communication channel |
+| Technology     | Version | Purpose                    | Why                                                                                                                    |
+| -------------- | ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Git Repository | N/A     | Primary state storage      | Files stored in `.github/planning/` directory, committed to repo, part of project history, no external database needed |
+| GitHub Issues  | N/A     | Tracking and communication | Native GitHub feature for milestone tracking, comments serve as bidirectional communication channel                    |
 
 ### GitHub Actions Components
 
-| Component | Version | Purpose | Why |
-|-----------|---------|---------|-----|
-| `actions/checkout` | v6 | Repository checkout | Latest version, improved credential security, supports sparse checkout, multi-repo workflows |
-| `actions/setup-node` | v6 | Node.js runtime setup | Latest version, automatic npm caching when packageManager field is set, supports matrix testing |
-| `actions/cache` | v5 | Dependency and cache management | Latest version, integrates with new cache service APIs, 10GB cache limit per repository |
-| `actions/upload-artifact` | v6 | Artifact storage for workflow data | Latest version, supports retention up to 90 days, compression options |
-| `actions/download-artifact` | v7 | Artifact retrieval between jobs | Latest version, direct extraction to path, supports multiple artifacts |
-| `actions/github-script` | v8 | JavaScript-based GitHub API calls | Latest version, pre-authenticated github client, simpler than REST API calls |
+| Component                   | Version | Purpose                            | Why                                                                                             |
+| --------------------------- | ------- | ---------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `actions/checkout`          | v6      | Repository checkout                | Latest version, improved credential security, supports sparse checkout, multi-repo workflows    |
+| `actions/setup-node`        | v6      | Node.js runtime setup              | Latest version, automatic npm caching when packageManager field is set, supports matrix testing |
+| `actions/cache`             | v5      | Dependency and cache management    | Latest version, integrates with new cache service APIs, 10GB cache limit per repository         |
+| `actions/upload-artifact`   | v6      | Artifact storage for workflow data | Latest version, supports retention up to 90 days, compression options                           |
+| `actions/download-artifact` | v7      | Artifact retrieval between jobs    | Latest version, direct extraction to path, supports multiple artifacts                          |
+| `actions/github-script`     | v8      | JavaScript-based GitHub API calls  | Latest version, pre-authenticated github client, simpler than REST API calls                    |
 
 ### Runner Configuration
 
-| Setting | Value | Why |
-|---------|-------|-----|
-| Runner OS | `ubuntu-latest` (Ubuntu 24.04) | Standard, well-supported, gh CLI pre-installed, 6-hour job timeout |
-| Permissions | `contents: read`, `issues: write`, `pull-requests: write` | Least privilege for comment posting and file reading |
-| Concurrency | `group: ${{ github.workflow }}-${{ github.event.issue.number }}`, `cancel-in-progress: true` | Prevent duplicate runs from same issue, cancel stale workflows |
+| Setting     | Value                                                                                        | Why                                                                |
+| ----------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Runner OS   | `ubuntu-latest` (Ubuntu 24.04)                                                               | Standard, well-supported, gh CLI pre-installed, 6-hour job timeout |
+| Permissions | `contents: read`, `issues: write`, `pull-requests: write`                                    | Least privilege for comment posting and file reading               |
+| Concurrency | `group: ${{ github.workflow }}-${{ github.event.issue.number }}`, `cancel-in-progress: true` | Prevent duplicate runs from same issue, cancel stale workflows     |
 
 ### Event Configuration
 
-| Setting | Value | Why |
-|---------|-------|-----|
+| Setting | Value                             | Why                                                  |
+| ------- | --------------------------------- | ---------------------------------------------------- |
 | Trigger | `issue_comment: types: [created]` | Only trigger on new comments, not edits or deletions |
-| Filter | Check `@gsd-bot` in comment body | Only process bot commands, ignore other comments |
+| Filter  | Check `@gsd-bot` in comment body  | Only process bot commands, ignore other comments     |
 
 ### Supporting Libraries
 
-| Library | Purpose | When to Use |
-|---------|---------|-------------|
-| `@actions/core` | GitHub Actions utilities | For setting outputs, logging, error handling in custom actions |
-| `@actions/exec` | Execute shell commands | For running Claude CLI subprocess from Node.js wrapper |
-| `@actions/github` | GitHub API client | Alternative to actions/github-script for Node.js-based operations |
-| `octokit` | GitHub REST API client | When direct REST API calls are needed instead of gh CLI |
+| Library           | Purpose                  | When to Use                                                       |
+| ----------------- | ------------------------ | ----------------------------------------------------------------- |
+| `@actions/core`   | GitHub Actions utilities | For setting outputs, logging, error handling in custom actions    |
+| `@actions/exec`   | Execute shell commands   | For running Claude CLI subprocess from Node.js wrapper            |
+| `@actions/github` | GitHub API client        | Alternative to actions/github-script for Node.js-based operations |
+| `octokit`         | GitHub REST API client   | When direct REST API calls are needed instead of gh CLI           |
 
 ## Installation
 
@@ -84,7 +84,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '24'
+          node-version: "24"
 
       - uses: actions/cache@v5
         with:
@@ -135,6 +135,7 @@ steps:
 ```
 
 **Important:**
+
 - Use `GH_TOKEN` environment variable for gh CLI authentication
 - The `GITHUB_TOKEN` secret is automatically available in all workflows
 - Set the correct `permissions` key in workflow to grant access
@@ -146,16 +147,16 @@ steps:
 
 ```yaml
 permissions:
-  contents: read      # Read repo files (PROJECT.md, config)
-  issues: write       # Post issue comments
-  pull-requests: write  # Post PR comments
+  contents: read # Read repo files (PROJECT.md, config)
+  issues: write # Post issue comments
+  pull-requests: write # Post PR comments
 ```
 
 ### Branch Creation (if needed in future)
 
 ```yaml
 permissions:
-  contents: write     # Create branches, commit files
+  contents: write # Create branches, commit files
   issues: write
   pull-requests: write
 ```
@@ -165,24 +166,24 @@ permissions:
 ```yaml
 permissions:
   contents: read
-  issues: write      # Create new issues
+  issues: write # Create new issues
   pull-requests: write
 ```
 
 ## What We're NOT Using (and Why)
 
-| Technology | Why Avoid | Alternative |
-|------------|-----------|-------------|
-| Personal Access Tokens (PATs) | Security risk, need to manage secrets, don't rotate automatically | Use GITHUB_TOKEN (auto-generated, auto-rotating) |
-| GitHub App (for v1) | Overkill for v1 scope, complex setup, installation tokens add overhead | GITHUB_TOKEN sufficient for comment posting and file reads |
-| Self-hosted runners | Security risk for public repos, maintenance burden, unnecessary for this use case | Use GitHub-hosted ubuntu-latest runners |
+| Technology                                             | Why Avoid                                                                                    | Alternative                                                |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Personal Access Tokens (PATs)                          | Security risk, need to manage secrets, don't rotate automatically                            | Use GITHUB_TOKEN (auto-generated, auto-rotating)           |
+| GitHub App (for v1)                                    | Overkill for v1 scope, complex setup, installation tokens add overhead                       | GITHUB_TOKEN sufficient for comment posting and file reads |
+| Self-hosted runners                                    | Security risk for public repos, maintenance burden, unnecessary for this use case            | Use GitHub-hosted ubuntu-latest runners                    |
 | Third-party bot frameworks (Probot, probot-serverless) | Overhead, deprecated/abandoned projects, over-engineered for simple trigger-response pattern | Direct GitHub Actions workflow with custom Node.js wrapper |
-| Database (PostgreSQL, MongoDB, etc.) | Unnecessary complexity, state can be stored in git | Repository files as source of truth |
-| External storage (S3, Azure Blob) | Not needed for v1 scale, adds dependencies | GitHub artifacts and repository commits |
-| Redis/Memcached | No caching requirements for v1, adds infrastructure | Use GitHub Actions cache@v5 for npm dependencies |
-| Webhook proxy services (ngrok, smee.io) | Not needed for GitHub Actions native webhooks | GitHub automatically delivers webhooks to Actions |
-| Direct REST API calls (curl) | More verbose, lose automatic authentication handling | Use gh CLI or actions/github-script |
-| Docker containers | Adds complexity, slower startup, not needed for Node.js wrapper | Direct Node.js execution on ubuntu-latest |
+| Database (PostgreSQL, MongoDB, etc.)                   | Unnecessary complexity, state can be stored in git                                           | Repository files as source of truth                        |
+| External storage (S3, Azure Blob)                      | Not needed for v1 scale, adds dependencies                                                   | GitHub artifacts and repository commits                    |
+| Redis/Memcached                                        | No caching requirements for v1, adds infrastructure                                          | Use GitHub Actions cache@v5 for npm dependencies           |
+| Webhook proxy services (ngrok, smee.io)                | Not needed for GitHub Actions native webhooks                                                | GitHub automatically delivers webhooks to Actions          |
+| Direct REST API calls (curl)                           | More verbose, lose automatic authentication handling                                         | Use gh CLI or actions/github-script                        |
+| Docker containers                                      | Adds complexity, slower startup, not needed for Node.js wrapper                              | Direct Node.js execution on ubuntu-latest                  |
 
 ## Version Pinning Strategy
 
@@ -197,7 +198,7 @@ Pin actions to major versions (`@v6`) for balance between security and stability
 - uses: actions/cache@v5
 
 # For custom/third-party actions: Commit SHA pinning
-- uses: ./.github/actions/gsd-bot  # Local action, always uses HEAD
+- uses: ./.github/actions/gsd-bot # Local action, always uses HEAD
 ```
 
 ### When to Use Commit SHA Pinning
@@ -279,7 +280,7 @@ Sanitize all user inputs from issue comments:
 // In Node.js wrapper
 const sanitizeInput = (input) => {
   // Remove any shell metacharacters
-  return input.replace(/[;&|`$()]/g, '');
+  return input.replace(/[;&|`$()]/g, "");
 };
 ```
 
@@ -300,41 +301,41 @@ Never log secrets:
 
 ### Node.js Version
 
-| Option | Status | Why Not Selected |
-|--------|--------|------------------|
+| Option              | Status          | Why Not Selected                              |
+| ------------------- | --------------- | --------------------------------------------- |
 | Node.js 20.x (Iron) | Maintenance LTS | Older, EOL 2026-04-30, use 24.x for longevity |
-| Node.js 22.x (Jod) | Maintenance LTS | Not current Active LTS, 24.x is newer |
-| Node.js 18.x | EOL | Deprecated, not suitable for new projects |
+| Node.js 22.x (Jod)  | Maintenance LTS | Not current Active LTS, 24.x is newer         |
+| Node.js 18.x        | EOL             | Deprecated, not suitable for new projects     |
 
 ### GitHub CLI vs Direct API
 
-| Option | Pros | Cons | Recommendation |
-|--------|------|------|----------------|
-| GitHub CLI (gh) | Simple, auto-auth, readable | Limited to CLI features | Use for v1 |
-| REST API (curl) | Full access, no dependencies | Verbose, manual auth, error-prone | Avoid unless needed |
+| Option                | Pros                          | Cons                                           | Recommendation            |
+| --------------------- | ----------------------------- | ---------------------------------------------- | ------------------------- |
+| GitHub CLI (gh)       | Simple, auto-auth, readable   | Limited to CLI features                        | Use for v1                |
+| REST API (curl)       | Full access, no dependencies  | Verbose, manual auth, error-prone              | Avoid unless needed       |
 | actions/github-script | JavaScript-friendly, pre-auth | Learning curve, overkill for simple operations | Use for complex API logic |
-| @actions/github | TypeScript types, typed API | Additional dependency | Use in Node.js wrapper |
+| @actions/github       | TypeScript types, typed API   | Additional dependency                          | Use in Node.js wrapper    |
 
 ### Workflow Structure
 
-| Option | Pros | Cons | Recommendation |
-|--------|------|------|----------------|
-| Single job | Simple, fast | Harder to scale, no parallelism | Use for v1 |
-| Multi-job | Modular, can parallelize | More complex, outputs management | Consider for v2+ |
-| Reusable workflow | DRY, shareable | Setup complexity | Not needed for v1 |
-| Composite action | Reusable steps | Limited scope | Use for gsd-bot wrapper |
+| Option            | Pros                     | Cons                             | Recommendation          |
+| ----------------- | ------------------------ | -------------------------------- | ----------------------- |
+| Single job        | Simple, fast             | Harder to scale, no parallelism  | Use for v1              |
+| Multi-job         | Modular, can parallelize | More complex, outputs management | Consider for v2+        |
+| Reusable workflow | DRY, shareable           | Setup complexity                 | Not needed for v1       |
+| Composite action  | Reusable steps           | Limited scope                    | Use for gsd-bot wrapper |
 
 ## Scalability Notes
 
 ### Current Stack Limits
 
-| Resource | Limit | Impact |
-|----------|-------|--------|
-| Workflow job timeout | 6 hours | GSD analysis must complete within this window |
-| GitHub Actions minutes | 2000/month (free) | May hit limits at high volume |
-| GITHUB_TOKEN rate limit | 1000 requests/hour | OK for comment operations |
-| Artifact storage | 10GB per repo | Sufficient for planning artifacts |
-| Cache retention | 7 days (auto) | Use repository commits for long-term storage |
+| Resource                | Limit              | Impact                                        |
+| ----------------------- | ------------------ | --------------------------------------------- |
+| Workflow job timeout    | 6 hours            | GSD analysis must complete within this window |
+| GitHub Actions minutes  | 2000/month (free)  | May hit limits at high volume                 |
+| GITHUB_TOKEN rate limit | 1000 requests/hour | OK for comment operations                     |
+| Artifact storage        | 10GB per repo      | Sufficient for planning artifacts             |
+| Cache retention         | 7 days (auto)      | Use repository commits for long-term storage  |
 
 ### When to Upgrade (v2+)
 
@@ -362,32 +363,32 @@ Never log secrets:
 
 ## Decisions Made
 
-| Decision | Rationale | Confidence |
-|----------|-----------|------------|
-| Use Node.js 24.x (Krypton) | Current Active LTS, supported until 2027, matches latest action versions | HIGH |
-| Use ubuntu-latest runner | Standard, gh CLI pre-installed, 6-hour timeout sufficient for AI operations | HIGH |
-| Use GITHUB_TOKEN for authentication | Auto-generated, auto-rotating, no secret management overhead | HIGH |
-| Use GH_TOKEN env var for gh CLI | Automatic authentication via gh CLI, no additional setup | MEDIUM (WebSearch verified) |
-| Use major version pinning (@v6) for GitHub actions | Balance between security updates and stability, best practice | HIGH |
-| Avoid database for state | Repository files as source of truth, simpler, no external dependencies | HIGH |
-| Use gh CLI instead of REST API | Simpler, more readable, auto-auth, sufficient for v1 needs | HIGH |
-| Single job workflow for v1 | Simpler, faster, adequate for v1 scope | HIGH |
-| Concurrency with cancel-in-progress | Prevent duplicate runs, improve user experience | HIGH |
-| Filter to issue_comment created only | Avoid processing edits/deletions, reduce noise | HIGH |
+| Decision                                           | Rationale                                                                   | Confidence                  |
+| -------------------------------------------------- | --------------------------------------------------------------------------- | --------------------------- |
+| Use Node.js 24.x (Krypton)                         | Current Active LTS, supported until 2027, matches latest action versions    | HIGH                        |
+| Use ubuntu-latest runner                           | Standard, gh CLI pre-installed, 6-hour timeout sufficient for AI operations | HIGH                        |
+| Use GITHUB_TOKEN for authentication                | Auto-generated, auto-rotating, no secret management overhead                | HIGH                        |
+| Use GH_TOKEN env var for gh CLI                    | Automatic authentication via gh CLI, no additional setup                    | MEDIUM (WebSearch verified) |
+| Use major version pinning (@v6) for GitHub actions | Balance between security updates and stability, best practice               | HIGH                        |
+| Avoid database for state                           | Repository files as source of truth, simpler, no external dependencies      | HIGH                        |
+| Use gh CLI instead of REST API                     | Simpler, more readable, auto-auth, sufficient for v1 needs                  | HIGH                        |
+| Single job workflow for v1                         | Simpler, faster, adequate for v1 scope                                      | HIGH                        |
+| Concurrency with cancel-in-progress                | Prevent duplicate runs, improve user experience                             | HIGH                        |
+| Filter to issue_comment created only               | Avoid processing edits/deletions, reduce noise                              | HIGH                        |
 
 ## Confidence Assessment
 
-| Area | Confidence | Notes |
-|------|------------|-------|
-| Node.js version (24.x) | HIGH | Verified via official Node.js Release page |
-| GitHub Actions action versions | HIGH | Verified via official GitHub action repositories |
-| Runner configuration (ubuntu-latest) | HIGH | Verified via actions/runner-images repository |
-| GITHUB_TOKEN authentication | HIGH | Verified via official GitHub Actions documentation |
-| GH_TOKEN for gh CLI | MEDIUM | WebSearch sources, not directly verified via official docs |
-| Permissions (contents, issues, pull-requests) | HIGH | Verified via official GitHub Actions permissions docs |
-| Event configuration (issue_comment: created) | HIGH | Verified via official GitHub Actions events docs |
-| Concurrency configuration | HIGH | Verified via official GitHub Actions workflow syntax docs |
-| Artifact configuration | HIGH | Verified via official GitHub Actions artifact docs |
+| Area                                          | Confidence | Notes                                                      |
+| --------------------------------------------- | ---------- | ---------------------------------------------------------- |
+| Node.js version (24.x)                        | HIGH       | Verified via official Node.js Release page                 |
+| GitHub Actions action versions                | HIGH       | Verified via official GitHub action repositories           |
+| Runner configuration (ubuntu-latest)          | HIGH       | Verified via actions/runner-images repository              |
+| GITHUB_TOKEN authentication                   | HIGH       | Verified via official GitHub Actions documentation         |
+| GH_TOKEN for gh CLI                           | MEDIUM     | WebSearch sources, not directly verified via official docs |
+| Permissions (contents, issues, pull-requests) | HIGH       | Verified via official GitHub Actions permissions docs      |
+| Event configuration (issue_comment: created)  | HIGH       | Verified via official GitHub Actions events docs           |
+| Concurrency configuration                     | HIGH       | Verified via official GitHub Actions workflow syntax docs  |
+| Artifact configuration                        | HIGH       | Verified via official GitHub Actions artifact docs         |
 
 ## Open Questions / Research Flags
 
