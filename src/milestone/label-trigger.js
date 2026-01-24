@@ -113,6 +113,15 @@ export async function executeLabelTriggerWorkflow(context) {
 
       // Check for changes (exclude log files)
       const { stdout: status } = await execPromise("git status --porcelain");
+
+      // Log what files exist in key directories for debugging
+      try {
+        const { stdout: allNewFiles } = await execPromise("find . -type f -newer .git/HEAD -not -path './node_modules/*' -not -path './.git/*' 2>/dev/null | head -50 || echo '(no new files)'");
+        core.info(`New files created during this run:\n${allNewFiles}`);
+      } catch (e) {
+        core.info("Could not list new files");
+      }
+
       if (status.trim()) {
         core.info(`Found changes to commit:\n${status}`);
         // Configure git identity (Claude Code)
