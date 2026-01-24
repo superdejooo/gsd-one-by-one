@@ -35243,10 +35243,11 @@ async function parseRequirements(path = ".planning/REQUIREMENTS.md") {
       version = `v${match[2]}`;
     }
 
-    // Pattern 2: # Requirements Archive: v{version} ... — {title}
+    // Pattern 2: # Requirements Archive: v{version} {title} (title comes after version)
+    // e.g. "# Requirements Archive: v1.0 MVP — GitHub-native GSD via Reusable Action"
     if (!title) {
       match = content.match(
-        /^#\s+Requirements Archive:\s+v(\d+\.\d+)[^\n]*[—–-]\s*(.+)/m,
+        /^#\s+Requirements Archive:\s+v(\d+\.\d+)\s+(.+)/m,
       );
       if (match) {
         version = `v${match[1]}`;
@@ -35388,13 +35389,29 @@ async function parseRoadmap(path = ".planning/ROADMAP.md") {
       );
       const dependsOn = dependsMatch ? dependsMatch[1].trim() : null;
 
-      // Extract phase status
+      // Extract phase status - try multiple patterns
+      let phaseStatus = "not-started";
+
+      // Pattern 1: **Status:** Complete/In progress/Not started
       const phaseStatusMatch = phaseContent.match(
         /\*\*Status:\*\*\s*(Complete|Not started|In progress|Pending)[^\n]*/i,
       );
-      let phaseStatus = phaseStatusMatch
-        ? phaseStatusMatch[1].toLowerCase()
-        : "not-started";
+      if (phaseStatusMatch) {
+        phaseStatus = phaseStatusMatch[1].toLowerCase();
+      } else {
+        // Pattern 2: Check if all plan checkboxes are checked [x]
+        // If there are plans and all are [x], phase is complete
+        const planChecks = phaseContent.match(/- \[(x| )\]/g);
+        if (planChecks && planChecks.length > 0) {
+          const allComplete = planChecks.every((c) => c.includes("[x]"));
+          const anyComplete = planChecks.some((c) => c.includes("[x]"));
+          if (allComplete) {
+            phaseStatus = "complete";
+          } else if (anyComplete) {
+            phaseStatus = "in-progress";
+          }
+        }
+      }
       phaseStatus = phaseStatus.replace(/\s+/g, "-"); // "not started" -> "not-started"
 
       phases.push({
