@@ -35149,7 +35149,7 @@ __nccwpck_require__.d(__webpack_exports__, {
 });
 
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(7484);
+var lib_core = __nccwpck_require__(7484);
 // EXTERNAL MODULE: external "child_process"
 var external_child_process_ = __nccwpck_require__(5317);
 // EXTERNAL MODULE: external "util"
@@ -35160,24 +35160,81 @@ var promises_ = __nccwpck_require__(1943);
 var ccr_command = __nccwpck_require__(8330);
 ;// CONCATENATED MODULE: ./src/lib/planning-parser.js
 /**
- * Parsers for GSD planning artifact files (REQUIREMENTS.md, ROADMAP.md)
- * Used to extract milestone metadata after new-milestone workflow completes
+ * Parsers for GSD planning artifact files
+ * Each file type (PROJECT.md, REQUIREMENTS.md, ROADMAP.md, PLAN.md, STATE.md)
+ * has a specific format and requires its own parser.
  */
 
 
 
 /**
- * Parse REQUIREMENTS.md to extract milestone metadata
- * @returns {Promise<{title: string, version: string, coreValue: string} | null>}
+ * Parse PROJECT.md to extract project metadata
+ * Format:
+ *   # {Project Title}
+ *   ## What This Is
+ *   ## Core Value
+ *   ## Current State (vX.X ...)
+ *
+ * @param {string} [path=".planning/PROJECT.md"] - Path to PROJECT.md
+ * @returns {Promise<{title: string, coreValue: string, currentState: string} | null>}
  */
-async function parseRequirements() {
+async function parseProject(path = ".planning/PROJECT.md") {
   try {
-    const content = await promises_.readFile(".planning/REQUIREMENTS.md", "utf-8");
+    const content = await fs.readFile(path, "utf-8");
+
+    // Extract title from first H1: # {title}
+    const titleMatch = content.match(/^#\s+(.+?)$/m);
+    const title = titleMatch ? titleMatch[1].trim() : null;
+
+    // Extract Core Value section content
+    const coreValueMatch = content.match(
+      /##\s+Core Value\s*\n+([\s\S]*?)(?=\n##|\n---|\n$)/,
+    );
+    const coreValue = coreValueMatch ? coreValueMatch[1].trim() : null;
+
+    // Extract Current State header: ## Current State (vX.X ...)
+    const stateMatch = content.match(
+      /##\s+Current State[^\n]*\((v[\d.]+)[^\)]*\)/,
+    );
+    const currentVersion = stateMatch ? stateMatch[1] : null;
+
+    if (!title) {
+      core.warning("Could not parse title from PROJECT.md");
+      return null;
+    }
+
+    return {
+      title,
+      coreValue,
+      currentVersion,
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info("PROJECT.md not found");
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Parse REQUIREMENTS.md to extract milestone metadata
+ * Format variations:
+ *   # Requirements: {title} v{version}
+ *   # Requirements Archive: v{version} MVP — {title}
+ *   **Milestone:** v{version} — {title}
+ *   **Status:** ✅ SHIPPED
+ *   **Core Value:** {description}
+ *
+ * @param {string} [path=".planning/REQUIREMENTS.md"] - Path to REQUIREMENTS.md
+ * @returns {Promise<{title: string, version: string, coreValue: string, status: string} | null>}
+ */
+async function parseRequirements(path = ".planning/REQUIREMENTS.md") {
+  try {
+    const content = await promises_.readFile(path, "utf-8");
 
     let title = null;
     let version = null;
-
-    // Try multiple patterns for title/version extraction
 
     // Pattern 1: # Requirements: {title} v{version}
     let match = content.match(/^#\s+Requirements:\s+(.+?)\s+v(\d+\.\d+)/m);
@@ -35186,7 +35243,18 @@ async function parseRequirements() {
       version = `v${match[2]}`;
     }
 
-    // Pattern 2: **Milestone:** v{version} — {title}
+    // Pattern 2: # Requirements Archive: v{version} ... — {title}
+    if (!title) {
+      match = content.match(
+        /^#\s+Requirements Archive:\s+v(\d+\.\d+)[^\n]*[—–-]\s*(.+)/m,
+      );
+      if (match) {
+        version = `v${match[1]}`;
+        title = match[2].trim();
+      }
+    }
+
+    // Pattern 3: **Milestone:** v{version} — {title}
     if (!title) {
       match = content.match(/\*\*Milestone:\*\*\s+v(\d+\.\d+)\s*[—–-]\s*(.+)/m);
       if (match) {
@@ -35195,7 +35263,7 @@ async function parseRequirements() {
       }
     }
 
-    // Pattern 3: # {title} v{version} (any H1 with version)
+    // Pattern 4: # {title} v{version} (any H1 with version)
     if (!title) {
       match = content.match(/^#\s+(.+?)\s+v(\d+\.\d+)/m);
       if (match) {
@@ -35204,7 +35272,7 @@ async function parseRequirements() {
       }
     }
 
-    // Pattern 4: Just find any version number as fallback
+    // Pattern 5: Just find any version number as fallback
     if (!version) {
       match = content.match(/v(\d+\.\d+)/);
       if (match) {
@@ -35212,24 +35280,43 @@ async function parseRequirements() {
       }
     }
 
-    // Extract Core Value paragraph
-    const coreValueMatch = content.match(
-      /\*\*Core Value:\*\*\s+(.+?)(?:\n\n|\n##)/s,
+    // Extract status: **Status:** ✅ SHIPPED or **Status:** In Progress
+    const statusMatch = content.match(/\*\*Status:\*\*\s*([^\n]+)/);
+    const status = statusMatch ? statusMatch[1].trim() : null;
+
+    // Extract Core Value: **Core Value:** {text} (may span multiple lines until ## or ---)
+    // or ## Core Value section
+    let coreValue = null;
+    // Try multiline bold format first: **Core Value:** followed by text until next section
+    const coreValueBoldMatch = content.match(
+      /\*\*Core Value:\*\*\s*([\s\S]*?)(?=\n\n##|\n\n---|\n\n\*\*[A-Z]|\n\n$|$)/,
     );
+    if (coreValueBoldMatch) {
+      coreValue = coreValueBoldMatch[1].trim().replace(/\n/g, " ");
+    } else {
+      // Try section format: ## Core Value
+      const coreValueSectionMatch = content.match(
+        /##\s+Core Value\s*\n+([\s\S]*?)(?=\n##|\n---|\n$)/,
+      );
+      if (coreValueSectionMatch) {
+        coreValue = coreValueSectionMatch[1].trim();
+      }
+    }
 
     if (!title && !version) {
-      core.warning("Could not parse title/version from REQUIREMENTS.md");
+      lib_core.warning("Could not parse title/version from REQUIREMENTS.md");
       return null;
     }
 
     return {
       title: title || "Untitled Milestone",
       version: version || "v0.0",
-      coreValue: coreValueMatch ? coreValueMatch[1].trim() : null,
+      coreValue,
+      status,
     };
   } catch (error) {
     if (error.code === "ENOENT") {
-      core.info("REQUIREMENTS.md not found (no active milestone)");
+      lib_core.info("REQUIREMENTS.md not found (no active milestone)");
       return null;
     }
     throw error;
@@ -35237,17 +35324,46 @@ async function parseRequirements() {
 }
 
 /**
- * Parse ROADMAP.md to extract phase information
- * @returns {Promise<{phases: Array<{number: string, name: string, status: string}>}>}
+ * Parse ROADMAP.md to extract milestone and phase information
+ * Format:
+ *   # Milestone v{version}: {Title}
+ *   **Status:** ✅ SHIPPED {date}
+ *   **Phases:** {range}
+ *   **Total Plans:** {count}
+ *   ## Phases
+ *   ### Phase N: Phase Name
+ *   **Goal**: {goal}
+ *   **Depends on**: {dependency}
+ *   **Status:** Complete ({date})
+ *
+ * @param {string} [path=".planning/ROADMAP.md"] - Path to ROADMAP.md
+ * @returns {Promise<{title: string, version: string, status: string, totalPlans: number, phases: Array<{number: string, name: string, goal: string, dependsOn: string, status: string}>}>}
  */
-async function parseRoadmap() {
+async function parseRoadmap(path = ".planning/ROADMAP.md") {
   try {
-    const content = await promises_.readFile(".planning/ROADMAP.md", "utf-8");
+    const content = await promises_.readFile(path, "utf-8");
 
+    // Extract milestone title and version from H1: # Milestone v{version}: {title}
+    let title = null;
+    let version = null;
+    const h1Match = content.match(
+      /^#\s+Milestone\s+v(\d+\.\d+):?\s*(.+?)$/m,
+    );
+    if (h1Match) {
+      version = `v${h1Match[1]}`;
+      title = h1Match[2].trim();
+    }
+
+    // Extract overall status
+    const statusMatch = content.match(/^\*\*Status:\*\*\s*([^\n]+)/m);
+    const status = statusMatch ? statusMatch[1].trim() : null;
+
+    // Extract total plans count
+    const plansMatch = content.match(/\*\*Total Plans:\*\*\s*(\d+)/);
+    const totalPlans = plansMatch ? parseInt(plansMatch[1], 10) : 0;
+
+    // Parse phases
     const phases = [];
-
-    // Match phase headers: ### Phase N: Phase Name
-    // Also match status: **Status:** Complete or **Status:** Not started
     const phasePattern = /###\s+Phase\s+(\d+(?:\.\d+)?):?\s+(.+?)(?:\n|$)/g;
     let match;
 
@@ -35255,33 +35371,217 @@ async function parseRoadmap() {
       const phaseNumber = match[1];
       const phaseName = match[2].trim();
 
-      // Find status for this phase (appears after the header)
-      const afterPhase = content.slice(match.index);
-      const statusMatch = afterPhase.match(
-        /\*\*Status:\*\*\s+(Complete|Not started|In progress)/i,
+      // Get content until next phase header or end
+      const nextPhaseIndex = content.indexOf("### Phase", match.index + 1);
+      const phaseContent =
+        nextPhaseIndex !== -1
+          ? content.slice(match.index, nextPhaseIndex)
+          : content.slice(match.index);
+
+      // Extract goal
+      const goalMatch = phaseContent.match(/\*\*Goal\*?\*?:?\s*([^\n]+)/);
+      const goal = goalMatch ? goalMatch[1].trim() : null;
+
+      // Extract depends on
+      const dependsMatch = phaseContent.match(
+        /\*\*Depends on\*?\*?:?\s*([^\n]+)/,
       );
-      const status = statusMatch ? statusMatch[1].toLowerCase() : "not started";
+      const dependsOn = dependsMatch ? dependsMatch[1].trim() : null;
+
+      // Extract phase status
+      const phaseStatusMatch = phaseContent.match(
+        /\*\*Status:\*\*\s*(Complete|Not started|In progress|Pending)[^\n]*/i,
+      );
+      let phaseStatus = phaseStatusMatch
+        ? phaseStatusMatch[1].toLowerCase()
+        : "not-started";
+      phaseStatus = phaseStatus.replace(/\s+/g, "-"); // "not started" -> "not-started"
 
       phases.push({
         number: phaseNumber,
         name: phaseName,
-        status: status.replace(" ", "-"), // "not started" -> "not-started"
+        goal,
+        dependsOn,
+        status: phaseStatus,
       });
     }
 
-    return { phases };
+    return { title, version, status, totalPlans, phases };
   } catch (error) {
     if (error.code === "ENOENT") {
-      core.info("ROADMAP.md not found");
-      return { phases: [] };
+      lib_core.info("ROADMAP.md not found");
+      return { title: null, version: null, status: null, totalPlans: 0, phases: [] };
     }
     throw error;
   }
 }
 
 /**
- * Parse both files and return combined milestone metadata
- * @returns {Promise<{title: string, version: string, coreValue: string, phases: Array}>}
+ * Parse STATE.md to extract current project position
+ * Format:
+ *   ## Current Position
+ *   Milestone: v{version} — {status}
+ *   Phase: {phase info}
+ *   Plan: {plan info}
+ *   Status: {status}
+ *
+ * @param {string} [path=".planning/STATE.md"] - Path to STATE.md
+ * @returns {Promise<{milestone: string, phase: string, plan: string, status: string, lastActivity: string} | null>}
+ */
+async function parseState(path = ".planning/STATE.md") {
+  try {
+    const content = await fs.readFile(path, "utf-8");
+
+    // Find Current Position section
+    const positionMatch = content.match(
+      /##\s+Current Position\s*\n+([\s\S]*?)(?=\n##|\n---|\n$)/,
+    );
+    if (!positionMatch) {
+      core.warning("Could not find Current Position section in STATE.md");
+      return null;
+    }
+
+    const positionContent = positionMatch[1];
+
+    // Extract milestone
+    const milestoneMatch = positionContent.match(/Milestone:\s*([^\n]+)/);
+    const milestone = milestoneMatch ? milestoneMatch[1].trim() : null;
+
+    // Extract phase
+    const phaseMatch = positionContent.match(/Phase:\s*([^\n]+)/);
+    const phase = phaseMatch ? phaseMatch[1].trim() : null;
+
+    // Extract plan
+    const planMatch = positionContent.match(/Plan:\s*([^\n]+)/);
+    const plan = planMatch ? planMatch[1].trim() : null;
+
+    // Extract status
+    const statusMatch = positionContent.match(/Status:\s*([^\n]+)/);
+    const status = statusMatch ? statusMatch[1].trim() : null;
+
+    // Extract last activity
+    const activityMatch = positionContent.match(/Last activity:\s*([^\n]+)/);
+    const lastActivity = activityMatch ? activityMatch[1].trim() : null;
+
+    return {
+      milestone,
+      phase,
+      plan,
+      status,
+      lastActivity,
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info("STATE.md not found");
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Parse a PLAN.md file to extract plan metadata and tasks
+ * Format:
+ *   ---
+ *   phase: "07-phase-planning-command"
+ *   plan: "01"
+ *   type: "execute"
+ *   wave: 1
+ *   depends_on: []
+ *   files_modified: [...]
+ *   autonomous: true
+ *   must_haves: {...}
+ *   ---
+ *   <objective>...</objective>
+ *   <tasks>
+ *     <task type="auto">
+ *       <name>...</name>
+ *       <files>...</files>
+ *       <action>...</action>
+ *       <verify>...</verify>
+ *       <done>...</done>
+ *     </task>
+ *   </tasks>
+ *
+ * @param {string} path - Path to PLAN.md file
+ * @returns {Promise<{phase: string, plan: string, type: string, wave: number, autonomous: boolean, objective: string, tasks: Array} | null>}
+ */
+async function parsePlan(path) {
+  try {
+    const content = await fs.readFile(path, "utf-8");
+
+    // Extract YAML frontmatter
+    const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) {
+      core.warning(`No frontmatter found in ${path}`);
+      return null;
+    }
+
+    const frontmatter = frontmatterMatch[1];
+
+    // Parse frontmatter fields
+    const phaseMatch = frontmatter.match(/phase:\s*["']?([^"'\n]+)["']?/);
+    const planMatch = frontmatter.match(/plan:\s*["']?([^"'\n]+)["']?/);
+    const typeMatch = frontmatter.match(/type:\s*["']?([^"'\n]+)["']?/);
+    const waveMatch = frontmatter.match(/wave:\s*(\d+)/);
+    const autonomousMatch = frontmatter.match(/autonomous:\s*(true|false)/);
+
+    // Extract objective
+    const objectiveMatch = content.match(
+      /<objective>([\s\S]*?)<\/objective>/,
+    );
+    const objective = objectiveMatch ? objectiveMatch[1].trim() : null;
+
+    // Extract tasks
+    const tasks = [];
+    const taskPattern = /<task[^>]*>([\s\S]*?)<\/task>/g;
+    let taskMatch;
+
+    while ((taskMatch = taskPattern.exec(content)) !== null) {
+      const taskContent = taskMatch[1];
+
+      const nameMatch = taskContent.match(/<name>([\s\S]*?)<\/name>/);
+      const filesMatch = taskContent.match(/<files>([\s\S]*?)<\/files>/);
+      const actionMatch = taskContent.match(/<action>([\s\S]*?)<\/action>/);
+      const verifyMatch = taskContent.match(/<verify>([\s\S]*?)<\/verify>/);
+      const doneMatch = taskContent.match(/<done>([\s\S]*?)<\/done>/);
+
+      // Extract task type attribute
+      const typeAttrMatch = taskMatch[0].match(/<task[^>]*type=["']([^"']+)["']/);
+
+      tasks.push({
+        type: typeAttrMatch ? typeAttrMatch[1] : "auto",
+        name: nameMatch ? nameMatch[1].trim() : null,
+        files: filesMatch ? filesMatch[1].trim() : null,
+        action: actionMatch ? actionMatch[1].trim() : null,
+        verify: verifyMatch ? verifyMatch[1].trim() : null,
+        done: doneMatch ? doneMatch[1].trim() : null,
+      });
+    }
+
+    return {
+      phase: phaseMatch ? phaseMatch[1] : null,
+      plan: planMatch ? planMatch[1] : null,
+      type: typeMatch ? typeMatch[1] : null,
+      wave: waveMatch ? parseInt(waveMatch[1], 10) : 1,
+      autonomous: autonomousMatch ? autonomousMatch[1] === "true" : true,
+      objective,
+      tasks,
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info(`Plan file not found: ${path}`);
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Parse REQUIREMENTS.md and ROADMAP.md to return combined milestone metadata
+ * Used by label-trigger workflow to update issue with milestone info
+ *
+ * @returns {Promise<{title: string, version: string, coreValue: string, status: string, phases: Array}>}
  */
 async function parseMilestoneMetadata() {
   const [requirements, roadmap] = await Promise.all([
@@ -35289,9 +35589,13 @@ async function parseMilestoneMetadata() {
     parseRoadmap(),
   ]);
 
+  // Use requirements data primarily, fall back to roadmap for title/version
   return {
-    ...requirements,
-    phases: roadmap.phases,
+    title: requirements?.title || roadmap?.title || "Untitled Milestone",
+    version: requirements?.version || roadmap?.version || "v0.0",
+    coreValue: requirements?.coreValue || null,
+    status: requirements?.status || roadmap?.status || null,
+    phases: roadmap?.phases || [],
   };
 }
 
@@ -35343,15 +35647,15 @@ const execAsync = (0,external_util_.promisify)(external_child_process_.exec);
 async function executeLabelTriggerWorkflow(context) {
   const { owner, repo, issueNumber, issueTitle, issueBody } = context;
 
-  core.info(
+  lib_core.info(
     `Starting label trigger workflow for ${owner}/${repo}#${issueNumber}`,
   );
-  core.info(`Issue title: ${issueTitle}`);
+  lib_core.info(`Issue title: ${issueTitle}`);
 
   try {
     // Step 1: Join title and body with --- separator
     const prompt = `${issueTitle}\n---\n${issueBody || ""}`;
-    core.info(`Formatted prompt (${prompt.length} chars)`);
+    lib_core.info(`Formatted prompt (${prompt.length} chars)`);
 
     // Step 2: Execute GSD new-milestone via CCR with prompt
     const basePath = `output-${Date.now()}`;
@@ -35362,8 +35666,8 @@ async function executeLabelTriggerWorkflow(context) {
       null, // No skill override
     );
 
-    core.info(`Executing: ${command}`);
-    core.info(`Debug logs: ${stderrPath}`);
+    lib_core.info(`Executing: ${command}`);
+    lib_core.info(`Debug logs: ${stderrPath}`);
 
     // Step 3: Execute command with 10 minute timeout (same as phase planner)
     let exitCode = 0;
@@ -35371,7 +35675,7 @@ async function executeLabelTriggerWorkflow(context) {
       await execAsync(command, { timeout: 600000 });
     } catch (error) {
       exitCode = error.code || 1;
-      core.warning(`Command exited with code ${exitCode}`);
+      lib_core.warning(`Command exited with code ${exitCode}`);
     }
 
     // Step 4: Read captured output files
@@ -35409,7 +35713,7 @@ async function executeLabelTriggerWorkflow(context) {
     // Keep output file for artifact upload (don't delete)
 
     // Step 6: Commit and push changes to remote (agent creates files but may not commit)
-    core.info("Committing and pushing milestone changes...");
+    lib_core.info("Committing and pushing milestone changes...");
     try {
       const { exec } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 5317, 19));
       const { promisify } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 9023, 19));
@@ -35418,7 +35722,7 @@ async function executeLabelTriggerWorkflow(context) {
       // Check for changes (exclude log files)
       const { stdout: status } = await execPromise("git status --porcelain");
       if (status.trim()) {
-        core.info(`Found changes to commit:\n${status}`);
+        lib_core.info(`Found changes to commit:\n${status}`);
         // Configure git identity (Claude Code)
         await execPromise('git config user.name "Claude Code"');
         await execPromise('git config user.email "claude-code@anthropic.com"');
@@ -35426,43 +35730,43 @@ async function executeLabelTriggerWorkflow(context) {
         await execPromise("git add -A");
         await execPromise("git reset HEAD -- ccr.log output-*.txt '*.log' 2>/dev/null || true");
         await execPromise('git commit -m "chore: milestone created by GSD bot"');
-        core.info("Changes committed");
+        lib_core.info("Changes committed");
         // Pull with rebase in case remote has new commits
         await execPromise("git pull --rebase origin main || true");
       } else {
-        core.info("No changes to commit");
+        lib_core.info("No changes to commit");
       }
 
       await (0,git/* pushBranchAndTags */.NT)();
-      core.info("Changes pushed successfully");
+      lib_core.info("Changes pushed successfully");
     } catch (pushError) {
-      core.warning(`Commit/push failed: ${pushError.message}`);
+      lib_core.warning(`Commit/push failed: ${pushError.message}`);
     }
 
     // Step 7: Post agent output as comment
     const cleanOutput = (0,output_cleaner/* stripCcrLogs */.Y)(output);
     try {
       await (0,github/* postComment */.Gy)(owner, repo, issueNumber, cleanOutput);
-      core.info("Agent output posted as comment");
+      lib_core.info("Agent output posted as comment");
     } catch (commentError) {
-      core.warning(`Failed to post agent output: ${commentError.message}`);
+      lib_core.warning(`Failed to post agent output: ${commentError.message}`);
     }
 
-    core.info(`Label trigger workflow complete`);
+    lib_core.info(`Label trigger workflow complete`);
 
     // Step 8: Parse milestone metadata from generated files (optional enhancement)
     let metadata;
     try {
       metadata = await parseMilestoneMetadata();
     } catch (parseError) {
-      core.warning(
+      lib_core.warning(
         `Failed to parse milestone metadata: ${parseError.message}`,
       );
       return { complete: true, phase: "gsd-complete-no-metadata" };
     }
 
     if (!metadata || !metadata.title) {
-      core.warning(
+      lib_core.warning(
         "Could not parse milestone metadata, skipping issue update",
       );
       return { complete: true, phase: "gsd-complete-no-metadata" };
@@ -35498,9 +35802,9 @@ ${phaseList}
 
     try {
       await (0,github/* updateIssueBody */.Jh)(owner, repo, issueNumber, updatedBody);
-      core.info(`Updated issue #${issueNumber} with milestone info`);
+      lib_core.info(`Updated issue #${issueNumber} with milestone info`);
     } catch (updateError) {
-      core.error(`Failed to update issue body: ${updateError.message}`);
+      lib_core.error(`Failed to update issue body: ${updateError.message}`);
       // Don't fail workflow - core work (GSD) is done
     }
 
@@ -35517,9 +35821,9 @@ ${phaseList}
 - Use \`@gsd-bot plan-phase N\` to plan each phase
 - Use \`@gsd-bot execute-phase N\` to implement`,
       );
-      core.info("Next steps comment posted");
+      lib_core.info("Next steps comment posted");
     } catch (commentError) {
-      core.error(`Failed to post next steps comment: ${commentError.message}`);
+      lib_core.error(`Failed to post next steps comment: ${commentError.message}`);
       // Don't fail workflow - core work is done
     }
 
@@ -35531,7 +35835,7 @@ ${phaseList}
       phaseCount: metadata.phases.length,
     };
   } catch (error) {
-    core.error(`Label trigger workflow error: ${error.message}`);
+    lib_core.error(`Label trigger workflow error: ${error.message}`);
     throw error;
   }
 }
