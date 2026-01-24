@@ -62,9 +62,11 @@ describe("Reply Workflow", () => {
     const commandArgs = "Can you help me with this issue?";
     const outputContent = "Here's my response to your question...";
 
-    mockFormatCcrCommandWithOutput.mockReturnValue(
-      'ccr code --print " /github-actions-testing Can you help me with this issue?" > output.txt 2>&1',
-    );
+    mockFormatCcrCommandWithOutput.mockReturnValue({
+      command: 'ccr code --print " /github-actions-testing Can you help me with this issue?" > output.txt 2> output-debug.txt',
+      stdoutPath: 'output.txt',
+      stderrPath: 'output-debug.txt',
+    });
     mockReadFile.mockResolvedValue(outputContent);
 
     // Act
@@ -77,7 +79,7 @@ describe("Reply Workflow", () => {
     });
     expect(mockFormatCcrCommandWithOutput).toHaveBeenCalledWith(
       "",
-      expect.stringMatching(/^output-\d+\.txt$/),
+      expect.stringMatching(/^output-\d+$/),
       commandArgs,
       null,
     );
@@ -117,9 +119,11 @@ describe("Reply Workflow", () => {
     const skill = "refactor";
     const outputContent = "Refactoring suggestions...";
 
-    mockFormatCcrCommandWithOutput.mockReturnValue(
-      'ccr code --print " /refactor /github-actions-testing Help with refactoring" > output.txt 2>&1',
-    );
+    mockFormatCcrCommandWithOutput.mockReturnValue({
+      command: 'ccr code --print " /refactor /github-actions-testing Help with refactoring" > output.txt 2> output-debug.txt',
+      stdoutPath: 'output.txt',
+      stderrPath: 'output-debug.txt',
+    });
     mockReadFile.mockResolvedValue(outputContent);
 
     // Act
@@ -129,7 +133,7 @@ describe("Reply Workflow", () => {
     expect(result.complete).toBe(true);
     expect(mockFormatCcrCommandWithOutput).toHaveBeenCalledWith(
       "",
-      expect.stringMatching(/^output-\d+\.txt$/),
+      expect.stringMatching(/^output-\d+$/),
       commandArgs,
       skill,
     );

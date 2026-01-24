@@ -42,8 +42,11 @@ vi.mock("../lib/github.js", () => ({
 
 // Mock ccr-command.js
 vi.mock("../llm/ccr-command.js", () => ({
-  formatCcrCommandWithOutput: (gsdCmd, outputPath) =>
-    `ccr code --print "${gsdCmd}" > ${outputPath} 2>&1`,
+  formatCcrCommandWithOutput: (gsdCmd, basePath) => ({
+    command: `ccr code --print "${gsdCmd}" > ${basePath}.txt 2> ${basePath}-debug.txt`,
+    stdoutPath: `${basePath}.txt`,
+    stderrPath: `${basePath}-debug.txt`,
+  }),
 }));
 
 import { exec } from "node:child_process";

@@ -337,18 +337,19 @@ export async function executePhaseExecutionWorkflow(
 
     // Step 2: Execute GSD execute-phase via CCR
     // 30 minute timeout - execution takes longer than planning
-    const outputPath = `output-${Date.now()}.txt`;
+    const basePath = `output-${Date.now()}`;
     const gsdCommand = phaseNumber
       ? `/gsd:execute-phase ${phaseNumber}`
       : "/gsd:execute-phase";
-    const command = formatCcrCommandWithOutput(
+    const { command, stdoutPath, stderrPath } = formatCcrCommandWithOutput(
       gsdCommand,
-      outputPath,
+      basePath,
       null,
       skill,
     );
 
     core.info(`Executing: ${command}`);
+    core.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -358,10 +359,10 @@ export async function executePhaseExecutionWorkflow(
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output
+    // Step 3: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs.readFile(outputPath, "utf-8");
+      output = await fs.readFile(stdoutPath, "utf-8");
       core.info(
         `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
       );

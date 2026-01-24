@@ -51,15 +51,16 @@ export async function executeReplyWorkflow(context, commandArgs, skill = null) {
 
     // Step 2: Execute text as prompt via CCR
     // We don't use /gsd:reply - just send the text directly as a prompt
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = formatCcrCommandWithOutput(
       "",
-      outputPath,
+      basePath,
       commandArgs,
       skill,
     );
 
     core.info(`Executing: ${command}`);
+    core.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -69,10 +70,10 @@ export async function executeReplyWorkflow(context, commandArgs, skill = null) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output
+    // Step 3: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs.readFile(outputPath, "utf-8");
+      output = await fs.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }

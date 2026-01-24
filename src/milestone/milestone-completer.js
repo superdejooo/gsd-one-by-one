@@ -93,15 +93,16 @@ export async function executeMilestoneCompletionWorkflow(
   try {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = formatCcrCommandWithOutput(
       "/gsd:complete-milestone",
-      outputPath,
+      basePath,
       null,
       skill,
     );
 
     core.info(`Executing: ${command}`);
+    core.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -111,10 +112,10 @@ export async function executeMilestoneCompletionWorkflow(
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Read captured output
+    // Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs.readFile(outputPath, "utf-8");
+      output = await fs.readFile(stdoutPath, "utf-8");
       core.info(
         `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
       );

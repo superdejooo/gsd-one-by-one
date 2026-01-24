@@ -21,8 +21,11 @@ vi.mock("fs/promises", () => ({
 
 // Mock ccr-command.js
 vi.mock("../llm/ccr-command.js", () => ({
-  formatCcrCommandWithOutput: (gsdCmd, outputPath, prompt, skill) =>
-    `ccr code --print "${gsdCmd} /github-actions-testing ${prompt || ""}" > ${outputPath} 2>&1`,
+  formatCcrCommandWithOutput: (gsdCmd, basePath, prompt, skill) => ({
+    command: `ccr code --print "${gsdCmd} /github-actions-testing ${prompt || ""}" > ${basePath}.txt 2> ${basePath}-debug.txt`,
+    stdoutPath: `${basePath}.txt`,
+    stderrPath: `${basePath}-debug.txt`,
+  }),
 }));
 
 // Mock @actions/core

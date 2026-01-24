@@ -48,15 +48,16 @@ export async function executeLabelTriggerWorkflow(context) {
     core.info(`Formatted prompt (${prompt.length} chars)`);
 
     // Step 2: Execute GSD new-milestone via CCR with prompt
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = formatCcrCommandWithOutput(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = formatCcrCommandWithOutput(
       "/gsd:new-milestone",
-      outputPath,
+      basePath,
       prompt, // Pass issue content as prompt
       null, // No skill override
     );
 
     core.info(`Executing: ${command}`);
+    core.info(`Debug logs: ${stderrPath}`);
 
     // Step 3: Execute command with 10 minute timeout (same as phase planner)
     let exitCode = 0;
@@ -67,10 +68,10 @@ export async function executeLabelTriggerWorkflow(context) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 4: Read captured output
+    // Step 4: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs.readFile(outputPath, "utf-8");
+      output = await fs.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }
