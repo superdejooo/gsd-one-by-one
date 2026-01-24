@@ -358,14 +358,18 @@ None yet.
 | 007 | Add skill system documentation                                        | 2026-01-23 | 5a243d8 | [007-skill-system-documentation](./quick/007-skill-system-documentation/)                             |
 | 008 | Add new gsd reply command with text parameter                         | 2026-01-23 | 01ef0cc | [008-add-new-gsd-reply-command-with-text-para](./quick/008-add-new-gsd-reply-command-with-text-para/) |
 | 009 | Fix CCR multiline command string breaking output redirect             | 2026-01-23 | 6d3494a | [009-fix-ccr-multiline-command-string](./quick/009-fix-ccr-multiline-command-string/)                 |
+| 010 | Split CCR output into clean agent output and debug files              | 2026-01-24 | daf87ba | [010-split-ccr-output-into-clean-agent-output](./quick/010-split-ccr-output-into-clean-agent-output/) |
+| 011 | Strip CCR logs from output in all workflow modules                    | 2026-01-24 | 96e601b | [011-strip-ccr-logs-from-output-in-all-workfl](./quick/011-strip-ccr-logs-from-output-in-all-workfl/) |
+| 012 | Fix CCR error message extraction                                      | 2026-01-24 | be96089 | [012-fix-ccr-error-message-extraction](./quick/012-fix-ccr-error-message-extraction/)                 |
+| 013 | Dedicated parsers for each GSD file type + git flow fixes             | 2026-01-24 | 551e9d1 | [013-dedicated-parsers-and-git-flow-fixes](./quick/013-dedicated-parsers-and-git-flow-fixes/)         |
 
 ## Session Continuity
 
-Last session: 2026-01-23T19:48:00+01:00
-Stopped at: Completed quick-009
+Last session: 2026-01-24T23:55:00+01:00
+Stopped at: Completed quick-013
 Resume file: None
 
-Last activity: 2026-01-23 — Completed quick-009: Fix CCR multiline command string breaking output redirect
+Last activity: 2026-01-24 — Completed quick-013: Dedicated parsers and git flow fixes
 
 ## Roadmap Evolution
 
