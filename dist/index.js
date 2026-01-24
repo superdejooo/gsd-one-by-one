@@ -35174,25 +35174,57 @@ async function parseRequirements() {
   try {
     const content = await promises_.readFile(".planning/REQUIREMENTS.md", "utf-8");
 
-    // Extract title from first H1: # Requirements: GSD for GitHub v1.1
-    // Pattern: # Requirements: {title} v{version}
-    const titleMatch = content.match(
-      /^#\s+Requirements:\s+(.+?)\s+v(\d+\.\d+)/m,
-    );
+    let title = null;
+    let version = null;
+
+    // Try multiple patterns for title/version extraction
+
+    // Pattern 1: # Requirements: {title} v{version}
+    let match = content.match(/^#\s+Requirements:\s+(.+?)\s+v(\d+\.\d+)/m);
+    if (match) {
+      title = match[1].trim();
+      version = `v${match[2]}`;
+    }
+
+    // Pattern 2: **Milestone:** v{version} — {title}
+    if (!title) {
+      match = content.match(/\*\*Milestone:\*\*\s+v(\d+\.\d+)\s*[—–-]\s*(.+)/m);
+      if (match) {
+        version = `v${match[1]}`;
+        title = match[2].trim();
+      }
+    }
+
+    // Pattern 3: # {title} v{version} (any H1 with version)
+    if (!title) {
+      match = content.match(/^#\s+(.+?)\s+v(\d+\.\d+)/m);
+      if (match) {
+        title = match[1].trim();
+        version = `v${match[2]}`;
+      }
+    }
+
+    // Pattern 4: Just find any version number as fallback
+    if (!version) {
+      match = content.match(/v(\d+\.\d+)/);
+      if (match) {
+        version = `v${match[1]}`;
+      }
+    }
 
     // Extract Core Value paragraph
     const coreValueMatch = content.match(
       /\*\*Core Value:\*\*\s+(.+?)(?:\n\n|\n##)/s,
     );
 
-    if (!titleMatch) {
-      core.warning("Could not parse title from REQUIREMENTS.md");
+    if (!title && !version) {
+      core.warning("Could not parse title/version from REQUIREMENTS.md");
       return null;
     }
 
     return {
-      title: titleMatch[1].trim(),
-      version: `v${titleMatch[2]}`,
+      title: title || "Untitled Milestone",
+      version: version || "v0.0",
       coreValue: coreValueMatch ? coreValueMatch[1].trim() : null,
     };
   } catch (error) {
