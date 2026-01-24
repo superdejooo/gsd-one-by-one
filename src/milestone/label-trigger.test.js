@@ -45,6 +45,12 @@ vi.mock("../lib/github.js", () => ({
   postComment: mockPostComment,
 }));
 
+// Mock git.js module
+const mockPushBranchAndTags = vi.fn();
+vi.mock("../git/git.js", () => ({
+  pushBranchAndTags: mockPushBranchAndTags,
+}));
+
 // Mock @actions/github
 vi.mock("@actions/github", () => ({
   getOctokit: vi.fn(() => ({
@@ -92,6 +98,7 @@ describe("label-trigger.js", () => {
         "Milestone creation completed successfully",
       );
       mockUnlink.mockResolvedValue(undefined);
+      mockPushBranchAndTags.mockResolvedValue(undefined);
       // Mock metadata parsing to return null by default (simulates missing planning files)
       mockParseMilestoneMetadata.mockResolvedValue(null);
     });
@@ -269,14 +276,23 @@ describe("label-trigger.js", () => {
       );
     });
 
-    it("should post success comment", async () => {
+    it("should post agent output and next steps comments", async () => {
       await executeLabelTriggerWorkflow(mockContext);
 
+      // First comment is the agent output
       expect(mockPostComment).toHaveBeenCalledWith(
         "test-owner",
         "test-repo",
         42,
-        expect.stringContaining("Milestone Created"),
+        expect.stringContaining("Milestone creation completed"),
+      );
+
+      // Second comment is the next steps (when metadata is available)
+      expect(mockPostComment).toHaveBeenCalledWith(
+        "test-owner",
+        "test-repo",
+        42,
+        expect.stringContaining("Next Steps"),
       );
     });
 
