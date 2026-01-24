@@ -32439,7 +32439,14 @@ async function runGitCommand(command) {
   try {
     const { stdout, stderr } = await execAsync(command);
     if (stderr) {
-      _actions_core__WEBPACK_IMPORTED_MODULE_2__.warning(`Git command warning: ${stderr}`);
+      // Git uses stderr for progress/info messages (not just errors)
+      // Only log as warning if it looks like an actual warning/error
+      const isRealWarning = /warning:|error:|fatal:|failed/i.test(stderr);
+      if (isRealWarning) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.warning(`Git: ${stderr.trim()}`);
+      } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_2__.info(`Git: ${stderr.trim()}`);
+      }
     }
     return stdout.trim();
   } catch (error) {

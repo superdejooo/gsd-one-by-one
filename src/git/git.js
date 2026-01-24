@@ -14,7 +14,14 @@ export async function runGitCommand(command) {
   try {
     const { stdout, stderr } = await execAsync(command);
     if (stderr) {
-      core.warning(`Git command warning: ${stderr}`);
+      // Git uses stderr for progress/info messages (not just errors)
+      // Only log as warning if it looks like an actual warning/error
+      const isRealWarning = /warning:|error:|fatal:|failed/i.test(stderr);
+      if (isRealWarning) {
+        core.warning(`Git: ${stderr.trim()}`);
+      } else {
+        core.info(`Git: ${stderr.trim()}`);
+      }
     }
     return stdout.trim();
   } catch (error) {
