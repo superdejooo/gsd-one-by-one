@@ -45,7 +45,7 @@ export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
     command = `${command} and then: ' ${prompt}'`;
   }
 
-  return `ccr code --print "${command} ---- STRICT RULES FOR CI/CD EXECUTION: 1) You MUST use Write/Edit/Bash tools to create and modify files. 2) You MUST commit changes with git. 3) This is AUTONOMOUS execution - no confirmations, no questions. 4) If blocked, write plan to .planning and explain in output. 5) Final output should be a summary of what was done. ----"`;
+  return `ccr code --print "${command} ---- STRICT RULE: NON INTERACTIVE env, output ONLY ONCE. If blocked, handover to .planning with plan and questions. ----"`;
 }
 
 /**
