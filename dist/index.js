@@ -35267,6 +35267,8 @@ async function parseMilestoneMetadata() {
 var github = __nccwpck_require__(739);
 // EXTERNAL MODULE: ./src/lib/output-cleaner.js
 var output_cleaner = __nccwpck_require__(7170);
+// EXTERNAL MODULE: ./src/git/git.js
+var git = __nccwpck_require__(5141);
 ;// CONCATENATED MODULE: ./src/milestone/label-trigger.js
 /**
  * Label Trigger Workflow Module
@@ -35274,6 +35276,7 @@ var output_cleaner = __nccwpck_require__(7170);
  * Executes GSD's new-milestone command when "good first issue" label is added.
  * Joins issue title and body as prompt for milestone creation.
  */
+
 
 
 
@@ -35373,9 +35376,27 @@ async function executeLabelTriggerWorkflow(context) {
 
     // Keep output file for artifact upload (don't delete)
 
+    // Step 6: Push changes to remote (agent may have created/modified files)
+    core.info("Pushing milestone changes to remote...");
+    try {
+      await (0,git/* pushBranchAndTags */.NT)();
+      core.info("Changes pushed successfully");
+    } catch (pushError) {
+      core.warning(`Push failed (changes may be committed locally): ${pushError.message}`);
+    }
+
+    // Step 7: Post agent output as comment
+    const cleanOutput = (0,output_cleaner/* stripCcrLogs */.Y)(output);
+    try {
+      await (0,github/* postComment */.Gy)(owner, repo, issueNumber, cleanOutput);
+      core.info("Agent output posted as comment");
+    } catch (commentError) {
+      core.warning(`Failed to post agent output: ${commentError.message}`);
+    }
+
     core.info(`Label trigger workflow complete`);
 
-    // Step 4: Parse milestone metadata from generated files
+    // Step 8: Parse milestone metadata from generated files (optional enhancement)
     let metadata;
     try {
       metadata = await parseMilestoneMetadata();
@@ -35393,7 +35414,7 @@ async function executeLabelTriggerWorkflow(context) {
       return { complete: true, phase: "gsd-complete-no-metadata" };
     }
 
-    // Step 5: Format milestone info section
+    // Step 9: Format milestone info section (enhancement - update issue body)
     const phaseList =
       metadata.phases.length > 0
         ? metadata.phases
@@ -35417,7 +35438,7 @@ ${phaseList}
 *Created by GSD Bot via "good first issue" label*
 `;
 
-    // Step 6: Update issue body (append milestone info to original)
+    // Step 10: Update issue body (append milestone info to original)
     const originalBody = issueBody || "";
     const updatedBody = originalBody + milestoneSection;
 
@@ -35429,26 +35450,22 @@ ${phaseList}
       // Don't fail workflow - core work (GSD) is done
     }
 
-    // Step 7: Post success comment
+    // Step 11: Post follow-up comment with next steps
     try {
       await (0,github/* postComment */.Gy)(
         owner,
         repo,
         issueNumber,
-        `## Milestone Created
+        `## Next Steps
 
-**${metadata.title}** (${metadata.version}) has been created from this issue.
+**${metadata.title}** (${metadata.version}) - ${metadata.phases.length} phase(s) defined.
 
-${metadata.phases.length} phase(s) defined. See the updated issue body for details.
-
-Next steps:
-- Review planning docs in \`.planning/\`
 - Use \`@gsd-bot plan-phase N\` to plan each phase
 - Use \`@gsd-bot execute-phase N\` to implement`,
       );
-      core.info("Success comment posted");
+      core.info("Next steps comment posted");
     } catch (commentError) {
-      core.error(`Failed to post success comment: ${commentError.message}`);
+      core.error(`Failed to post next steps comment: ${commentError.message}`);
       // Don't fail workflow - core work is done
     }
 
