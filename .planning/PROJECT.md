@@ -90,16 +90,17 @@ The v1.0 MVP delivers:
 
 </details>
 
-## Current Milestone: Planning Next Milestone
+## Current Milestone: v1.2 — Issue Tracking Integration Enhancements
 
-**Goal:** TBD — Define next feature set based on user feedback and project needs.
+**Goal:** Complete the issue lifecycle by adding issue-to-phase linking, bidirectional metadata storage, and automatic issue closure when requirements are verified.
 
-**Potential focus areas:**
+**Target features:**
 
-- v1.2: Issue tracking enhancements (if needed)
-- v2.0: Major new features or breaking changes
-- Performance improvements
-- Documentation enhancements
+- Issue-to-Phase Linking — Store phase/plan metadata in issue bodies
+- Issue Metadata Parsing — Discover which phase an issue belongs to
+- Issue Closure — Automatically close issues when phase requirements are verified
+- Status Synchronization — Update issue status during execution
+- Closure Comments — Add summary comments when closing issues
 
 ---
 
@@ -142,7 +143,13 @@ These requirements were shipped and validated in v1.1:
 
 ### Active
 
-*TBD — Requirements for next milestone will be defined via `/gsd:new-milestone`*
+*Current scope for v1.2:*
+
+- [ ] Issue-to-Phase Linking — Store phase/plan metadata in issue bodies
+- [ ] Issue Metadata Parsing — Discover which phase an issue belongs to from issue body
+- [ ] Issue Closure — Automatically close issues when phase requirements are verified
+- [ ] Status Synchronization — Update issue status during execution (in-progress → complete)
+- [ ] Closure Comments — Add summary comments when closing issues
 
 ### Out of Scope
 
