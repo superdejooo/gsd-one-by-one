@@ -33306,6 +33306,7 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   P: () => (/* binding */ extractErrorMessage),
 /* harmony export */   Y: () => (/* binding */ stripCcrLogs)
 /* harmony export */ });
 /**
@@ -33318,7 +33319,7 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
  * - Lines containing `ReadableStream {`
  * - Lines containing `durationMs:`
  * - Lines containing `AbortController|AbortSignal|AsyncGeneratorFunction`
- * - JS object notation (key: value patterns)
+ * - JS object notation (indented key: value patterns inside objects)
  * - Closing braces/brackets
  *
  * @param {string} output - Raw CCR command output
@@ -33327,21 +33328,74 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
 function stripCcrLogs(output) {
   const lines = output.split("\n");
   const cleanLines = lines.filter((line) => {
-    // Skip CCR log lines
+    // Skip CCR log lines that start with log markers
     if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
     if (/^response \d+ http:/.test(line)) return false;
     if (/ReadableStream \{/.test(line)) return false;
     if (/durationMs:/.test(line)) return false;
     if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
       return false;
-    // Skip JS object notation (key: value patterns from debug output)
-    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
-    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
-    if (/^\s*[}\]],?\s*$/.test(line)) return false; // closing braces
-    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
+    // Skip indented JS object notation (key: value patterns from debug output)
+    // These patterns require leading whitespace to distinguish from normal text
+    if (/^\s{2,}\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
+    // Skip indented key: value patterns (requires 2+ spaces indent)
+    if (/^\s{2,}'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
+    // Skip lines that are just closing braces/brackets (with optional comma)
+    if (/^\s*[}\]],?\s*$/.test(line)) return false;
+    // Skip object constructor patterns like "body: Fj {"
+    if (/^\s{2,}\w+:\s+\w+\s*\{/.test(line)) return false;
     return true;
   });
   return cleanLines.join("\n").trim();
+}
+
+/**
+ * Extract a meaningful error message from CCR output files.
+ *
+ * When CCR fails, the stdout file often contains only debug logs.
+ * This function tries multiple sources to find a useful error message:
+ * 1. Cleaned stdout output (if any meaningful content remains)
+ * 2. Stderr/debug file (may contain actual error messages)
+ * 3. CCR log file (contains warnings like "No content in stream response")
+ *
+ * @param {string} stdoutContent - Raw stdout content
+ * @param {string} stderrContent - Raw stderr/debug file content
+ * @param {string} ccrLogContent - Raw ccr.log content
+ * @returns {string} Best available error message
+ */
+function extractErrorMessage(stdoutContent, stderrContent = "", ccrLogContent = "") {
+  // First try cleaned stdout - but only if there's actual content after stripping
+  const cleanedOutput = stripCcrLogs(stdoutContent);
+  // Check if cleaned output has meaningful content (more than just whitespace/short noise)
+  // Use a low threshold since even short error messages like "Error: x" are useful
+  if (cleanedOutput && cleanedOutput.trim().length > 0) {
+    return cleanedOutput.substring(0, 500);
+  }
+
+  // Check for known CCR error patterns in ccr.log
+  if (ccrLogContent) {
+    // Look for warning messages
+    const warningMatch = ccrLogContent.match(/Warning:\s*(.+)/i);
+    if (warningMatch) {
+      return `CCR Error: ${warningMatch[1]}`;
+    }
+    // Look for error messages
+    const errorMatch = ccrLogContent.match(/Error:\s*(.+)/i);
+    if (errorMatch) {
+      return `CCR Error: ${errorMatch[1]}`;
+    }
+  }
+
+  // Check stderr for meaningful errors
+  if (stderrContent) {
+    const cleanedStderr = stripCcrLogs(stderrContent);
+    if (cleanedStderr && cleanedStderr.trim().length > 0) {
+      return cleanedStderr.substring(0, 500);
+    }
+  }
+
+  // Fallback message
+  return "Command execution failed with no output. Check workflow artifacts for ccr.log details.";
 }
 
 
@@ -35285,12 +35339,24 @@ async function executeLabelTriggerWorkflow(context) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 4: Read captured output (clean agent output only)
+    // Step 4: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await promises_.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
+    }
+    try {
+      stderrOutput = await promises_.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await promises_.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 5: Validate for errors
@@ -35301,7 +35367,8 @@ async function executeLabelTriggerWorkflow(context) {
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
     if (isError) {
-      throw new Error(`Label trigger failed: ${(0,output_cleaner/* stripCcrLogs */.Y)(output).substring(0, 500)}`);
+      const errorMsg = (0,output_cleaner/* extractErrorMessage */.P)(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Label trigger failed: ${errorMsg}`);
     }
 
     // Keep output file for artifact upload (don't delete)
@@ -35507,8 +35574,10 @@ async function executeMilestoneCompletionWorkflow(
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Read captured output (clean agent output only)
+    // Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stdoutPath, "utf-8");
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
@@ -35517,6 +35586,16 @@ async function executeMilestoneCompletionWorkflow(
     } catch (error) {
       output = "(No output captured)";
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to read output file: ${error.message}`);
+    }
+    try {
+      stderrOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Validate for errors
@@ -35540,9 +35619,8 @@ async function executeMilestoneCompletionWorkflow(
       );
 
     if (isError) {
-      throw new Error(
-        `Milestone completion failed: ${output.substring(0, 500)}`,
-      );
+      const errorMsg = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_7__/* .extractErrorMessage */ .P)(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Milestone completion failed: ${errorMsg}`);
     }
 
     // Format output for comment
@@ -35928,8 +36006,10 @@ async function executePhaseExecutionWorkflow(
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output (clean agent output only)
+    // Step 3: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stdoutPath, "utf-8");
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
@@ -35938,6 +36018,16 @@ async function executePhaseExecutionWorkflow(
     } catch (error) {
       output = "(No output captured)";
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Failed to read output file: ${error.message}`);
+    }
+    try {
+      stderrOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 4: Validate for errors (ignore warnings like ⚠️)
@@ -35963,7 +36053,8 @@ async function executePhaseExecutionWorkflow(
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase execution failed: ${output.substring(0, 500)}`);
+      const errorMsg = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_9__/* .extractErrorMessage */ .P)(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Phase execution failed: ${errorMsg}`);
     }
 
     // Step 6: Parse and format structured output
@@ -36211,12 +36302,24 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output (clean agent output only)
+    // Step 3: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
+    }
+    try {
+      stderrOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 4: Validate for errors
@@ -36228,7 +36331,8 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase planning failed: ${(0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_10__/* .stripCcrLogs */ .Y)(output).substring(0, 500)}`);
+      const errorMsg = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_10__/* .extractErrorMessage */ .P)(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Phase planning failed: ${errorMsg}`);
     }
 
     // Post success - pass through GSD output
@@ -36653,12 +36757,24 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output (clean agent output only)
+    // Step 3: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
+    }
+    try {
+      stderrOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 4: Validate for errors
@@ -36670,7 +36786,8 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Reply failed: ${(0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_6__/* .stripCcrLogs */ .Y)(output).substring(0, 500)}`);
+      const errorMsg = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_6__/* .extractErrorMessage */ .P)(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Reply failed: ${errorMsg}`);
     }
 
     // Post success - pass through GSD output
