@@ -112,7 +112,15 @@ export async function parseRequirements(path = ".planning/REQUIREMENTS.md") {
       }
     }
 
-    // Pattern 5: Just find any version number as fallback
+    // Pattern 5: # Requirements: {title} (without version)
+    if (!title) {
+      match = content.match(/^#\s+Requirements:\s+(.+?)$/m);
+      if (match) {
+        title = match[1].trim();
+      }
+    }
+
+    // Pattern 6: Just find any version number as fallback
     if (!version) {
       match = content.match(/v(\d+\.\d+)/);
       if (match) {
