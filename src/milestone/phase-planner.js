@@ -15,6 +15,7 @@ import { postComment } from "../lib/github.js";
 import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
+import { stripCcrLogs } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -171,11 +172,11 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
+      throw new Error(`Phase planning failed: ${stripCcrLogs(output).substring(0, 500)}`);
     }
 
     // Post success - pass through GSD output
-    await postComment(owner, repo, issueNumber, output);
+    await postComment(owner, repo, issueNumber, stripCcrLogs(output));
 
     // Step 6: Create GitHub issues for tasks
     let createdIssues = [];

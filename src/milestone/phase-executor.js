@@ -21,6 +21,7 @@ import { getPhaseIssues } from "../lib/issues.js";
 import { updateIssueStatus } from "../lib/labels.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
+import { stripCcrLogs } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -187,32 +188,6 @@ function parseExecutionOutput(output) {
   }
 
   return sections;
-}
-
-/**
- * Strip CCR debug logging from output
- * Removes lines like [log_...], response 200 http://..., headers, etc.
- * @param {string} output - Raw output with CCR logs
- * @returns {string} Clean output without CCR logs
- */
-function stripCcrLogs(output) {
-  const lines = output.split("\n");
-  const cleanLines = lines.filter((line) => {
-    // Skip CCR log lines
-    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
-    if (/^response \d+ http:/.test(line)) return false;
-    if (/ReadableStream \{/.test(line)) return false;
-    if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
-      return false;
-    // Skip JS object notation (key: value patterns from debug output)
-    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
-    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
-    if (/^\s*[}\]],?\s*$/.test(line)) return false; // closing braces
-    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
-    return true;
-  });
-  return cleanLines.join("\n").trim();
 }
 
 /**

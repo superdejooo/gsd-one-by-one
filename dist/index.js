@@ -33302,6 +33302,51 @@ async function updateIssueStatus(owner, repo, issueNumber, newStatus) {
 
 /***/ }),
 
+/***/ 7170:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   Y: () => (/* binding */ stripCcrLogs)
+/* harmony export */ });
+/**
+ * Strip CCR debug logs from command output.
+ *
+ * CCR writes debug logs to STDOUT (not STDERR), polluting agent output.
+ * This function filters out:
+ * - Lines starting with `[log_xxx]`
+ * - Lines starting with `response NNN http:`
+ * - Lines containing `ReadableStream {`
+ * - Lines containing `durationMs:`
+ * - Lines containing `AbortController|AbortSignal|AsyncGeneratorFunction`
+ * - JS object notation (key: value patterns)
+ * - Closing braces/brackets
+ *
+ * @param {string} output - Raw CCR command output
+ * @returns {string} Cleaned output with debug logs removed
+ */
+function stripCcrLogs(output) {
+  const lines = output.split("\n");
+  const cleanLines = lines.filter((line) => {
+    // Skip CCR log lines
+    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
+    if (/^response \d+ http:/.test(line)) return false;
+    if (/ReadableStream \{/.test(line)) return false;
+    if (/durationMs:/.test(line)) return false;
+    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
+      return false;
+    // Skip JS object notation (key: value patterns from debug output)
+    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
+    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
+    if (/^\s*[}\]],?\s*$/.test(line)) return false; // closing braces
+    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
+    return true;
+  });
+  return cleanLines.join("\n").trim();
+}
+
+
+/***/ }),
+
 /***/ 4287:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
@@ -35166,6 +35211,8 @@ async function parseMilestoneMetadata() {
 
 // EXTERNAL MODULE: ./src/lib/github.js
 var github = __nccwpck_require__(739);
+// EXTERNAL MODULE: ./src/lib/output-cleaner.js
+var output_cleaner = __nccwpck_require__(7170);
 ;// CONCATENATED MODULE: ./src/milestone/label-trigger.js
 /**
  * Label Trigger Workflow Module
@@ -35173,6 +35220,7 @@ var github = __nccwpck_require__(739);
  * Executes GSD's new-milestone command when "good first issue" label is added.
  * Joins issue title and body as prompt for milestone creation.
  */
+
 
 
 
@@ -35253,7 +35301,7 @@ async function executeLabelTriggerWorkflow(context) {
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
     if (isError) {
-      throw new Error(`Label trigger failed: ${output.substring(0, 500)}`);
+      throw new Error(`Label trigger failed: ${(0,output_cleaner/* stripCcrLogs */.Y)(output).substring(0, 500)}`);
     }
 
     // Keep output file for artifact upload (don't delete)
@@ -35366,6 +35414,7 @@ Next steps:
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
 /* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(8330);
 /* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(5141);
+/* harmony import */ var _lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(7170);
 /**
  * Milestone Completion Workflow Module
  *
@@ -35381,30 +35430,8 @@ Next steps:
 
 
 
-const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
 
-/**
- * Strip CCR debug logging from output
- * @param {string} output - Raw output with CCR logs
- * @returns {string} Clean output without CCR logs
- */
-function stripCcrLogs(output) {
-  const lines = output.split("\n");
-  const cleanLines = lines.filter((line) => {
-    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
-    if (/^response \d+ http:/.test(line)) return false;
-    if (/ReadableStream \{/.test(line)) return false;
-    if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
-      return false;
-    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
-    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
-    if (/^\s*[}\]],?\s*$/.test(line)) return false;
-    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false;
-    return true;
-  });
-  return cleanLines.join("\n").trim();
-}
+const execAsync = (0,util__WEBPACK_IMPORTED_MODULE_2__.promisify)(node_child_process__WEBPACK_IMPORTED_MODULE_1__.exec);
 
 /**
  * Extract GSD formatted block from output
@@ -35519,7 +35546,7 @@ async function executeMilestoneCompletionWorkflow(
     }
 
     // Format output for comment
-    const cleanOutput = stripCcrLogs(output);
+    const cleanOutput = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_7__/* .stripCcrLogs */ .Y)(output);
     const gsdBlock = extractGsdBlock(cleanOutput);
 
     // Push commit and tags to remote
@@ -35562,8 +35589,9 @@ async function executeMilestoneCompletionWorkflow(
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(739);
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(6764);
 /* harmony import */ var _lib_labels_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(3715);
-/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(8330);
+/* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(8330);
 /* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(5141);
+/* harmony import */ var _lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(7170);
 /**
  * Phase Execution Workflow Module
  *
@@ -35576,6 +35604,7 @@ async function executeMilestoneCompletionWorkflow(
  * - Posts structured comment instead of raw pass-through
  * - Returns hasQuestions flag for conversational continuation
  */
+
 
 
 
@@ -35756,32 +35785,6 @@ function parseExecutionOutput(output) {
 }
 
 /**
- * Strip CCR debug logging from output
- * Removes lines like [log_...], response 200 http://..., headers, etc.
- * @param {string} output - Raw output with CCR logs
- * @returns {string} Clean output without CCR logs
- */
-function stripCcrLogs(output) {
-  const lines = output.split("\n");
-  const cleanLines = lines.filter((line) => {
-    // Skip CCR log lines
-    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
-    if (/^response \d+ http:/.test(line)) return false;
-    if (/ReadableStream \{/.test(line)) return false;
-    if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
-      return false;
-    // Skip JS object notation (key: value patterns from debug output)
-    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
-    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false; // any key: value
-    if (/^\s*[}\]],?\s*$/.test(line)) return false; // closing braces
-    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false; // body: Fj {
-    return true;
-  });
-  return cleanLines.join("\n").trim();
-}
-
-/**
  * Extract GSD formatted block from output
  * Finds LAST "GSD ►" marker and returns everything from line above it onwards
  * Falls back to last 80 lines if GSD marker not found
@@ -35824,7 +35827,7 @@ function formatExecutionComment(parsed, rawOutput) {
     parsed.questions.length > 0;
 
   // Strip CCR debug logs first
-  const cleanOutput = stripCcrLogs(rawOutput);
+  const cleanOutput = (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_9__/* .stripCcrLogs */ .Y)(rawOutput);
 
   // If no structured content found, show GSD block (or last 80 lines)
   if (!hasStructuredContent) {
@@ -35907,7 +35910,7 @@ async function executePhaseExecutionWorkflow(
     const gsdCommand = phaseNumber
       ? `/gsd:execute-phase ${phaseNumber}`
       : "/gsd:execute-phase";
-    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
+    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_10__/* .formatCcrCommandWithOutput */ .e)(
       gsdCommand,
       basePath,
       null,
@@ -36050,12 +36053,14 @@ async function executePhaseExecutionWorkflow(
 /* harmony import */ var _lib_issues_js__WEBPACK_IMPORTED_MODULE_7__ = __nccwpck_require__(6764);
 /* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__ = __nccwpck_require__(8330);
 /* harmony import */ var _git_git_js__WEBPACK_IMPORTED_MODULE_8__ = __nccwpck_require__(5141);
+/* harmony import */ var _lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_10__ = __nccwpck_require__(7170);
 /**
  * Phase Planning Workflow Module
  *
  * Executes GSD's built-in plan-phase command via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
+
 
 
 
@@ -36223,11 +36228,11 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase planning failed: ${output.substring(0, 500)}`);
+      throw new Error(`Phase planning failed: ${(0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_10__/* .stripCcrLogs */ .Y)(output).substring(0, 500)}`);
     }
 
     // Post success - pass through GSD output
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_6__/* .postComment */ .Gy)(owner, repo, issueNumber, (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_10__/* .stripCcrLogs */ .Y)(output));
 
     // Step 6: Create GitHub issues for tasks
     let createdIssues = [];
@@ -36574,12 +36579,14 @@ ${
 /* harmony import */ var fs_promises__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1943);
 /* harmony import */ var _lib_github_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(739);
 /* harmony import */ var _llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(8330);
+/* harmony import */ var _lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(7170);
 /**
  * Reply Workflow Module
  *
  * Executes free-form text prompts via CCR (Claude Code Router)
  * and captures output for GitHub commenting.
  */
+
 
 
 
@@ -36663,11 +36670,11 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Reply failed: ${output.substring(0, 500)}`);
+      throw new Error(`Reply failed: ${(0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_6__/* .stripCcrLogs */ .Y)(output).substring(0, 500)}`);
     }
 
     // Post success - pass through GSD output
-    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, output);
+    await (0,_lib_github_js__WEBPACK_IMPORTED_MODULE_4__/* .postComment */ .Gy)(owner, repo, issueNumber, (0,_lib_output_cleaner_js__WEBPACK_IMPORTED_MODULE_6__/* .stripCcrLogs */ .Y)(output));
 
     // Keep output file for artifact upload (don't delete)
 

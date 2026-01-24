@@ -11,6 +11,7 @@ import { promisify } from "util";
 import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
+import { stripCcrLogs } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -87,11 +88,11 @@ export async function executeReplyWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Reply failed: ${output.substring(0, 500)}`);
+      throw new Error(`Reply failed: ${stripCcrLogs(output).substring(0, 500)}`);
     }
 
     // Post success - pass through GSD output
-    await postComment(owner, repo, issueNumber, output);
+    await postComment(owner, repo, issueNumber, stripCcrLogs(output));
 
     // Keep output file for artifact upload (don't delete)
 

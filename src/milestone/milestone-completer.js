@@ -12,31 +12,9 @@ import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
+import { stripCcrLogs } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
-
-/**
- * Strip CCR debug logging from output
- * @param {string} output - Raw output with CCR logs
- * @returns {string} Clean output without CCR logs
- */
-function stripCcrLogs(output) {
-  const lines = output.split("\n");
-  const cleanLines = lines.filter((line) => {
-    if (/^\[log_[a-f0-9]+\]/.test(line)) return false;
-    if (/^response \d+ http:/.test(line)) return false;
-    if (/ReadableStream \{/.test(line)) return false;
-    if (/durationMs:/.test(line)) return false;
-    if (/AbortController|AbortSignal|AsyncGeneratorFunction/.test(line))
-      return false;
-    if (/^\s*\w+:\s*(undefined|true|false|\[|{|'|")/.test(line)) return false;
-    if (/^\s*'?[-\w]+(-\w+)*'?:\s*/.test(line)) return false;
-    if (/^\s*[}\]],?\s*$/.test(line)) return false;
-    if (/^\s*\w+:\s+\w+\s*\{/.test(line)) return false;
-    return true;
-  });
-  return cleanLines.join("\n").trim();
-}
 
 /**
  * Extract GSD formatted block from output

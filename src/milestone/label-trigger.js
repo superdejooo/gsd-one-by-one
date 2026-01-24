@@ -12,6 +12,7 @@ import fs from "fs/promises";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { parseMilestoneMetadata } from "../lib/planning-parser.js";
 import { updateIssueBody, postComment } from "../lib/github.js";
+import { stripCcrLogs } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -84,7 +85,7 @@ export async function executeLabelTriggerWorkflow(context) {
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
     if (isError) {
-      throw new Error(`Label trigger failed: ${output.substring(0, 500)}`);
+      throw new Error(`Label trigger failed: ${stripCcrLogs(output).substring(0, 500)}`);
     }
 
     // Keep output file for artifact upload (don't delete)
