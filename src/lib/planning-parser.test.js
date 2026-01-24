@@ -10,6 +10,7 @@ import {
   parseRoadmap,
   parseState,
   parsePlan,
+  parseMilestoneContext,
   parseMilestoneMetadata,
 } from "./planning-parser.js";
 
@@ -194,19 +195,102 @@ describe("parseRoadmap", () => {
   });
 });
 
+describe("parseMilestoneContext", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("should parse MILESTONE-CONTEXT.md format", async () => {
+    fs.readFile.mockResolvedValue(`# v1.2 Planning Context
+
+## Milestone Goal
+
+Enhance Issue Tracking Integration capabilities introduced in v1.1.
+
+## Interpretation of Requirements
+
+**Context from v1.1 (shipped):**
+- Phase 09-01: PLAN.md Parser and Issue Creator
+
+## Decision Points (Questions for Reviewer)
+
+1. **Priority:** Which of the 5 enhancement areas should be in v1.2?
+
+## Proposed v1.2 Core Focus
+
+**Complete the Issue Lifecycle:**
+
+- **LINK-01**: Store phase and plan metadata in issue bodies
+- **LINK-02**: Parse issue metadata to discover phase ownership
+- **CLOSE-01**: Close issues when phase requirements are verified
+
+**Status:** Ready for requirements definition
+`);
+
+    const result = await parseMilestoneContext();
+
+    expect(result.version).toBe("v1.2");
+    expect(result.title).toBe("v1.2 Planning Context");
+    expect(result.goal).toContain("Enhance Issue Tracking Integration");
+    expect(result.status).toBe("Ready for requirements definition");
+    expect(result.requirements).toHaveLength(3);
+    expect(result.requirements[0].id).toBe("LINK-01");
+    expect(result.requirements[0].description).toContain("Store phase and plan metadata");
+    expect(result.requirements[1].id).toBe("LINK-02");
+    expect(result.requirements[2].id).toBe("CLOSE-01");
+  });
+
+  it("should return null if MILESTONE-CONTEXT.md not found", async () => {
+    const error = new Error("ENOENT");
+    error.code = "ENOENT";
+    fs.readFile.mockRejectedValue(error);
+
+    const result = await parseMilestoneContext();
+    expect(result).toBeNull();
+  });
+
+  it("should return null if version and goal cannot be parsed", async () => {
+    fs.readFile.mockResolvedValue("# Some other content\n\nNo milestone info.");
+
+    const result = await parseMilestoneContext();
+    expect(result).toBeNull();
+  });
+
+  it("should handle missing requirements section", async () => {
+    fs.readFile.mockResolvedValue(`# v2.0 Planning Context
+
+## Milestone Goal
+
+A new milestone without requirements yet.
+
+**Status:** Gathering requirements
+`);
+
+    const result = await parseMilestoneContext();
+
+    expect(result.version).toBe("v2.0");
+    expect(result.goal).toContain("new milestone");
+    expect(result.status).toBe("Gathering requirements");
+    expect(result.requirements).toEqual([]);
+  });
+});
+
 describe("parseMilestoneMetadata", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should combine requirements and roadmap data", async () => {
+    const error = new Error("ENOENT");
+    error.code = "ENOENT";
     fs.readFile
       .mockResolvedValueOnce(
         "# Requirements: Test Project v2.0\n\n**Core Value:** Testing.\n\n## Requirements",
       )
       .mockResolvedValueOnce(
         "### Phase 1: Setup\n\n**Status:** Complete",
-      );
+      )
+      .mockRejectedValueOnce(error); // MILESTONE-CONTEXT.md not found
 
     const result = await parseMilestoneMetadata();
 
@@ -217,12 +301,37 @@ describe("parseMilestoneMetadata", () => {
     expect(result.phases[0].number).toBe("1");
   });
 
-  it("should handle missing requirements gracefully", async () => {
+  it("should fall back to MILESTONE-CONTEXT.md when REQUIREMENTS.md not found", async () => {
     const error = new Error("ENOENT");
     error.code = "ENOENT";
     fs.readFile
-      .mockRejectedValueOnce(error)
-      .mockResolvedValueOnce("### Phase 1: Setup\n\n**Status:** Complete");
+      .mockRejectedValueOnce(error) // REQUIREMENTS.md not found
+      .mockRejectedValueOnce(error) // ROADMAP.md not found
+      .mockResolvedValueOnce(`# v1.2 Planning Context
+
+## Milestone Goal
+
+Enhance Issue Tracking Integration capabilities.
+
+**Status:** Ready for requirements definition
+`);
+
+    const result = await parseMilestoneMetadata();
+
+    expect(result.title).toBe("v1.2 Planning Context");
+    expect(result.version).toBe("v1.2");
+    expect(result.coreValue).toBe("Enhance Issue Tracking Integration capabilities.");
+    expect(result.status).toBe("Ready for requirements definition");
+    expect(result.phases).toEqual([]);
+  });
+
+  it("should handle missing requirements but roadmap exists", async () => {
+    const error = new Error("ENOENT");
+    error.code = "ENOENT";
+    fs.readFile
+      .mockRejectedValueOnce(error) // REQUIREMENTS.md not found
+      .mockResolvedValueOnce("### Phase 1: Setup\n\n**Status:** Complete")
+      .mockRejectedValueOnce(error); // MILESTONE-CONTEXT.md not found
 
     const result = await parseMilestoneMetadata();
 
@@ -240,7 +349,8 @@ describe("parseMilestoneMetadata", () => {
       .mockResolvedValueOnce(
         "# Requirements: Test Project v1.0\n\n**Core Value:** Testing.\n\n## Requirements",
       )
-      .mockRejectedValueOnce(error);
+      .mockRejectedValueOnce(error) // ROADMAP.md not found
+      .mockRejectedValueOnce(error); // MILESTONE-CONTEXT.md not found
 
     const result = await parseMilestoneMetadata();
 
@@ -249,7 +359,7 @@ describe("parseMilestoneMetadata", () => {
     expect(result.phases).toEqual([]);
   });
 
-  it("should handle both files missing", async () => {
+  it("should handle all files missing", async () => {
     const error = new Error("ENOENT");
     error.code = "ENOENT";
     fs.readFile.mockRejectedValue(error);

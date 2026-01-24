@@ -442,23 +442,117 @@ export async function parsePlan(path) {
 }
 
 /**
+ * Parse MILESTONE-CONTEXT.md to extract planning context
+ * This file is created by GSD when entering QUESTIONING phase
+ * Format:
+ *   # v{version} Planning Context
+ *   ## Milestone Goal
+ *   {goal description}
+ *   ## Interpretation of Requirements
+ *   ## Decision Points (Questions for Reviewer)
+ *   ## Proposed v{version} Core Focus
+ *   - **REQ-01**: {requirement}
+ *   **Status:** Ready for requirements definition
+ *
+ * @param {string} [path=".planning/MILESTONE-CONTEXT.md"] - Path to MILESTONE-CONTEXT.md
+ * @returns {Promise<{title: string, version: string, goal: string, status: string, requirements: Array<{id: string, description: string}>} | null>}
+ */
+export async function parseMilestoneContext(
+  path = ".planning/MILESTONE-CONTEXT.md",
+) {
+  try {
+    const content = await fs.readFile(path, "utf-8");
+
+    // Extract version from H1: # v{version} Planning Context
+    const h1Match = content.match(/^#\s+v(\d+\.\d+)\s+Planning Context/m);
+    const version = h1Match ? `v${h1Match[1]}` : null;
+
+    // Title from the milestone goal section header or derive from version
+    const title = version ? `${version} Planning Context` : null;
+
+    // Extract Milestone Goal section (stop at next section, status line, or end)
+    const goalMatch = content.match(
+      /##\s+Milestone Goal\s*\n+([\s\S]*?)(?=\n##|\n---|\n\*\*Status:\*\*|$)/,
+    );
+    const goal = goalMatch ? goalMatch[1].trim() : null;
+
+    // Extract Status: **Status:** {status}
+    const statusMatch = content.match(/\*\*Status:\*\*\s*([^\n]+)/);
+    const status = statusMatch ? statusMatch[1].trim() : null;
+
+    // Extract proposed requirements from "## Proposed v{version} Core Focus"
+    const requirements = [];
+    const reqPattern = /-\s+\*\*([A-Z]+-\d+)\*\*:?\s*(.+)/g;
+    let reqMatch;
+
+    while ((reqMatch = reqPattern.exec(content)) !== null) {
+      requirements.push({
+        id: reqMatch[1],
+        description: reqMatch[2].trim(),
+      });
+    }
+
+    if (!version && !goal) {
+      core.warning("Could not parse MILESTONE-CONTEXT.md");
+      return null;
+    }
+
+    return {
+      title,
+      version,
+      goal,
+      status,
+      requirements,
+    };
+  } catch (error) {
+    if (error.code === "ENOENT") {
+      core.info("MILESTONE-CONTEXT.md not found");
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
  * Parse REQUIREMENTS.md and ROADMAP.md to return combined milestone metadata
+ * Falls back to MILESTONE-CONTEXT.md if REQUIREMENTS.md doesn't exist
  * Used by label-trigger workflow to update issue with milestone info
  *
  * @returns {Promise<{title: string, version: string, coreValue: string, status: string, phases: Array}>}
  */
 export async function parseMilestoneMetadata() {
-  const [requirements, roadmap] = await Promise.all([
+  const [requirements, roadmap, context] = await Promise.all([
     parseRequirements(),
     parseRoadmap(),
+    parseMilestoneContext(),
   ]);
 
-  // Use requirements data primarily, fall back to roadmap for title/version
+  // Use requirements data primarily, then context, then roadmap
+  const title =
+    requirements?.title ||
+    context?.title ||
+    roadmap?.title ||
+    "Untitled Milestone";
+  const version =
+    requirements?.version || context?.version || roadmap?.version || "v0.0";
+  const coreValue = requirements?.coreValue || context?.goal || null;
+  const status =
+    requirements?.status || context?.status || roadmap?.status || null;
+
+  // If no roadmap phases but context has requirements, convert to pseudo-phases
+  let phases = roadmap?.phases || [];
+  if (phases.length === 0 && context?.requirements?.length > 0) {
+    // Show requirements as pending items (not true phases, just for display)
+    core.info(
+      `No phases in ROADMAP.md, using ${context.requirements.length} requirements from MILESTONE-CONTEXT.md`,
+    );
+  }
+
   return {
-    title: requirements?.title || roadmap?.title || "Untitled Milestone",
-    version: requirements?.version || roadmap?.version || "v0.0",
-    coreValue: requirements?.coreValue || null,
-    status: requirements?.status || roadmap?.status || null,
-    phases: roadmap?.phases || [],
+    title,
+    version,
+    coreValue,
+    status,
+    phases,
   };
 }
