@@ -76,79 +76,86 @@ describe("ccr-command", () => {
   });
 
   describe("formatCcrCommandWithOutput", () => {
-    it("adds output redirect", () => {
+    it("returns object with command and separate stdout/stderr paths", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:plan-phase 5",
-        "output.txt",
+        "output-12345",
       );
 
-      expect(result).toContain("/gsd:plan-phase 5");
-      expect(result).toContain("github-actions-testing");
-      expect(result).toContain("> output.txt 2>&1");
+      expect(result).toHaveProperty("command");
+      expect(result).toHaveProperty("stdoutPath");
+      expect(result).toHaveProperty("stderrPath");
+      expect(result.stdoutPath).toBe("output-12345.txt");
+      expect(result.stderrPath).toBe("output-12345-debug.txt");
+      expect(result.command).toContain("/gsd:plan-phase 5");
+      expect(result.command).toContain("github-actions-testing");
+      expect(result.command).toContain("> output-12345.txt 2> output-12345-debug.txt");
     });
 
     it("handles dynamic output paths", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:execute-phase 3",
-        "output-123456.txt",
+        "output-123456",
       );
 
-      expect(result).toContain("> output-123456.txt 2>&1");
+      expect(result.stdoutPath).toBe("output-123456.txt");
+      expect(result.stderrPath).toBe("output-123456-debug.txt");
+      expect(result.command).toContain("> output-123456.txt 2> output-123456-debug.txt");
     });
 
     it("passes prompt to formatCcrCommand", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:verify-work",
-        "output.txt",
+        "output",
         "Check the API",
       );
 
-      expect(result).toContain("/gsd:verify-work");
-      expect(result).toContain("and then: ' Check the API'");
-      expect(result).toContain("> output.txt 2>&1");
+      expect(result.command).toContain("/gsd:verify-work");
+      expect(result.command).toContain("and then: ' Check the API'");
+      expect(result.command).toContain("> output.txt 2> output-debug.txt");
     });
 
     it("works without prompt parameter", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:execute-phase 3",
-        "output.txt",
+        "output",
       );
 
-      expect(result).toContain("/gsd:execute-phase 3");
-      expect(result).toContain("github-actions-testing");
-      expect(result).toContain("> output.txt 2>&1");
-      expect(result).not.toContain("and then:");
+      expect(result.command).toContain("/gsd:execute-phase 3");
+      expect(result.command).toContain("github-actions-testing");
+      expect(result.command).toContain("> output.txt 2> output-debug.txt");
+      expect(result.command).not.toContain("and then:");
     });
 
     it("includes skill in command when provided", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:plan-phase 5",
-        "output.txt",
+        "output",
         null,
         "github-project-management",
       );
 
-      expect(result).toContain("/gsd:plan-phase 5");
-      expect(result).toContain(
+      expect(result.command).toContain("/gsd:plan-phase 5");
+      expect(result.command).toContain(
         "but first load this skill .claude/skills/github-project-management/SKILL.md",
       );
-      expect(result).toContain("> output.txt 2>&1");
+      expect(result.command).toContain("> output.txt 2> output-debug.txt");
     });
 
     it("includes skill with prompt in command", () => {
       const result = formatCcrCommandWithOutput(
         "/gsd:new-milestone",
-        "output.txt",
+        "output",
         "Build API",
         "refactor",
       );
 
-      expect(result).toContain("/gsd:new-milestone");
-      expect(result).toContain(
+      expect(result.command).toContain("/gsd:new-milestone");
+      expect(result.command).toContain(
         "but first load this skill .claude/skills/refactor/SKILL.md",
       );
-      expect(result).toContain("and then: ' Build API'");
-      expect(result).toContain("> output.txt 2>&1");
+      expect(result.command).toContain("and then: ' Build API'");
+      expect(result.command).toContain("> output.txt 2> output-debug.txt");
     });
   });
 });

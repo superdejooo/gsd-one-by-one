@@ -52,18 +52,25 @@ export function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
  * Format a GSD command for CCR execution with output redirect
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
- * @param {string} outputPath - Path to redirect output to
+ * @param {string} basePath - Base path for output files (without extension)
  * @param {string|null} prompt - Optional prompt to append at end of command
  * @param {string|null} skill - Optional skill name to load before github-actions-testing
  *                               Valid values: github-actions-templates, github-actions-testing,
  *                               github-project-management, livewire-principles, refactor
- * @returns {string} Full CCR command string with output redirect
+ * @returns {object} Object with command, stdoutPath, and stderrPath
  */
 export function formatCcrCommandWithOutput(
   gsdCommand,
-  outputPath,
+  basePath,
   prompt = null,
   skill = null,
 ) {
-  return `${formatCcrCommand(gsdCommand, prompt, skill)} > ${outputPath} 2>&1`;
+  const stdoutPath = `${basePath}.txt`;
+  const stderrPath = `${basePath}-debug.txt`;
+  const baseCommand = formatCcrCommand(gsdCommand, prompt, skill);
+  return {
+    command: `${baseCommand} > ${stdoutPath} 2> ${stderrPath}`,
+    stdoutPath,
+    stderrPath,
+  };
 }
