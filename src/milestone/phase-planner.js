@@ -15,7 +15,7 @@ import { postComment } from "../lib/github.js";
 import { extractTasksFromPlan, createIssuesForTasks } from "../lib/issues.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
-import { stripCcrLogs } from "../lib/output-cleaner.js";
+import { stripCcrLogs, extractErrorMessage } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -155,12 +155,24 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output (clean agent output only)
+    // Step 3: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
+    }
+    try {
+      stderrOutput = await fs.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 4: Validate for errors
@@ -172,7 +184,8 @@ export async function executePhaseWorkflow(context, commandArgs, skill = null) {
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase planning failed: ${stripCcrLogs(output).substring(0, 500)}`);
+      const errorMsg = extractErrorMessage(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Phase planning failed: ${errorMsg}`);
     }
 
     // Post success - pass through GSD output

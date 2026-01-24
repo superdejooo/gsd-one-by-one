@@ -12,7 +12,7 @@ import fs from "fs/promises";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { parseMilestoneMetadata } from "../lib/planning-parser.js";
 import { updateIssueBody, postComment } from "../lib/github.js";
-import { stripCcrLogs } from "../lib/output-cleaner.js";
+import { stripCcrLogs, extractErrorMessage } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -69,12 +69,24 @@ export async function executeLabelTriggerWorkflow(context) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 4: Read captured output (clean agent output only)
+    // Step 4: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
+    }
+    try {
+      stderrOutput = await fs.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 5: Validate for errors
@@ -85,7 +97,8 @@ export async function executeLabelTriggerWorkflow(context) {
       /Unknown command|invalid arguments|validation failed/i.test(output);
 
     if (isError) {
-      throw new Error(`Label trigger failed: ${stripCcrLogs(output).substring(0, 500)}`);
+      const errorMsg = extractErrorMessage(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Label trigger failed: ${errorMsg}`);
     }
 
     // Keep output file for artifact upload (don't delete)

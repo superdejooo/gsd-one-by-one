@@ -21,7 +21,7 @@ import { getPhaseIssues } from "../lib/issues.js";
 import { updateIssueStatus } from "../lib/labels.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
-import { stripCcrLogs } from "../lib/output-cleaner.js";
+import { stripCcrLogs, extractErrorMessage } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -334,8 +334,10 @@ export async function executePhaseExecutionWorkflow(
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output (clean agent output only)
+    // Step 3: Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs.readFile(stdoutPath, "utf-8");
       core.info(
@@ -344,6 +346,16 @@ export async function executePhaseExecutionWorkflow(
     } catch (error) {
       output = "(No output captured)";
       core.warning(`Failed to read output file: ${error.message}`);
+    }
+    try {
+      stderrOutput = await fs.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Step 4: Validate for errors (ignore warnings like ⚠️)
@@ -369,7 +381,8 @@ export async function executePhaseExecutionWorkflow(
 
     // Step 5: Check for errors (withErrorHandling will post the comment)
     if (isError) {
-      throw new Error(`Phase execution failed: ${output.substring(0, 500)}`);
+      const errorMsg = extractErrorMessage(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Phase execution failed: ${errorMsg}`);
     }
 
     // Step 6: Parse and format structured output

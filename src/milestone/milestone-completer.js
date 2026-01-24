@@ -12,7 +12,7 @@ import fs from "fs/promises";
 import { postComment } from "../lib/github.js";
 import { formatCcrCommandWithOutput } from "../llm/ccr-command.js";
 import { pushBranchAndTags } from "../git/git.js";
-import { stripCcrLogs } from "../lib/output-cleaner.js";
+import { stripCcrLogs, extractErrorMessage } from "../lib/output-cleaner.js";
 
 const execAsync = promisify(exec);
 
@@ -90,8 +90,10 @@ export async function executeMilestoneCompletionWorkflow(
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Read captured output (clean agent output only)
+    // Read captured output files
     let output = "";
+    let stderrOutput = "";
+    let ccrLogOutput = "";
     try {
       output = await fs.readFile(stdoutPath, "utf-8");
       core.info(
@@ -100,6 +102,16 @@ export async function executeMilestoneCompletionWorkflow(
     } catch (error) {
       output = "(No output captured)";
       core.warning(`Failed to read output file: ${error.message}`);
+    }
+    try {
+      stderrOutput = await fs.readFile(stderrPath, "utf-8");
+    } catch (error) {
+      // Debug file may not exist, that's ok
+    }
+    try {
+      ccrLogOutput = await fs.readFile("ccr.log", "utf-8");
+    } catch (error) {
+      // CCR log may not exist, that's ok
     }
 
     // Validate for errors
@@ -123,9 +135,8 @@ export async function executeMilestoneCompletionWorkflow(
       );
 
     if (isError) {
-      throw new Error(
-        `Milestone completion failed: ${output.substring(0, 500)}`,
-      );
+      const errorMsg = extractErrorMessage(output, stderrOutput, ccrLogOutput);
+      throw new Error(`Milestone completion failed: ${errorMsg}`);
     }
 
     // Format output for comment
