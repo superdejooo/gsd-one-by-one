@@ -360,14 +360,15 @@ None yet.
 | 009 | Fix CCR multiline command string breaking output redirect             | 2026-01-23 | 6d3494a | [009-fix-ccr-multiline-command-string](./quick/009-fix-ccr-multiline-command-string/)                 |
 | 010 | Split CCR output into clean agent output and debug logs               | 2026-01-24 | b5ac09f | [010-split-ccr-output-into-clean-agent-output](./quick/010-split-ccr-output-into-clean-agent-output/) |
 | 011 | Strip CCR logs from output in all workflow modules                    | 2026-01-24 | 4bdf3df | [011-strip-ccr-logs-from-output-in-all-workfl](./quick/011-strip-ccr-logs-from-output-in-all-workfl/) |
+| 012 | Fix CCR error message extraction for meaningful error reports         | 2026-01-24 | ab73de4 | [012-fix-ccr-error-message-extraction](./quick/012-fix-ccr-error-message-extraction/)                 |
 
 ## Session Continuity
 
-Last session: 2026-01-24T03:23:00+01:00
-Stopped at: Completed quick-011
+Last session: 2026-01-24T20:55:00+01:00
+Stopped at: Completed quick-012
 Resume file: None
 
-Last activity: 2026-01-24 — Completed quick-011: Strip CCR logs from output in all workflow modules
+Last activity: 2026-01-24 — Completed quick-012: Fix CCR error message extraction
 
 ## Roadmap Evolution
 
