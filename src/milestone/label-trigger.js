@@ -120,7 +120,29 @@ export async function executeLabelTriggerWorkflow(context) {
         await execPromise('git config user.email "claude-code@anthropic.com"');
         // Add all except log files
         await execPromise("git add -A");
+
+        // Log diff stats before excluding log files
+        try {
+          const { stdout: diffStat } = await execPromise("git diff --cached --stat");
+          core.info(`Staged changes (before excluding logs):\n${diffStat}`);
+        } catch (e) {
+          core.info("No staged changes to show");
+        }
+
         await execPromise("git reset HEAD -- ccr.log output-*.txt '*.log' 2>/dev/null || true");
+
+        // Log what remains after excluding logs
+        try {
+          const { stdout: finalDiff } = await execPromise("git diff --cached --stat");
+          if (finalDiff.trim()) {
+            core.info(`Final staged changes (after excluding logs):\n${finalDiff}`);
+          } else {
+            core.info("No changes remain after excluding log files");
+          }
+        } catch (e) {
+          core.info("No staged changes remain");
+        }
+
         await execPromise('git commit -m "chore: milestone created by GSD bot"');
         core.info("Changes committed");
         // Pull with rebase in case remote has new commits
