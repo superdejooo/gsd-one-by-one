@@ -115,9 +115,9 @@ export async function executeLabelTriggerWorkflow(context) {
       const { stdout: status } = await execPromise("git status --porcelain");
       if (status.trim()) {
         core.info(`Found changes to commit:\n${status}`);
-        // Configure git identity
-        await execPromise('git config user.name "GSD Bot"');
-        await execPromise('git config user.email "gsd-bot@users.noreply.github.com"');
+        // Configure git identity (GitHub Actions bot)
+        await execPromise('git config user.name "github-actions[bot]"');
+        await execPromise('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"');
         await execPromise("git add -A");
         await execPromise('git commit -m "chore: milestone created by GSD bot"');
         core.info("Changes committed");
