@@ -35801,11 +35801,15 @@ async function executeLabelTriggerWorkflow(context) {
 
     // Step 7: Post agent output as comment
     const cleanOutput = (0,output_cleaner/* stripCcrLogs */.Y)(output);
-    try {
-      await (0,github/* postComment */.Gy)(owner, repo, issueNumber, cleanOutput);
-      lib_core.info("Agent output posted as comment");
-    } catch (commentError) {
-      lib_core.warning(`Failed to post agent output: ${commentError.message}`);
+    if (cleanOutput && cleanOutput.trim()) {
+      try {
+        await (0,github/* postComment */.Gy)(owner, repo, issueNumber, cleanOutput);
+        lib_core.info("Agent output posted as comment");
+      } catch (commentError) {
+        lib_core.warning(`Failed to post agent output: ${commentError.message}`);
+      }
+    } else {
+      lib_core.warning("Agent output was empty after stripping CCR logs, skipping comment");
     }
 
     lib_core.info(`Label trigger workflow complete`);
