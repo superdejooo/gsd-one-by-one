@@ -104,13 +104,28 @@ export async function executeLabelTriggerWorkflow(context) {
 
     // Keep output file for artifact upload (don't delete)
 
-    // Step 6: Push changes to remote (agent may have created/modified files)
-    core.info("Pushing milestone changes to remote...");
+    // Step 6: Commit and push changes to remote (agent creates files but may not commit)
+    core.info("Committing and pushing milestone changes...");
     try {
+      const { exec } = await import("child_process");
+      const { promisify } = await import("util");
+      const execPromise = promisify(exec);
+
+      // Check for changes
+      const { stdout: status } = await execPromise("git status --porcelain");
+      if (status.trim()) {
+        core.info(`Found changes to commit:\n${status}`);
+        await execPromise("git add -A");
+        await execPromise('git commit -m "chore: milestone created by GSD bot"');
+        core.info("Changes committed");
+      } else {
+        core.info("No changes to commit");
+      }
+
       await pushBranchAndTags();
       core.info("Changes pushed successfully");
     } catch (pushError) {
-      core.warning(`Push failed (changes may be committed locally): ${pushError.message}`);
+      core.warning(`Commit/push failed: ${pushError.message}`);
     }
 
     // Step 7: Post agent output as comment

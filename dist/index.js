@@ -33751,7 +33751,7 @@ function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
     command = `${command} and then: ' ${prompt}'`;
   }
 
-  return `ccr code --print "${command} ---- STRICT RULES FOR CI/CD EXECUTION: 1) You MUST use Write/Edit/Bash tools to create and modify files. 2) You MUST commit changes with git. 3) This is AUTONOMOUS execution - no confirmations, no questions. 4) If blocked, write plan to .planning and explain in output. 5) Final output should be a summary of what was done. ----"`;
+  return `ccr code --print "${command} ---- STRICT RULE: NON INTERACTIVE env, output ONLY ONCE. If blocked, handover to .planning with plan and questions. ----"`;
 }
 
 /**
@@ -35376,13 +35376,28 @@ async function executeLabelTriggerWorkflow(context) {
 
     // Keep output file for artifact upload (don't delete)
 
-    // Step 6: Push changes to remote (agent may have created/modified files)
-    core.info("Pushing milestone changes to remote...");
+    // Step 6: Commit and push changes to remote (agent creates files but may not commit)
+    core.info("Committing and pushing milestone changes...");
     try {
+      const { exec } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 5317, 19));
+      const { promisify } = await Promise.resolve(/* import() */).then(__nccwpck_require__.t.bind(__nccwpck_require__, 9023, 19));
+      const execPromise = promisify(exec);
+
+      // Check for changes
+      const { stdout: status } = await execPromise("git status --porcelain");
+      if (status.trim()) {
+        core.info(`Found changes to commit:\n${status}`);
+        await execPromise("git add -A");
+        await execPromise('git commit -m "chore: milestone created by GSD bot"');
+        core.info("Changes committed");
+      } else {
+        core.info("No changes to commit");
+      }
+
       await (0,git/* pushBranchAndTags */.NT)();
       core.info("Changes pushed successfully");
     } catch (pushError) {
-      core.warning(`Push failed (changes may be committed locally): ${pushError.message}`);
+      core.warning(`Commit/push failed: ${pushError.message}`);
     }
 
     // Step 7: Post agent output as comment
@@ -36929,6 +36944,36 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
 /******/ 	};
 /******/ })();
 /******/ 
+/******/ /* webpack/runtime/create fake namespace object */
+/******/ (() => {
+/******/ 	var getProto = Object.getPrototypeOf ? (obj) => (Object.getPrototypeOf(obj)) : (obj) => (obj.__proto__);
+/******/ 	var leafPrototypes;
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 16: return value when it's Promise-like
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__nccwpck_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = this(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if(typeof value === 'object' && value) {
+/******/ 			if((mode & 4) && value.__esModule) return value;
+/******/ 			if((mode & 16) && typeof value.then === 'function') return value;
+/******/ 		}
+/******/ 		var ns = Object.create(null);
+/******/ 		__nccwpck_require__.r(ns);
+/******/ 		var def = {};
+/******/ 		leafPrototypes = leafPrototypes || [null, getProto({}), getProto([]), getProto(getProto)];
+/******/ 		for(var current = mode & 2 && value; typeof current == 'object' && !~leafPrototypes.indexOf(current); current = getProto(current)) {
+/******/ 			Object.getOwnPropertyNames(current).forEach((key) => (def[key] = () => (value[key])));
+/******/ 		}
+/******/ 		def['default'] = () => (value);
+/******/ 		__nccwpck_require__.d(ns, def);
+/******/ 		return ns;
+/******/ 	};
+/******/ })();
+/******/ 
 /******/ /* webpack/runtime/define property getters */
 /******/ (() => {
 /******/ 	// define getter functions for harmony exports
@@ -36944,6 +36989,17 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
 /******/ /* webpack/runtime/hasOwnProperty shorthand */
 /******/ (() => {
 /******/ 	__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ })();
+/******/ 
+/******/ /* webpack/runtime/make namespace object */
+/******/ (() => {
+/******/ 	// define __esModule on exports
+/******/ 	__nccwpck_require__.r = (exports) => {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
 /******/ })();
 /******/ 
 /******/ /* webpack/runtime/compat */
