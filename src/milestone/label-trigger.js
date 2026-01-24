@@ -111,14 +111,14 @@ export async function executeLabelTriggerWorkflow(context) {
       const { promisify } = await import("util");
       const execPromise = promisify(exec);
 
-      // Check for changes
-      const { stdout: status } = await execPromise("git status --porcelain");
+      // Check for changes (only in .planning directory)
+      const { stdout: status } = await execPromise("git status --porcelain .planning");
       if (status.trim()) {
         core.info(`Found changes to commit:\n${status}`);
         // Configure git identity (Claude Code)
         await execPromise('git config user.name "Claude Code"');
         await execPromise('git config user.email "claude-code@anthropic.com"');
-        await execPromise("git add -A");
+        await execPromise("git add .planning");
         await execPromise('git commit -m "chore: milestone created by GSD bot"');
         core.info("Changes committed");
       } else {
