@@ -33659,20 +33659,27 @@ function formatCcrCommand(gsdCommand, prompt = null, skill = null) {
  * Format a GSD command for CCR execution with output redirect
  *
  * @param {string} gsdCommand - The GSD command (e.g., "/gsd:plan-phase 7")
- * @param {string} outputPath - Path to redirect output to
+ * @param {string} basePath - Base path for output files (without extension)
  * @param {string|null} prompt - Optional prompt to append at end of command
  * @param {string|null} skill - Optional skill name to load before github-actions-testing
  *                               Valid values: github-actions-templates, github-actions-testing,
  *                               github-project-management, livewire-principles, refactor
- * @returns {string} Full CCR command string with output redirect
+ * @returns {object} Object with command, stdoutPath, and stderrPath
  */
 function formatCcrCommandWithOutput(
   gsdCommand,
-  outputPath,
+  basePath,
   prompt = null,
   skill = null,
 ) {
-  return `${formatCcrCommand(gsdCommand, prompt, skill)} > ${outputPath} 2>&1`;
+  const stdoutPath = `${basePath}.txt`;
+  const stderrPath = `${basePath}-debug.txt`;
+  const baseCommand = formatCcrCommand(gsdCommand, prompt, skill);
+  return {
+    command: `${baseCommand} > ${stdoutPath} 2> ${stderrPath}`,
+    stdoutPath,
+    stderrPath,
+  };
 }
 
 
@@ -35210,15 +35217,16 @@ async function executeLabelTriggerWorkflow(context) {
     core.info(`Formatted prompt (${prompt.length} chars)`);
 
     // Step 2: Execute GSD new-milestone via CCR with prompt
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,ccr_command/* formatCcrCommandWithOutput */.e)(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = (0,ccr_command/* formatCcrCommandWithOutput */.e)(
       "/gsd:new-milestone",
-      outputPath,
+      basePath,
       prompt, // Pass issue content as prompt
       null, // No skill override
     );
 
     core.info(`Executing: ${command}`);
+    core.info(`Debug logs: ${stderrPath}`);
 
     // Step 3: Execute command with 10 minute timeout (same as phase planner)
     let exitCode = 0;
@@ -35229,10 +35237,10 @@ async function executeLabelTriggerWorkflow(context) {
       core.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 4: Read captured output
+    // Step 4: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await promises_.readFile(outputPath, "utf-8");
+      output = await promises_.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }
@@ -35453,15 +35461,16 @@ async function executeMilestoneCompletionWorkflow(
   try {
     // Execute GSD complete-milestone via CCR
     // 10 minute timeout - completion is mostly archiving work
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_6__/* .formatCcrCommandWithOutput */ .e)(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_6__/* .formatCcrCommandWithOutput */ .e)(
       "/gsd:complete-milestone",
-      outputPath,
+      basePath,
       null,
       skill,
     );
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -35471,10 +35480,10 @@ async function executeMilestoneCompletionWorkflow(
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Read captured output
+    // Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stdoutPath, "utf-8");
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
         `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
       );
@@ -35894,18 +35903,19 @@ async function executePhaseExecutionWorkflow(
 
     // Step 2: Execute GSD execute-phase via CCR
     // 30 minute timeout - execution takes longer than planning
-    const outputPath = `output-${Date.now()}.txt`;
+    const basePath = `output-${Date.now()}`;
     const gsdCommand = phaseNumber
       ? `/gsd:execute-phase ${phaseNumber}`
       : "/gsd:execute-phase";
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
+    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
       gsdCommand,
-      outputPath,
+      basePath,
       null,
       skill,
     );
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -35915,10 +35925,10 @@ async function executePhaseExecutionWorkflow(
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output
+    // Step 3: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(outputPath, "utf-8");
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stdoutPath, "utf-8");
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(
         `CCR output (${output.length} chars): ${output.substring(0, 500)}`,
       );
@@ -36177,15 +36187,16 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Parsed phase number: ${phaseNumber}`);
 
     // Step 2: Execute GSD plan-phase command via CCR
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_9__/* .formatCcrCommandWithOutput */ .e)(
       `/gsd:plan-phase ${phaseNumber}`,
-      outputPath,
+      basePath,
       null,
       skill,
     );
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -36195,10 +36206,10 @@ async function executePhaseWorkflow(context, commandArgs, skill = null) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output
+    // Step 3: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(outputPath, "utf-8");
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_4__.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }
@@ -36616,15 +36627,16 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
 
     // Step 2: Execute text as prompt via CCR
     // We don't use /gsd:reply - just send the text directly as a prompt
-    const outputPath = `output-${Date.now()}.txt`;
-    const command = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)(
+    const basePath = `output-${Date.now()}`;
+    const { command, stdoutPath, stderrPath } = (0,_llm_ccr_command_js__WEBPACK_IMPORTED_MODULE_5__/* .formatCcrCommandWithOutput */ .e)(
       "",
-      outputPath,
+      basePath,
       commandArgs,
       skill,
     );
 
     _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Executing: ${command}`);
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Debug logs: ${stderrPath}`);
 
     let exitCode = 0;
     try {
@@ -36634,10 +36646,10 @@ async function executeReplyWorkflow(context, commandArgs, skill = null) {
       _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`Command exited with code ${exitCode}`);
     }
 
-    // Step 3: Read captured output
+    // Step 3: Read captured output (clean agent output only)
     let output = "";
     try {
-      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(outputPath, "utf-8");
+      output = await fs_promises__WEBPACK_IMPORTED_MODULE_3__.readFile(stdoutPath, "utf-8");
     } catch (error) {
       output = "(No output captured)";
     }
