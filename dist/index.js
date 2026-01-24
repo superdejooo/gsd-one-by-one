@@ -35395,6 +35395,8 @@ async function executeLabelTriggerWorkflow(context) {
         await execPromise("git reset HEAD -- ccr.log output-*.txt '*.log' 2>/dev/null || true");
         await execPromise('git commit -m "chore: milestone created by GSD bot"');
         core.info("Changes committed");
+        // Pull with rebase in case remote has new commits
+        await execPromise("git pull --rebase origin main || true");
       } else {
         core.info("No changes to commit");
       }
