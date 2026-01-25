@@ -18,8 +18,8 @@ export function generateCCRConfig() {
   // Full CCR configuration structure
   const config = {
     NON_INTERACTIVE_MODE: true,
-    LOG: false,
-    LOG_LEVEL: "debug",
+    LOG: true,
+    LOG_LEVEL: "info",
     CLAUDE_PATH: "",
     HOST: "127.0.0.1",
     PORT: 3456,
