@@ -89,7 +89,7 @@ jobs:
         uses: ./
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ANTHROPIC_LOG: debug
+          ANTHROPIC_LOG: info
         with:
           issue-number: ${{ github.event.issue.number }}
           repo-owner: ${{ github.repository_owner }}
