@@ -52,15 +52,27 @@ describe("git.js", () => {
       );
     });
 
-    it("logs warning when stderr has content", async () => {
-      mockExec.mockReturnValue({ stdout: "output", stderr: "warning message" });
+    it("logs warning when stderr contains warning/error keywords", async () => {
+      mockExec.mockReturnValue({ stdout: "output", stderr: "warning: unstaged changes" });
 
       const result = await runGitCommand("git status");
 
       expect(result).toBe("output");
       expect(vi.mocked(core.warning)).toHaveBeenCalledWith(
-        "Git command warning: warning message",
+        "Git: warning: unstaged changes",
       );
+    });
+
+    it("logs info when stderr is informational (no warning keywords)", async () => {
+      mockExec.mockReturnValue({ stdout: "output", stderr: "To https://github.com/repo main -> main" });
+
+      const result = await runGitCommand("git push");
+
+      expect(result).toBe("output");
+      expect(vi.mocked(core.info)).toHaveBeenCalledWith(
+        "Git: To https://github.com/repo main -> main",
+      );
+      expect(vi.mocked(core.warning)).not.toHaveBeenCalled();
     });
 
     it("throws error when command fails", async () => {
